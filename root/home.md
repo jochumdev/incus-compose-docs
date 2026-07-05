@@ -9,14 +9,17 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-07-05T04:14:13.858019864Z"
+leafwiki_updated_at: "2026-07-05T04:58:44.551010269Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
-
 # incus-compose
 
-[![asciicast](https://asciinema.org/a/1259458.svg)](https://asciinema.org/a/1259458)
+[Beta 21 - many-dependencies - 30 workers](https://asciinema.org/a/1260145)
+![asciicast](https://asciinema.org/a/1260145.svg)
+
+[Beta 19 - Immich](https://asciinema.org/a/1259458)
+![asciicast](https://asciinema.org/a/1259458.svg)
 
 ## Why incus-compose?
 
@@ -36,21 +39,21 @@ Status: **Beta** - testing the beta release of incus-compose.
 - Compose project parsing via compose-go, with automatic `compose.incus.yaml` overrides and `x-incus` / `x-incus-compose` extensions for raw Incus options
 - OCI image pulling from docker.io, ghcr.io, and other registries
 - Two-stage image cache in a dedicated Incus project (survives `down`/`up`, avoids registry rate limits)
-- Local image building via Podman/Docker [doc](/docs/builds)
+- Local image building via Podman/Docker [doc](/builds)
 - Bridge networks with automatic name sanitization
-- Static IPv4/IPv6 addresses with automatic DHCP ranges [doc](/docs/compose-compatibility#automatic-dhcp-ranges)
-- Port forwarding via proxy devices or kernel NAT mode [doc](/docs/compose-compatibility#port-publishing)
-- Storage volumes with UID/GID shifting; bind mounts (pass-through by default, optional seeding) [doc](/docs/compose-compatibility#volume-permissions)
-- Health checks, restart policies, and `depends_on: service_healthy` ordering via the `ic-healthd` sidecar [doc](/docs/healthd)
+- Static IPv4/IPv6 addresses with automatic DHCP ranges [doc](/compose-compatibility#automatic-dhcp-ranges)
+- Port forwarding via proxy devices or kernel NAT mode [doc](/compose-compatibility#port-publishing)
+- Storage volumes with UID/GID shifting; bind mounts (pass-through by default, optional seeding) [doc](/compose-compatibility#volume-permissions)
+- Health checks, restart policies, and `depends_on: service_healthy` ordering via the `ic-healthd` sidecar [doc](/healthd)
 - Service scaling with `up --scale` and orphan pruning
 - Incus project isolation
 - Resource limits and other advanced compose features (`shm_size`, `container_name`, etc.)
-- Configuration via `INCUS_COMPOSE_*` environment variables for every flag, with a configurable parallel worker count [doc](/docs/environment-variables)
+- Configuration via `INCUS_COMPOSE_*` environment variables for every flag, with a configurable parallel worker count [doc](/environment-variables)
 
 ## Quick Start
 
 Requires `podman` or `docker` for image building and an Incus https remote (needed for healthchecking) with OCI registries added.
-See [Getting Started](/docs/getting-started) for the full setup walkthrough.
+See [Getting Started](/getting-started) for the full setup walkthrough.
 
 Install the latest release (the script verifies the SHA-256 checksum):
 
@@ -78,19 +81,12 @@ incus-compose down
 
 ## Quick Links
 
-Full docs index: [docs/v1/](/docs)
-
-- **[Getting Started](/docs/getting-started)** - Install and run your first compose project
-- **[CLI Reference](/docs/cli-reference)** - Commands and options
-- **[Compose Compatibility](/docs/compose-compatibility)** - What works and what doesn't
-- **[Architecture](/docs/architecture)** - How it works under the hood
-- **[Why Incus?](/docs/why-incus)** - Benefits over Docker
 - **[Contributing](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md)** - Contributing to incus-compose
 - **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** - Changelog since 0.0.1-beta1
 
 ## Architecture
 
-incus-compose uses a **resource-first design**, see [Architecture Documentation](/docs/architecture) for details.
+incus-compose uses a **resource-first design**, see [Architecture Documentation](/architecture) for details.
 
 ## Support and community
 

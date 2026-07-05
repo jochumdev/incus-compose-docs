@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:57:55.512267612Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -120,7 +120,7 @@ Every global flag can be set via an environment variable. Flags given on the com
 
 | Variable                | Flag        | Description                                                                                              |
 | ----------------------- | ----------- | -------------------------------------------------------------------------------------------------------- |
-| `INCUS_COMPOSE_BUILDER` | `--builder` | Preferred builder binary or path (e.g. `podman`, `docker`); empty = auto-detect. See [Builds](/docs/builds). |
+| `INCUS_COMPOSE_BUILDER` | `--builder` | Preferred builder binary or path (e.g. `podman`, `docker`); empty = auto-detect. See [Builds](/builds). |
 
 ### Display and Debugging
 
@@ -142,7 +142,7 @@ Every global flag can be set via an environment variable. Flags given on the com
 
 The ic-healthd daemon itself reads a further set of `INCUS_COMPOSE_HEALTHD_*`
 variables (`_TOKEN`, `_PROJECTS`, `_DATA_DIR`, `_SECRETS_DIR`, `_DEBUG`), which
-incus-compose injects into the sidecar. See [Running ic-healthd Directly](/docs/healthd#running-ic-healthd-directly).
+incus-compose injects into the sidecar. See [Running ic-healthd Directly](/healthd#running-ic-healthd-directly).
 
 ### Examples
 
@@ -162,5 +162,5 @@ INCUS_COMPOSE_DEBUG=1 INCUS_COMPOSE_WORKERS=20 incus-compose up
 
 ## See Also
 
-- [CLI Reference](/docs/cli-reference) - command options and flags
-- [Compose Compatibility](/docs/compose-compatibility) - interpolation and env_file support
+- [CLI Reference](/cli-reference) - command options and flags
+- [Compose Compatibility](/compose-compatibility) - interpolation and env_file support

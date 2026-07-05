@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:58:05.905573716Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -214,5 +214,5 @@ just run -f test/fixtures/simple-nginx/compose.yaml config
 ## See Also
 
 - [Contributing](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md) - coding, style, and workflow rules
-- [Architecture](/docs/architecture) - the design these tests exercise
-- [Client Package](/docs/architecture/client) - Stack and resource internals
+- [Architecture](/architecture) - the design these tests exercise
+- [Client Package](/architecture/client) - Stack and resource internals

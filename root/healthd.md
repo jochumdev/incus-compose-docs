@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:58:05.613998261Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -428,6 +428,6 @@ incus-compose healthd up --recreate
 
 ## See Also
 
-- [CLI Reference](/docs/cli-reference#healthd) - healthd management commands
-- [Compose Compatibility](/docs/compose-compatibility) - healthcheck and restart policy support
-- [Architecture](/docs/architecture) - how the sidecar fits the resource model
+- [CLI Reference](/cli-reference#healthd) - healthd management commands
+- [Compose Compatibility](/compose-compatibility) - healthcheck and restart policy support
+- [Architecture](/architecture) - how the sidecar fits the resource model

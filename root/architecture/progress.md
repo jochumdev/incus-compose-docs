@@ -9,7 +9,7 @@ title: Progress
 leafwiki_id: pazuq_fvg
 leafwiki_title: Progress
 leafwiki_created_at: "2026-07-05T03:54:00.685195744Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:58:05.905573716Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -140,5 +140,5 @@ repaint.
 
 ## See Also
 
-- [Hooks](/docs/architecture/client/hooks) - the after-hook that drives completion
-- [Image](/docs/architecture/client/image) - image pull progress (native vs OCI)
+- [Hooks](/architecture/client/hooks) - the after-hook that drives completion
+- [Image](/architecture/client/image) - image pull progress (native vs OCI)

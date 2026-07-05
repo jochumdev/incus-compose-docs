@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:58:05.613998261Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -123,7 +123,7 @@ services:
 `incus` is the API URL healthd connects to. Both default to the project's own
 network and the connection's port. The same values are available as
 `--healthd-network`/`--healthd-incus` (CLI overrides the compose file). See
-[Health Checking - Network Configuration](/docs/healthd#network-configuration).
+[Health Checking - Network Configuration](/healthd#network-configuration).
 
 When this option is set, incus-compose does not create compose-managed Incus network resources for service network attachments. Instances use the network devices provided by the copied profile instead. Service-level static IP assignments (`ipv4_address` / `ipv6_address`) are not supported in this mode because incus-compose does not create explicit NIC devices.
 
@@ -333,11 +333,11 @@ Then update `x-incus-compose.pool` in your compose file and run `incus-compose u
 
 ### Build
 
-See [Builds](/docs/builds) for supported options, builder selection, and platform handling.
+See [Builds](/builds) for supported options, builder selection, and platform handling.
 
 ### Health Checks
 
-Supported via the `ic-healthd` sidecar. See [Health Checking](/docs/healthd) for full details,
+Supported via the `ic-healthd` sidecar. See [Health Checking](/healthd) for full details,
 including config keys, defaults, security model, and `healthd` management commands.
 
 The healthcheck status (`starting`, `healthy`, `unhealthy`) is reported in the `Status` column of
@@ -355,7 +355,7 @@ services:
       limits.memory: 512MB
 ```
 
-Any Incus instance config key is accepted. See [Architecture](/docs/architecture#x-incus-raw-incus-options) for full details.
+Any Incus instance config key is accepted. See [Architecture](/architecture#x-incus-raw-incus-options) for full details.
 
 ### Restart Policies
 
@@ -376,7 +376,7 @@ services:
 ```
 
 Restart enforcement is handled by the ic-healthd sidecar, including
-`restart` without a healthcheck — see [Health Checking](/docs/healthd#restart-without-a-test).
+`restart` without a healthcheck — see [Health Checking](/healthd#restart-without-a-test).
 
 ### Secrets
 
@@ -408,7 +408,7 @@ configs:
 
 The `HEALTHCHECK` instruction embedded in Docker images is not read — declare
 `healthcheck.test` explicitly in the compose file.
-See [healthd.md](/docs/healthd#dockerfile-healthcheck-not-supported) for the background.
+See [healthd.md](/healthd#dockerfile-healthcheck-not-supported) for the background.
 
 ### Extended Features
 
@@ -425,7 +425,7 @@ Not supported:
 > a local Unix-socket client. Image caching copies images between Incus projects
 > using pull mode, which requires the server to be reachable over the network.
 > Without it, `up` fails with `The source server isn't listening on the network`.
-> See [Getting Started](/docs/getting-started#incus-must-listen-on-the-network-required).
+> See [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
 
 With that in place, a few behaviors still depend on whether incus-compose talks
 to a local Incus over the Unix socket or to a remote daemon over HTTPS:
@@ -438,7 +438,7 @@ to a local Incus over the Unix socket or to a remote daemon over HTTPS:
 Bind mounts read the host filesystem the daemon runs on, so they only work when
 that host is your machine. For health checks, ic-healthd reaches Incus over
 HTTPS; over a Unix socket there is no port to reuse, so the endpoint must be set
-explicitly — see [Network Configuration](/docs/healthd#network-configuration).
+explicitly — see [Network Configuration](/healthd#network-configuration).
 
 ## Behavioral Differences
 

@@ -4,12 +4,12 @@ dateCreated: 2026-07-05T01:03:24.052Z
 description: null
 editor: markdown
 published: true
-tags: null
+tags: []
 title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
+leafwiki_updated_at: "2026-07-05T04:57:39.176221753Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -64,18 +64,18 @@ Run OCI images directly on Incus with `incus-compose`:
 
 ## Key Advantages
 
-| Feature        | OCI Engines               | Incus                            |
-| -------------- | ------------------------- | -------------------------------- |
-| Container type | Application (PID 1 = app) | System (full init)               |
-| Isolation      | Namespaces only           | LXC namespaces + cgroups         |
-| Security       | Varying models            | VM-like isolation                |
-| Networking     | Port mapping via iptables | Real IPs and port proxies        |
-| Storage        | Overlay filesystem        | ZFS/Btrfs with instant snapshots |
-| Image caching  | Per-engine cache          | Global or per-project            |
+| Feature        | OCI Engines               | Incus                                |
+| -------------- | ------------------------- | ------------------------------------ |
+| Container type | Application (PID 1 = app) | System (full init)                   |
+| Isolation      | Namespaces only           | LXC namespaces + cgroups             |
+| Security       | Varying models            | VM-like isolation                    |
+| Networking     | Port mapping via iptables | Real IPs and port proxies            |
+| Storage        | Overlay filesystem        | ZFS/Btrfs with instant snapshots     |
+| Image caching  | Per-engine cache          | Global blob cache, per-project alias |
 
 ## Scale Beyond a Single Host
 
-**Incus clustering:**
+**[Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/):**
 
 - Scale from 1 to 100+ bare metal hosts
 - Single API endpoint for the entire cluster
@@ -83,7 +83,7 @@ Run OCI images directly on Incus with `incus-compose`:
 - Live migration between hosts
 - No complex orchestration layer needed
 
-**IncusOS:**
+**[IncusOS](https://linuxcontainers.org/incus-os/):**
 
 - Immutable OS purpose-built for Incus
 - Safe, predictable updates
@@ -111,5 +111,5 @@ Run OCI images directly on Incus with `incus-compose`:
 
 ## See Also
 
-- [Getting Started](/docs/getting-started) - install and run your first project
-- [Compose Compatibility](/docs/compose-compatibility) - what works and what does not
+- [Getting Started](/getting-started) - install and run your first project
+- [Compose Compatibility](/compose-compatibility) - what works and what does not
