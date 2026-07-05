@@ -9,7 +9,7 @@ title: Terminology
 leafwiki_id: 3WzXqlfDg
 leafwiki_title: Terminology
 leafwiki_created_at: "2026-07-05T03:54:00.191003304Z"
-leafwiki_updated_at: "2026-07-05T04:08:40.346229394Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -49,7 +49,7 @@ sometimes has two names. This page disambiguates them.
 - **Service** - a Compose concept: one entry under `services:` in your
   `compose.yaml`. It is a _definition_, not a running thing.
 - **Instance** - an Incus concept: a single running (or stopped) workload. This
-  is what a service becomes. With [`deploy.replicas`](/docs/v1/compose-compatibility)
+  is what a service becomes. With [`deploy.replicas`](/docs/compose-compatibility)
   a single service produces several instances named `{service}-{index}`
   (e.g. `web-1`, `web-2`). A service with no replicas still becomes one
   instance, `{service}-1`.
@@ -65,21 +65,21 @@ sometimes has two names. This page disambiguates them.
   after the directory by default, overridable with `-p`.
 - **Incus project** - an isolation boundary inside Incus (its own instances,
   networks, volumes). incus-compose creates one Incus project per compose project,
-  using a [sanitized name](/docs/v1/architecture#name-sanitization).
+  using a [sanitized name](/docs/architecture#name-sanitization).
 
 ### Network
 
 - **Compose network** - an entry under `networks:`.
 - **Incus network** - a managed bridge created for it. Long names are hashed to
   fit the Linux interface limit; see
-  [Network Naming](/docs/v1/compose-compatibility#network-naming).
+  [Network Naming](/docs/compose-compatibility#network-naming).
 
 ### Volume vs Bind mount
 
 - **Named volume** (`data:/var/lib/app`) - becomes an Incus **custom storage
   volume** with automatic UID/GID shifting. Works locally and remotely.
 - **Bind mount** (`./config:/etc/app`) - mounts a host path directly. See
-  [Volumes](/docs/v1/compose-compatibility#volumes).
+  [Volumes](/docs/compose-compatibility#volumes).
 
 ### Image (OCI vs native)
 
@@ -88,8 +88,8 @@ sometimes has two names. This page disambiguates them.
 - **Native Incus image** - an Incus system-container/VM image. incus-compose
   works primarily with OCI images.
 - Images flow Registry -> Cache -> Project; see
-  [Image Caching](/docs/v1/getting-started#image-caching) and the
-  [3-stage flow](/docs/v1/architecture#image-caching-3-stage-flow).
+  [Image Caching](/docs/getting-started#image-caching) and the
+  [3-stage flow](/docs/architecture#image-caching-3-stage-flow).
 
 ## Incus terms
 
@@ -108,47 +108,47 @@ sometimes has two names. This page disambiguates them.
 - **ic-healthd / sidecar** - a small daemon incus-compose runs to enforce
   `healthcheck`, `restart:`, and `depends_on: service_healthy`. Incus does not do
   these itself. It is transparent in normal use but a core component; see
-  [Health Checking](/docs/v1/healthd) and
-  [Debugging ic-healthd](/docs/v1/healthd#debugging-ic-healthd).
+  [Health Checking](/docs/healthd) and
+  [Debugging ic-healthd](/docs/healthd#debugging-ic-healthd).
 - **Image cache** - a separate Incus project holding pulled images so repeated
   `up` + `down --project` runs are fast and avoid registry rate limits. Configurable via
   `INCUS_COMPOSE_IMAGE_CACHE`.
 - **Name sanitization** - the rules that turn compose names into valid Incus
   project, instance, and network names; see
-  [Name Sanitization](/docs/v1/architecture#name-sanitization).
+  [Name Sanitization](/docs/architecture#name-sanitization).
 - **`x-incus`** - a compose extension to pass raw Incus options verbatim to
   instances, networks, and volumes; see
-  [x-incus](/docs/v1/architecture#x-incus-raw-incus-options).
+  [x-incus](/docs/architecture#x-incus-raw-incus-options).
 - **`x-incus-compose`** - a compose extension for incus-compose-specific features
   (e.g. `healthd`, volume `pool`); see
-  [x-incus-compose](/docs/v1/architecture#x-incus-compose-compose-specific-features).
+  [x-incus-compose](/docs/architecture#x-incus-compose-compose-specific-features).
 - **`compose.incus.yaml`** - an optional override file loaded automatically
   alongside `compose.yaml` for Incus-specific settings; see
-  [Incus Override File](/docs/v1/compose-compatibility#incus-override-file).
+  [Incus Override File](/docs/compose-compatibility#incus-override-file).
 
 ## Contributor / internal terms
 
 These appear in the codebase and architecture docs, not in everyday use. See the
-[Client Package](/docs/v1/architecture/client) for detail.
+[Client Package](/docs/architecture/client) for detail.
 
 - **Resource** - the unified interface over images, instances, networks,
   profiles, and volumes.
 - **Ensure / two-phase** - resources are first configured in memory, then
   realized on the server; `Ensure` always runs before start/stop/delete. See the
-  [Two-Phase Resource Pattern](/docs/v1/architecture#two-phase-resource-pattern).
+  [Two-Phase Resource Pattern](/docs/architecture#two-phase-resource-pattern).
 - **Stack** - the ordered collection of resources executed for an action.
 - **Priority** - numeric ordering (images before networks before instances, ...)
   used instead of a dependency graph; see
-  [Resource Hierarchy](/docs/v1/architecture#resource-hierarchy).
+  [Resource Hierarchy](/docs/architecture#resource-hierarchy).
 - **WorkerPool** - bounded concurrency for batched operations (the `--workers`
   flag).
 - **Hook** - before/after interception around resource actions; see
-  [Hooks](/docs/v1/architecture/client/hooks).
+  [Hooks](/docs/architecture/client/hooks).
 - **ETag** - Incus optimistic-concurrency token returned when fetching a
   resource and passed back on updates.
 
 ## See also
 
-- [Getting Started](/docs/v1/getting-started)
-- [Compose Compatibility](/docs/v1/compose-compatibility)
-- [Architecture](/docs/v1/architecture)
+- [Getting Started](/docs/getting-started)
+- [Compose Compatibility](/docs/compose-compatibility)
+- [Architecture](/docs/architecture)

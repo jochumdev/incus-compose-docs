@@ -9,7 +9,7 @@ title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-07-05T03:54:00.417328532Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -111,5 +111,5 @@ Run OCI images directly on Incus with `incus-compose`:
 
 ## See Also
 
-- [Getting Started](/docs/v1/getting-started) - install and run your first project
-- [Compose Compatibility](/docs/v1/compose-compatibility) - what works and what does not
+- [Getting Started](/docs/getting-started) - install and run your first project
+- [Compose Compatibility](/docs/compose-compatibility) - what works and what does not

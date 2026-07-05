@@ -9,7 +9,7 @@ title: Hooks
 leafwiki_id: r4mXqlBDR
 leafwiki_title: Hooks
 leafwiki_created_at: "2026-07-05T03:54:01.308369447Z"
-leafwiki_updated_at: "2026-07-05T03:56:54.302628405Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -315,7 +315,7 @@ client.AddHookAfter(func(_ context.Context, action Action, r Resource, args Opti
 ```
 
 For live, per-operation progress (image pulls, lifecycle), see
-[Progress](/docs/v1/architecture/progress) - the after-hook is what marks each line done.
+[Progress](/docs/architecture/progress) - the after-hook is what marks each line done.
 
 ### Conditional Error Suppression
 

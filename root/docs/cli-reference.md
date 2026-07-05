@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-07-05T04:07:19.103742409Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -28,7 +28,7 @@ leafwiki_last_author_id: vOmfrlBDg
 | `-E`, `--os-env`            | Include OS env vars                                                                                                                                         |
 | `--remote`                  | Incus remote (`INCUS_REMOTE`)                                                                                                                               |
 | `--ansi`                    | Color output: never/always/auto (`INCUS_COMPOSE_ANSI`)                                                                                                      |
-| `--image-cache`             | Incus project used as image cache (`INCUS_COMPOSE_IMAGE_CACHE`, default: `default`), see [Environment Variables](/docs/v1/environment-variables#incus-connection) |
+| `--image-cache`             | Incus project used as image cache (`INCUS_COMPOSE_IMAGE_CACHE`, default: `default`), see [Environment Variables](/docs/environment-variables#incus-connection) |
 | `--storage-pool`            | Default storage pool for volumes (`INCUS_COMPOSE_STORAGE_POOL`, default: `detect` for auto-detection)                                                       |
 | `--workers`                 | Number of concurrent workers (`INCUS_COMPOSE_WORKERS`, default: `4`)                                                                                        |
 | `--debug`                   | Debug logging                                                                                                                                               |
@@ -65,7 +65,7 @@ incus-compose up [SERVICE...]
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
-For services with `build:`, `up` builds missing images by default. Use `--build` to force a rebuild or `--no-build` to require the image to already exist. See [Builds](/docs/v1/builds) for details.
+For services with `build:`, `up` builds missing images by default. Use `--build` to force a rebuild or `--no-build` to require the image to already exist. See [Builds](/docs/builds) for details.
 
 ## build
 
@@ -82,7 +82,7 @@ incus-compose build [SERVICE...]
 
 When service names are provided, only matching build-configured services are built. Services without `build:` are skipped. Built images are imported into the Incus project and used by `up`.
 
-See [Builds](/docs/v1/builds): for supported Compose build options and requirements.
+See [Builds](/docs/builds): for supported Compose build options and requirements.
 
 ## down
 
@@ -274,7 +274,7 @@ Equivalent to `INCUS_PROJECT=<project> incus COMMAND [ARGS...]`.
 
 ## healthd
 
-Manage the ic-healthd sidecar. See [Health Checking](/docs/v1/healthd) for full details.
+Manage the ic-healthd sidecar. See [Health Checking](/docs/healthd) for full details.
 
 ```
 incus-compose healthd <subcommand>
@@ -289,7 +289,7 @@ incus-compose healthd <subcommand>
 | `down`            | Stop and remove the sidecar           |
 
 `healthd up` also accepts `--image`, `--binary`, `--incus`, and `--network`. See
-[Health Checking - Network Configuration](/docs/v1/healthd#network-configuration).
+[Health Checking - Network Configuration](/docs/healthd#network-configuration).
 
 ## list
 

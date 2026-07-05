@@ -9,7 +9,7 @@ title: Errors
 leafwiki_id: _kmuq_BDR
 leafwiki_title: Errors
 leafwiki_created_at: "2026-07-05T03:54:01.146252167Z"
-leafwiki_updated_at: "2026-07-05T03:56:47.263945826Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -120,4 +120,4 @@ Each `With*` method returns a new `*Error` preserving the sentinel identity, so 
 
 `Wrap(nil)` returns a non-nil `*Error` (a sentinel with no cause), so only wrap a
 real error: wrapping unconditionally turns a success path into a spurious failure
-(common in after hooks, see [Hooks](/docs/v1/architecture/client/hooks#attribute-failures-in-complex-hooks)).
+(common in after hooks, see [Hooks](/docs/architecture/client/hooks#attribute-failures-in-complex-hooks)).

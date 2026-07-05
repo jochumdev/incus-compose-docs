@@ -3,7 +3,7 @@ tags: []
 leafwiki_id: Nrzuq_BDR
 leafwiki_title: Client
 leafwiki_created_at: "2026-07-05T03:54:00.968216765Z"
-leafwiki_updated_at: "2026-07-05T04:10:17.860708081Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -69,12 +69,12 @@ func main() {
 
 ## Documentation
 
-- [Errors](/docs/v1/architecture/client/errors) - Sentinel errors and automatic context enrichment
-- [Hooks](/docs/v1/architecture/client/hooks) - Hook system details
-- [Image](/docs/v1/architecture/client/image) - Image resource
-- [Instance](/docs/v1/architecture/client/instance) - Instance resource
+- [Errors](/docs/architecture/client/errors) - Sentinel errors and automatic context enrichment
+- [Hooks](/docs/architecture/client/hooks) - Hook system details
+- [Image](/docs/architecture/client/image) - Image resource
+- [Instance](/docs/architecture/client/instance) - Instance resource
 
-See also [Architecture Overview](/docs/v1/architecture).
+See also [Architecture Overview](/docs/architecture).
 
 ## Core Types
 

@@ -9,7 +9,7 @@ title: Builds
 leafwiki_id: wkgXq_fDR
 leafwiki_title: Builds
 leafwiki_created_at: "2026-07-05T03:53:59.09728476Z"
-leafwiki_updated_at: "2026-07-05T04:05:18.976417521Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -193,6 +193,6 @@ The following Compose build options are currently not implemented:
 
 ## See Also
 
-- [CLI Reference](/docs/v1/cli-reference#build) - `build` command flags and `up` build behavior
-- [Compose Compatibility](/docs/v1/compose-compatibility) - overall feature support
-- [Getting Started](/docs/v1/getting-started) - first project walkthrough
+- [CLI Reference](/docs/cli-reference#build) - `build` command flags and `up` build behavior
+- [Compose Compatibility](/docs/compose-compatibility) - overall feature support
+- [Getting Started](/docs/getting-started) - first project walkthrough

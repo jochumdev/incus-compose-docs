@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-07-05T04:04:11.981192007Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -22,7 +22,7 @@ incus-compose lets you run your existing `compose.yaml` files directly on Incus 
 
 - Incus 6.3+ installed and running
 - Access to an Incus server (local or remote)
-- `podman` or `docker` for image building (see [Builds](/docs/v1/builds))
+- `podman` or `docker` for image building (see [Builds](/docs/builds))
 
 ### Incus must listen on the network (required)
 
@@ -43,7 +43,7 @@ silently skipped.
 
 Only the server setting matters here; the client connection itself can stay on
 the Unix socket (bind mounts still work that way — see
-[Compose Compatibility](/docs/v1/compose-compatibility#local-vs-remote-incus)).
+[Compose Compatibility](/docs/compose-compatibility#local-vs-remote-incus)).
 
 ### HTTPS Remote (for remote servers and health checks)
 
@@ -51,7 +51,7 @@ Connect the client over HTTPS when Incus runs on another host, or when you use
 health checks — the `ic-healthd` sidecar reaches Incus over HTTPS. By default
 healthd uses the project's own network and reaches Incus over that bridge; use
 `--healthd-network` / `--healthd-incus` if your setup differs, see
-[Network Configuration](/docs/v1/healthd#network-configuration).
+[Network Configuration](/docs/healthd#network-configuration).
 
 1. Generate a cert and add it to the trust store as admin cert
 
@@ -80,7 +80,7 @@ incus list --all-projects
 
 If you don't want to listen on all interfaces, set the
 `INCUS_COMPOSE_HEALTHD_INCUS` environment variable or call up with
-`--healthd-incus` — see [Network Configuration](/docs/v1/healthd#network-configuration).
+`--healthd-incus` — see [Network Configuration](/docs/healthd#network-configuration).
 
 ### OCI Image Remotes
 
@@ -165,7 +165,7 @@ This will:
 - Create networks and volumes
 - Start containers in dependency order
 
-If your compose file uses health checks, incus-compose manages the `ic-healthd` sidecar automatically. It is transparent during normal use, but it is also a core component: all `healthcheck`, `restart:` and `depends_on: service_healthy` behavior is enforced by this sidecar, not by Incus. A working healthd is also required to bring up a project that has `service_healthy` dependencies - `up` waits for healthd to report them healthy, so a broken healthd makes `up` hang and fail (unless you pass `--no-healthd`). If health, restart, or startup behavior ever looks wrong, debug healthd first - see [Health Checking](/docs/v1/healthd) and [Debugging ic-healthd](/docs/v1/healthd#debugging-ic-healthd).
+If your compose file uses health checks, incus-compose manages the `ic-healthd` sidecar automatically. It is transparent during normal use, but it is also a core component: all `healthcheck`, `restart:` and `depends_on: service_healthy` behavior is enforced by this sidecar, not by Incus. A working healthd is also required to bring up a project that has `service_healthy` dependencies - `up` waits for healthd to report them healthy, so a broken healthd makes `up` hang and fail (unless you pass `--no-healthd`). If health, restart, or startup behavior ever looks wrong, debug healthd first - see [Health Checking](/docs/healthd) and [Debugging ic-healthd](/docs/healthd#debugging-ic-healthd).
 
 ### 3. Check status
 
@@ -229,7 +229,7 @@ networks:
       ipv4.address: 10.131.32.1/24
 ```
 
-The file follows normal [Compose merge rules](https://docs.docker.com/reference/compose-file/merge). For example, `!reset []` clears a list from the base file. See [Compose Compatibility](/docs/v1/compose-compatibility#incus-override-file) for details.
+The file follows normal [Compose merge rules](https://docs.docker.com/reference/compose-file/merge). For example, `!reset []` clears a list from the base file. See [Compose Compatibility](/docs/compose-compatibility#incus-override-file) for details.
 
 ## Common Workflows
 
@@ -369,17 +369,17 @@ This means:
 - No Docker Hub rate limits after initial pull
 - `incus-compose down` only removes project images, cache persists
 
-For a technical background about images see [architecture/client/image.md](/docs/v1/architecture/client/image)
+For a technical background about images see [architecture/client/image.md](/docs/architecture/client/image)
 
 The cache project is created automatically on first use.
 
 ## Next Steps
 
-- [Terminology](/docs/v1/terminology) - Compose vs Incus vs incus-compose terms
-- [CLI Reference](/docs/v1/cli-reference)
-- [Builds](/docs/v1/builds)
-- [Compose Compatibility](/docs/v1/compose-compatibility) - What features are supported
-- [Health Checking](/docs/v1/healthd) - Healthchecks and restart policies
-- [Environment Variables](/docs/v1/environment-variables) - How env vars work
-- [Why Incus?](/docs/v1/why-incus) - Benefits over Docker
-- [Docs Index](/docs/v1) - All user and contributor docs
+- [Terminology](/docs/terminology) - Compose vs Incus vs incus-compose terms
+- [CLI Reference](/docs/cli-reference)
+- [Builds](/docs/builds)
+- [Compose Compatibility](/docs/compose-compatibility) - What features are supported
+- [Health Checking](/docs/healthd) - Healthchecks and restart policies
+- [Environment Variables](/docs/environment-variables) - How env vars work
+- [Why Incus?](/docs/why-incus) - Benefits over Docker
+- [Docs Index](/docs) - All user and contributor docs

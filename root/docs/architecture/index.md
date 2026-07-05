@@ -3,7 +3,7 @@ tags: []
 leafwiki_id: QtkuqlBDR
 leafwiki_title: Architecture
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-07-05T04:09:12.377782598Z"
+leafwiki_updated_at: "2026-07-05T04:14:14.26629555Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -40,7 +40,7 @@ incus-compose/
 - Resources: Profile, Image, Network, StorageVolume, Instance
 - Stack for task collection and ordering
 - WorkerPool for parallel execution
-- [Hooks](/docs/v1/architecture/client/hooks) for action interception
+- [Hooks](/docs/architecture/client/hooks) for action interception
 
 **project/**
 
@@ -119,7 +119,7 @@ Benefits:
 
 ## Stack, WorkerPool, and Hooks
 
-See [Client Package](/docs/v1/architecture/client) for Stack, WorkerPool, resource ordering, and hook details.
+See [Client Package](/docs/architecture/client) for Stack, WorkerPool, resource ordering, and hook details.
 
 ## Name Sanitization
 
@@ -138,7 +138,7 @@ Linux interface limit (13 chars), uses hash for long names:
 
 ## Error Handling
 
-See [Errors](/docs/v1/architecture/client/errors) for sentinel errors and context enrichment.
+See [Errors](/docs/architecture/client/errors) for sentinel errors and context enrichment.
 
 ## Connection Modes
 
@@ -184,7 +184,7 @@ networks:
       ipv4.nat: "true"
 ```
 
-All key-value pairs are passed verbatim to Incus. See the [Incus instance options reference](https://linuxcontainers.org/incus/docs/main/reference/instance_options/) for available options, and [Compose Compatibility](/docs/v1/compose-compatibility#x-incus-instance-extensions) for the per-resource (instance, network, volume) `x-incus` reference.
+All key-value pairs are passed verbatim to Incus. See the [Incus instance options reference](https://linuxcontainers.org/incus/docs/main/reference/instance_options/) for available options, and [Compose Compatibility](/docs/compose-compatibility#x-incus-instance-extensions) for the per-resource (instance, network, volume) `x-incus` reference.
 
 ### x-incus-compose (Compose-Specific Features)
 
@@ -204,7 +204,7 @@ services:
 `healthd.incus` and `healthd.network` configure where the ic-healthd sidecar
 attaches and which Incus endpoint it connects to. Both default to the project's
 own network and the connection's port; see
-[Health Checking - Network Configuration](/docs/v1/healthd#network-configuration) for
+[Health Checking - Network Configuration](/docs/healthd#network-configuration) for
 the full set of combinations.
 
 ## Quick Reference
@@ -267,12 +267,12 @@ services:
 
 ## Documentation
 
-See the [docs index](/docs/v1/architecture) for all user and contributor docs. Closely related:
+See the [docs index](/docs/architecture) for all user and contributor docs. Closely related:
 
-- [Client Package](/docs/v1/architecture/client) - Resources, Stack, WorkerPool
-- [Testing](/docs/v1/architecture/testing) - Testing patterns and fixtures
-- [Health Checking](/docs/v1/healthd) - ic-healthd sidecar
-- [Progress](/docs/v1/architecture/progress) - Live operation progress and the terminal renderer
+- [Client Package](/docs/architecture/client) - Resources, Stack, WorkerPool
+- [Testing](/docs/architecture/testing) - Testing patterns and fixtures
+- [Health Checking](/docs/healthd) - ic-healthd sidecar
+- [Progress](/docs/architecture/progress) - Live operation progress and the terminal renderer
 
 ## Need Help?
 
