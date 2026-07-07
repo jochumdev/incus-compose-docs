@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-07-06T00:24:23.819595367Z"
+leafwiki_updated_at: "2026-07-07T16:15:24.363794022Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -41,7 +41,8 @@ services:
 networks:
   default:
     x-incus:
-      ipv4.address: 10.100.0.1/24
+      ipv4.address: 10.100.0.2/24
+      ipv4.gateway: 10.100.0.1
 ```
 
 Running with the base file also applies the Incus override when present:
@@ -273,6 +274,8 @@ services:
     networks:
       backend:
         ipv4_address: 10.100.0.10
+        x-incus:
+          ipv4.gateway: 10.100.0.1
 
   web:
     image: docker.io/nginx:alpine
@@ -280,12 +283,18 @@ services:
       backend:
         ipv4_address: 10.100.0.11
         ipv6_address: fd42:abc::11
+        x-incus:
+          ipv4.gateway: 10.100.0.1
+          ipv6.gateway: fd42:abc::
 
 networks:
   backend:
     x-incus:
       ipv4.address: 10.100.0.1/24
       ipv6.address: fd42:abc::1/64
+      x-incus:
+        ipv4.gateway: 10.100.0.1
+        ipv6.gateway: fd42:abc::
 ```
 
 The address is set as `ipv4.address` / `ipv6.address` on the Incus NIC device. The bridge's
@@ -293,6 +302,8 @@ built-in DHCP server reserves it so the instance always receives that address on
 
 The address must fall within the static zone (first quarter of the block) to avoid conflicts
 with DHCP-assigned addresses.
+
+It is important that you set `ipv4.gateway` / `ipv6.gateway` as well so your container can reach the internet / the lan.
 
 #### Default Gateway Selection
 
