@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-07-05T22:57:08.989899173Z"
+leafwiki_updated_at: "2026-07-07T22:34:14.781149137Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -87,7 +87,8 @@ See [Builds](/builds): for supported Compose build options and requirements.
 ## down
 
 Stop and remove containers. Per-project image copies are removed too; volumes and
-the image cache are kept (use `--project` to remove everything, including volumes).
+the image cache are kept. Use `--volumes` to also delete volumes while keeping the
+project, or `--project` to remove everything (project and volumes).
 
 ```
 incus-compose down [SERVICE...]
@@ -95,8 +96,8 @@ incus-compose down [SERVICE...]
 
 | Option               | Description                                                              |
 | -------------------- | ------------------------------------------------------------------------ |
-| `--project`          | Remove the project (and volumes)                                         |
-| `--volumes`          | Alias for `--project` (docker compose compat)                            |
+| `--project`          | Remove the project (and its volumes)                                     |
+| `--volumes`          | Also delete volumes, but keep the project                                |
 | `--rmi`              | Remove images used by services: `local` or `all` (docker compose compat) |
 | `--images`           | Remove known images from the project (equivalent to `--rmi local`)       |
 | `--timeout`          | Stop timeout (default: 10s)                                              |
@@ -104,6 +105,8 @@ incus-compose down [SERVICE...]
 | `--no-networks`      | Don't touch networks                                                     |
 | `--external-healthd` | Use an existing (unmanaged) healthd; don't look one up                   |
 | `--no-healthd`       | Don't stop/remove healthd sidecar                                        |
+
+*Changed in 1.0.0-rc.1*: `--volumes` is now no more an alias for `--project` but deletes volumes.
 
 ## start
 
@@ -319,12 +322,14 @@ List project resources.
 incus-compose list [SERVICE...]
 ```
 
-| Option      | Description                              |
-| ----------- | ---------------------------------------- |
-| `--format`  | table (default), yaml, json              |
-| `--healthd` | Include the ic-healthd sidecar in output |
+| Option         | Description                                       |
+| -------------- | ------------------------------------------------- |
+| `--format`     | table (default), yaml, json                       |
+| `--no-healthd` | Exclude the ic-healthd sidecar from the output    |
 
-The `IMAGE` column shows the compose image for each service. When `--healthd` is set, the sidecar image is resolved from the instance's stored metadata.
+The `IMAGE` column shows the compose image for each service. The ic-healthd sidecar is listed by default; its image is resolved from the instance's stored metadata. Pass `--no-healthd` to omit it.
+
+*Changed in 1.0.0-rc.1*: healthd is listed by default.
 
 ## version
 
