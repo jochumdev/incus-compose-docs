@@ -9,11 +9,10 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-07-07T22:38:56.623928887Z"
+leafwiki_updated_at: "2026-07-08T00:20:05.1202847Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
-
 # Health Checking (ic-healthd)
 
 incus-compose implements health checks via a sidecar container called `ic-healthd`.
@@ -250,6 +249,8 @@ sets the env vars on the sidecar automatically):
 | `--incus`       | `INCUS_COMPOSE_HEALTHD_INCUS`       | -                     | Incus API URL to connect to                                  |
 | `--token`       | `INCUS_COMPOSE_HEALTHD_TOKEN`       | -                     | Trust token used to register the client cert                 |
 | `--project`     | `INCUS_COMPOSE_HEALTHD_PROJECTS`    | -                     | Project(s) to manage (repeatable)                            |
+| `--own-project` | `INCUS_COMPOSE_HEALTHD_OWN_PROJECT` | -                     | Project the daemon's own container runs in                   |
+| `--own-name`    | `INCUS_COMPOSE_HEALTHD_OWN_NAME`    | -                     | The daemon's own instance name; empty means it skips itself  |
 | `--data-dir`    | `INCUS_COMPOSE_HEALTHD_DATA_DIR`    | `/var/lib/ic-healthd` | Persistent directory for the generated cert/key              |
 | `--secrets-dir` | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR` | `/etc/ic-healthd`     | Tmpfs directory holding the one-time registration token file |
 | `--debug`       | `INCUS_COMPOSE_HEALTHD_DEBUG`       | `false`               | Verbose logging                                              |
