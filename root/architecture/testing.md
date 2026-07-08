@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-07-05T04:58:05.905573716Z"
+leafwiki_updated_at: "2026-07-08T02:52:44.530152914Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -48,7 +48,7 @@ The nested Incus environment is configured via `.env` file:
 - `TEST_PROCS` (default 2) - number of tests to run in parallel.
 - `INCUS_COMPOSE_WORKERS` (default 4) - number of resources to create in parallel per test.
 
-There's also `just test-slow` which includes slow (long-running) tests.
+There's also `just test-e2e` which includes slow (long-running) tests.
 
 ### Test Commands
 
@@ -58,10 +58,10 @@ There's also `just test-slow` which includes slow (long-running) tests.
 | `just test ./client/...`                        | Run tests for specific package                                 |
 | `just test -v -run TestName`                    | Run specific test with verbose output                          |
 | `just test-local`                               | Run unit tests only (no Incus connection required)             |
-| `just test-slow`                                | Run tests that take long to run                                |
+| `just test-e2e`                                 | Run E2E tests that take long to run                            |
 | `just update-snapshots`                         | Update all snapshot test files                                 |
 | `just update-snapshots ./cmd/incus-compose/...` | Update snapshots for specific package                          |
-| `just update-slow-snapshots`                    | Update snapshot for slow test files                            |
+| `just update-e2e-snapshots`                     | Update snapshot for E2E test files                             |
 
 ### Development Commands
 
