@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-07-07T16:15:24.363794022Z"
+leafwiki_updated_at: "2026-07-08T05:55:26.746443754Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -60,7 +60,7 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `working_dir` - Set working directory
 - `user` - Run the container process as a specific UID/GID (numeric only, see below)
 - `environment` - Environment variables
-- `labels` - Metadata (stored as `user.*` config)
+- `labels` - Metadata (stored as `user.label.*` config, see below)
 - `depends_on` - Service dependency order
 - `networks` - Multiple networks per service
 - `ports` - Port publishing
@@ -69,6 +69,62 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `restart` - Restart policies (`no`, `always`, `on-failure`, `unless-stopped`)
 - `x-incus` extension — pass any Incus project, network and instance option directly (see below)
 - Top-level `x-incus-compose.healthd` — configure the ic-healthd sidecar's network and Incus endpoint (see below)
+
+#### Labels
+
+Compose `labels` are stored on the instance as `user.label.<key>` config keys.
+Both the map and list forms work:
+
+```yaml
+services:
+  app:
+    image: docker.io/nginx:alpine
+    labels:
+      caddy: whoami.example.com
+      caddy.reverse_proxy: "{{upstreams 80}}"
+  api:
+    image: docker.io/nginx:alpine
+    labels:
+      - "traefik.http.routers.api.rule=Host(`api.example.com`)"
+```
+
+becomes:
+
+```yaml
+config:
+  user.label.caddy: whoami.example.com
+  user.label.caddy.reverse_proxy: "{{upstreams 80}}"
+  user.label.traefik.http.routers.api.rule: "Host(`api.example.com`)"
+```
+
+Two labels are always added:
+
+| Key                                | Value                    |
+| ---------------------------------- | ------------------------ |
+| `user.label.incus-compose.project` | the compose project name |
+| `user.label.incus-compose.service` | the compose service name |
+
+Read them back with the `incus` passthrough:
+
+```bash
+incus-compose incus config get app-1 user.label.caddy
+```
+
+**Service discovery** — the `user.label.` prefix keeps compose labels out of the
+`user.*` namespace incus-compose uses for its own keys, and mirrors the label
+conventions of reverse proxies and DNS managers:
+
+- [Traefik](https://doc.traefik.io/traefik/) — `traefik.enable`, `traefik.http.routers.<name>.rule`, ...
+- [caddy-docker-proxy](https://github.com/lucaslorentz/caddy-docker-proxy) — `caddy`, `caddy.reverse_proxy`
+- [dnsweaver](https://maxfield-allison.github.io/dnsweaver/) — reads the Traefik router labels above
+
+> None of these tools support incus-compose yet: they discover services over the
+> Docker socket, not the Incus API. incus-compose only exposes the labels as
+> `user.label.*` instance config; consuming them needs an Incus-aware discovery
+> integration.
+
+*Changed in 1.0.0-rc.2*: labels moved from `user.<key>` to `user.label.<key>`, and the
+`incus-compose.project` / `incus-compose.service` labels were added.
 
 #### User
 
