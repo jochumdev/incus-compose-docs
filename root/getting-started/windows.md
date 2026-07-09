@@ -1,9 +1,9 @@
 ---
 tags: []
-leafwiki_id: 8sctjGYvR
+leafwiki_id: 6qk9CMLDg
 leafwiki_title: Windows
-leafwiki_created_at: "2026-07-09T00:41:29.080592548Z"
-leafwiki_updated_at: "2026-07-09T00:48:20.173622057Z"
+leafwiki_created_at: "2026-07-09T00:49:29.56776699Z"
+leafwiki_updated_at: "2026-07-09T00:51:21.007143302Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -27,7 +27,8 @@ Create `%LOCALAPPDATA%\bin` and add it to your user `PATH` (Settings -> "Edit
 environment variables for your account" -> `Path` -> New). Open a **new** terminal
 afterwards so the change takes effect.
 
-![environment.png](/assets/8sctjGYvR/environment.png)
+![environment.png](/assets/6qk9CMLDg/environment.png)
+
 
 ## 2. Install the incus client
 
@@ -41,7 +42,7 @@ Download `incus-compose_1.0.0-rc.3_windows_{amd64|arm64}.tar.gz` from the
 incus-compose [Releases](https://github.com/lxc/incus-compose/releases) page,
 extract it, and copy `incus-compose.exe` into `%LOCALAPPDATA%\bin`.
 
-![binaries.png](/assets/8sctjGYvR/binaries.png)
+![binaries.png](/assets/6qk9CMLDg/binaries.png)
 
 Verify both are on your PATH in a new PowerShell terminal:
 
@@ -65,7 +66,7 @@ Print the certificate so you can copy it as text:
 incus remote get-client-certificate
 ```
 
-![get-client-certificate.png](/assets/8sctjGYvR/get-client-certificate.png)
+![get-client-certificate.png](/assets/6qk9CMLDg/get-client-certificate.png)
 
 
 ## 5. Trust the certificate on the server
@@ -93,7 +94,7 @@ Test the connection:
 incus list --all-projects
 ```
 
-![remote-list.png](/assets/8sctjGYvR/remote-list.png)
+![remote-list.png](/assets/6qk9CMLDg/remote-list.png)
 
 
 ## 7. Add OCI image remotes (optional)
@@ -107,9 +108,9 @@ incus remote add --protocol oci ghcr.io https://ghcr.io
 
 ## 8. incus-compose in action
 
-![immich-up.png](/assets/8sctjGYvR/immich-up.png)
-![immich-exec.png](/assets/8sctjGYvR/immich-exec.png)
-![immich-down.png](/assets/8sctjGYvR/immich-down.png)
+![immich-up.png](/assets/6qk9CMLDg/immich-up.png)
+![immich-exec.png](/assets/6qk9CMLDg/immich-exec.png)
+![immich-down.png](/assets/6qk9CMLDg/immich-down.png)
 
 
 ## Notes and limitations
