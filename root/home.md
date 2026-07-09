@@ -9,18 +9,11 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-07-09T01:49:25.661872301Z"
+leafwiki_updated_at: "2026-07-09T01:58:27.293884013Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
 # incus-compose
-
-<script>alert("test")</script>
-
-<script src="https://asciinema.org/a/1260145.js" id="asciicast-1260145" async="true"></script>
-
-[Beta 19 - Immich](https://asciinema.org/a/1259458)
-![asciicast](https://asciinema.org/a/1259458.svg)
 
 ## Why incus-compose?
 
@@ -31,6 +24,11 @@ leafwiki_last_author_id: vOmfrlBDg
 - Run Docker/OCI images directly from registries
 - Manage complex multi-container applications with familiar commands
 - Benefit from Incus's resource efficiency and security model
+
+## Demos
+
+- [Beta 21 - many-dependencies 30 workers](https://asciinema.org/a/1260145) 
+- [Beta 19 - Immich](https://asciinema.org/a/1259458)
 
 ## Features
 
