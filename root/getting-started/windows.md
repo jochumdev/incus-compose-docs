@@ -3,7 +3,7 @@ tags: []
 leafwiki_id: 6qk9CMLDg
 leafwiki_title: Windows
 leafwiki_created_at: "2026-07-09T00:49:29.56776699Z"
-leafwiki_updated_at: "2026-07-09T01:19:23.368014704Z"
+leafwiki_updated_at: "2026-07-09T23:36:20.943578663Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -96,9 +96,6 @@ Test the connection:
 incus list --all-projects
 ```
 
-![remote-list.png](/assets/6qk9CMLDg/remote-list.png)
-
-
 ## 7. Add OCI image remotes (optional)
 
 To pull container images, register the registries as Incus remotes:
@@ -107,6 +104,8 @@ To pull container images, register the registries as Incus remotes:
 incus remote add --protocol oci docker.io https://docker.io
 incus remote add --protocol oci ghcr.io https://ghcr.io
 ```
+
+![remote-list.png](/assets/6qk9CMLDg/remote-list.png)
 
 ## 8. incus-compose in action
 
@@ -121,8 +120,7 @@ incus remote add --protocol oci ghcr.io https://ghcr.io
   **bind mounts are not supported** - use named volumes instead. Health checks
   work automatically over HTTPS. See
   [Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus).
-- **Builds** need a local `podman` or `docker`. Pull prebuilt images where you
-  can; see [Builds](/builds).
+- **Builds** need a local `podman` or `docker` which are not available on Windows.
 
 Have fun with incus and incus-compose on Windows!
 
