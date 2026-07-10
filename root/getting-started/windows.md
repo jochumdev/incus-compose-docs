@@ -3,7 +3,7 @@ tags: []
 leafwiki_id: 6qk9CMLDg
 leafwiki_title: Windows
 leafwiki_created_at: "2026-07-09T00:49:29.56776699Z"
-leafwiki_updated_at: "2026-07-10T00:33:35.808793713Z"
+leafwiki_updated_at: "2026-07-10T19:17:24.032645964Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -13,7 +13,7 @@ Incus itself is a Linux daemon - it does not run on Windows. On Windows you run
 the `incus` client and `incus-compose` as **clients** that drive a remote Incus
 server over HTTPS. No Docker and no WSL required.
 
-> Windows / MacOS Support is a feature upcoming in **v1.0.0**
+*Since 1.0.0: Windows has been tested with version 1.0.0, MacOS by the lack of one not yet*
 
 ## Prerequisites
 
