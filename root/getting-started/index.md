@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-07-10T03:04:55.49619193Z"
+leafwiki_updated_at: "2026-07-10T08:02:55.290256966Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -375,10 +375,6 @@ This means:
 For a technical background about images see [architecture/client/image.md](/architecture/client/image)
 
 The cache project is created automatically on first use.
-
-**Always off on Windows and macOS.** The cache-to-project copy happens between
-two Incus projects on the server, and Incus does not yet perform that copy
-internally - the connected client relays the bytes.
 
 ## Next Steps
 

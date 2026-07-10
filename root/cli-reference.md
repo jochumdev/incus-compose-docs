@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-07-10T03:05:08.994497256Z"
+leafwiki_updated_at: "2026-07-10T08:03:48.901137966Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -33,7 +33,7 @@ leafwiki_last_author_id: vOmfrlBDg
 | `--workers`                 | Number of concurrent workers (`INCUS_COMPOSE_WORKERS`, default: `4`)                                                                                        |
 | `--debug`                   | Debug logging                                                                                                                                               |
 
-Supports [no-color.org](https://no-color.org/) via `NO_COLOR` env var.
+Supports [no-color.org](https://no-color.org/) via a `NO_COLOR` env var.
 
 ### Disabling the Cache
 
@@ -42,10 +42,6 @@ project and pull images straight into each project instead. This trades the
 shared cache (and its rate-limit/re-pull savings) for one fewer copy per
 image - useful if you don't want a persistent cache project on the server at
 all.
-
-**Always off on Windows and macOS.** The cache-to-project copy happens between
-two Incus projects on the server, and Incus does not yet perform that copy
-internally - the connected client relays the bytes.
 
 ## up
 
