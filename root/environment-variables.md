@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-07-08T00:19:53.471682888Z"
+leafwiki_updated_at: "2026-07-10T03:01:16.204532615Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -113,7 +113,7 @@ Every global flag can be set via an environment variable. Flags given on the com
 | Variable                     | Flag             | Description                                                   |
 | ---------------------------- | ---------------- | ------------------------------------------------------------- |
 | `INCUS_REMOTE`               | `--remote`       | Incus remote name from CLI config (e.g., `local`, `myserver`) |
-| `INCUS_COMPOSE_IMAGE_CACHE`  | `--image-cache`  | Incus project for image cache (default: `default`)            |
+| `INCUS_COMPOSE_IMAGE_CACHE`  | `--image-cache`  | Incus project used as image cache (`INCUS_COMPOSE_IMAGE_CACHE`, default: `default`); set `""` to disable caching and pull straight into the project. Always disabled on Windows and macOS clients, regardless of this flag, see [CLI Reference](/cli-reference#up) |
 | `INCUS_COMPOSE_STORAGE_POOL` | `--storage-pool` | Default storage pool (default: `detect`)                      |
 
 ### Build
