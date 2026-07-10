@@ -9,7 +9,7 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-07-09T01:58:27.293884013Z"
+leafwiki_updated_at: "2026-07-10T07:44:57.565120376Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -32,7 +32,7 @@ leafwiki_last_author_id: vOmfrlBDg
 
 ## Features
 
-Status: **Beta** - testing the beta release of incus-compose.
+Status: **Stable**.
 
 - Familiar commands: `up`, `down`, `start`, `stop`, `restart`, `list` (and `ps`), `logs`, `exec`, `config`, plus `build`, `healthd`, `incus` (pass-through), and `self-update`
 - Compose project parsing via compose-go, with automatic `compose.incus.yaml` overrides and `x-incus` / `x-incus-compose` extensions for raw Incus options
@@ -54,7 +54,7 @@ Status: **Beta** - testing the beta release of incus-compose.
 Requires `podman` or `docker` for image building and an Incus https remote (needed for healthchecking) with OCI registries added.
 See [Getting Started](/getting-started) for the full setup walkthrough.
 
-Install the latest release (the script verifies the SHA-256 checksum):
+Install the latest release:
 
 ```bash
 curl -sSfL https://raw.githubusercontent.com/lxc/incus-compose/main/install.sh | sh -s -- -b ~/.local/bin
