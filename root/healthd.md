@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-07-08T03:20:42.239429531Z"
+leafwiki_updated_at: "2026-07-12T17:39:40.256539358Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -205,7 +205,7 @@ The `healthd` command group manages the sidecar directly without touching servic
 | `logs [--follow]` | Stream the ic-healthd container log                   |
 | `reload`          | Send SIGHUP to the ic-healthd process (reload config) |
 | `restart`         | Restart the ic-healthd container                      |
-| `up [--recreate]` | Create or recreate the sidecar                        |
+| `up`              | Create the sidecar                                    |
 | `down`            | Stop and remove the sidecar                           |
 
 `healthd up` accepts `--image`, `--binary`, `--incus`, and `--network`. It refuses with an
@@ -214,7 +214,7 @@ policy, no `service_healthy` dependency).
 
 Healthd debug logging is controlled by the global incus-compose `--debug` flag,
 which is inherited by healthd operations.
-Use `incus-compose --debug healthd up --recreate` to enable debug logs;
+Use `incus-compose healthd down; incus-compose --debug healthd up` to enable debug logs;
 omit `--debug` to keep normal log verbosity.
 
 ## Disabling the Sidecar
