@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-07-11T18:27:18.817397781Z"
+leafwiki_updated_at: "2026-07-12T02:47:52.73572344Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -85,7 +85,7 @@ If you don't want to listen on all interfaces, set the
 ### OCI Image Remotes
 
 To pull images from a registry, add it as an Incus remote first. See
-[OCI Registry Cache](https://github.com/lxc/incus-compose/tree/main/examples/oci-registry-cache) for a caching
+[OCI Registry Cache](/examples/oci-registry-cache) for a caching
 mirror setup.
 
 ```bash

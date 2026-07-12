@@ -3,7 +3,7 @@ tags: []
 leafwiki_id: 7BiJw5Yvg
 leafwiki_title: Immich
 leafwiki_created_at: "2026-07-12T02:07:30.949083077Z"
-leafwiki_updated_at: "2026-07-12T02:07:42.432796964Z"
+leafwiki_updated_at: "2026-07-12T02:46:17.884161633Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -27,4 +27,4 @@ Open http://10.131.32.17:2283/
 
 ## Notes
 
-- `library`'s storage pool comes from `UPLOAD_POOL` in `.env` via `x-incus-compose.pool` — set it before first run.
+- `library`'s storage pool comes from `UPLOAD_POOL` in `.env` via `x-incus-compose.pool` — set it before first run if you need another pool than the default.
