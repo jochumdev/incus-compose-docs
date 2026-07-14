@@ -7,9 +7,10 @@ leafwiki_updated_at: "2026-07-12T02:46:17.884161633Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Immich
 
-Immich, a self-hosted photo and video backup solution.
+[Immich](https://immich.app/), a self-hosted photo and video backup solution.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/immich).
 

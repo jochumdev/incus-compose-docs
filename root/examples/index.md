@@ -17,4 +17,5 @@ leafwiki_last_author_id: vOmfrlBDg
 - [kimai](kimai/) — Kimai, an open-source time-tracking application, backed by MariaDB.
 - [leafwiki](leafwiki/) — LeafWiki — a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
 - [oci-registry-cache](oci-registry-cache/) — Runs distribution registry instances as pull-through caches, one per upstream registry, regular Compose `volumes:` bind mount isn't expressive enough.
+- [pdns-dnsweaver](pdns-dnsweaver/) — PowerDNS + PowerDNS-Admin, backed by MariaDB, with dnsweaver auto-creating DNS records for running Incus instances.
 - [wikijs](wikijs/) — Wiki.js, a modern wiki app, backed by Postgres.
