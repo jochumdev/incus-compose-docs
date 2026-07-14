@@ -7,9 +7,10 @@ leafwiki_updated_at: "2026-07-12T02:07:18.409911117Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Gitea
 
-Gitea, a lightweight self-hosted Git service, backed by Postgres.
+[Gitea](https://about.gitea.com/), a lightweight self-hosted Git service, backed by Postgres.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/gitea).
 

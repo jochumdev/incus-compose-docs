@@ -7,9 +7,10 @@ leafwiki_updated_at: "2026-07-12T02:09:54.737814553Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # wikijs
 
-Wiki.js, a modern wiki app, backed by Postgres.
+[Wiki.js](https://js.wiki/), a modern wiki app, backed by Postgres.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/wikijs).
 

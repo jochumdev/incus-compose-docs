@@ -7,9 +7,10 @@ leafwiki_updated_at: "2026-07-12T02:08:11.908269588Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Kimai
 
-Kimai, an open-source time-tracking application, backed by MariaDB.
+[Kimai](https://www.kimai.org/en/), an open-source time-tracking application, backed by MariaDB.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/kimai).
 
