@@ -261,6 +261,19 @@ or a separately managed container, e.g. to debug against a live project - and po
 incus-compose at it with `up --external-healthd` / `down --external-healthd` so
 incus-compose uses healthd features but does not create or look up the sidecar.
 
+Set it permanently for a project in the compose file instead of passing the flag
+every time:
+
+```yaml
+x-incus-compose:
+  healthd:
+    external: true
+```
+
+`--external-healthd` and the compose key combine with OR: either one is enough
+to turn it on, there is no flag to force it back off for a project that sets it
+in the compose file.
+
 The `run` command reads these flags, each with a matching env var (incus-compose
 sets the env vars on the sidecar automatically):
 
