@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-07-08T05:55:26.746443754Z"
+leafwiki_updated_at: "2026-07-15T20:56:58.580469277Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -249,7 +249,6 @@ When this option is set, incus-compose does not create compose-managed Incus net
 - `x-incus` extension — pass any Incus network config key directly (see below)
 - Automatic DHCP range configuration on creation (see below)
 - Static IP assignment per service via `ipv4_address` / `ipv6_address` (see below)
-- Default gateway selection via `x-incus-compose.gateway` on a service network attachment (see below)
 
 Not supported:
 
@@ -360,30 +359,6 @@ The address must fall within the static zone (first quarter of the block) to avo
 with DHCP-assigned addresses.
 
 It is important that you set `ipv4.gateway` / `ipv6.gateway` as well so your container can reach the internet / the lan.
-
-#### Default Gateway Selection
-
-When a service attaches to multiple networks, mark one attachment with
-`x-incus-compose.gateway: true` to make it provide the instance's default route:
-
-```yaml
-services:
-  web:
-    image: docker.io/nginx:alpine
-    networks:
-      internal:
-      public:
-        x-incus-compose:
-          gateway: true
-```
-
-The gateway-marked network is attached as the last NIC (highest `ethN`), and Incus
-uses the last NIC's gateway as the default route. Here `internal` becomes `eth0`
-and `public` becomes `eth1`. Without this flag, networks are ordered by name.
-
-If several attachments set `gateway: true`, the alphabetically last one wins.
-
-*Since: 1.0.0-beta.22*
 
 ### Volumes
 
