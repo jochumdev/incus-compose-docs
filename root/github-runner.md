@@ -115,7 +115,7 @@ incus admin init
 
 ## 8. Add OCI registry remotes — _runner user_
 
-These point at your registry mirrors so images can be pulled by short name.
+These point at your registry mirrors so images are additional cached.
 
 ```bash
 export DOMAIN=example.com

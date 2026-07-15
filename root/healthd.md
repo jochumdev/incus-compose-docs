@@ -13,6 +13,7 @@ leafwiki_updated_at: "2026-07-12T17:39:40.256539358Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Health Checking (ic-healthd)
 
 incus-compose implements health checks via a sidecar container called `ic-healthd`.
@@ -44,8 +45,12 @@ It then:
 2. Creates a restricted Incus trust token scoped to the project.
 3. Starts the `ic-healthd` sidecar, attaches it to the bridge, and injects the token (plus the Incus API URL and project) as environment variables.
 4. ic-healthd authenticates once (token consumed) and persists the resulting cert.
-5. ic-healthd discovers which instances to watch by reading the Incus API.
-6. ic-healthd runs the health loop and writes the result to `user.healthcheck.status`.
+5. ic-healthd discovers which instances to watch by reading the Incus API, then opens a
+   project-scoped Incus lifecycle event listener and reacts to instance
+   create/update/delete/start/stop events from then on - no polling, no reload needed
+   for config or instance-set changes to take effect.
+6. ic-healthd runs the health loop per watched instance and writes the result to
+   `user.healthcheck.status`.
 
 The sidecar starts before the regular services so `service_healthy` dependencies
 can be evaluated, and is removed by `incus-compose down`.
@@ -53,8 +58,9 @@ can be evaluated, and is removed by `incus-compose down`.
 ## Config Storage
 
 Health check config and runtime state live in the instance's `user.*` config keys.
-There is no separate config file. ic-healthd reads these keys at startup and on
-SIGHUP (`incus-compose healthd reload`).
+There is no separate config file. ic-healthd reacts to `incus config set`/instance
+create/delete changes as they happen via the Incus event stream; `incus-compose
+healthd reload` remains available to force a full manual resync.
 
 See the Docker healthcheck docs for the value semantics: https://docs.docker.com/reference/dockerfile#healthcheck
 
@@ -67,6 +73,7 @@ user.healthcheck.timeout         5s
 user.healthcheck.retries         3
 user.healthcheck.status          starting | healthy | unhealthy
 user.healthcheck.restart         always | on-failure | unless-stopped
+user.healthcheck.ignore          true
 ```
 
 These keys are visible in `incus config show <instance>`.
@@ -74,6 +81,19 @@ These keys are visible in `incus config show <instance>`.
 `user.healthcheck.status` is the only key ic-healthd writes back; all others are
 set by incus-compose at instance creation time and treated as read-only by the
 daemon. incus-compose sets the initial status to `starting`.
+
+`user.healthcheck.ignore: "true"` excludes an instance from health checking
+entirely - from discovery and from every event handler. incus-compose sets it on
+the ic-healthd sidecar itself so it doesn't watch itself; set it on any other
+service via `x-incus` to get the same opt-out:
+
+```yaml
+services:
+  sidecar-tool:
+    image: docker.io/example/tool:latest
+    x-incus:
+      user.healthcheck.ignore: "true"
+```
 
 ## Defaults
 
@@ -200,13 +220,13 @@ The restricted token gives ic-healthd project-scoped access only:
 
 The `healthd` command group manages the sidecar directly without touching services:
 
-| Subcommand        | Description                                           |
-| ----------------- | ----------------------------------------------------- |
-| `logs [--follow]` | Stream the ic-healthd container log                   |
-| `reload`          | Send SIGHUP to the ic-healthd process (reload config) |
-| `restart`         | Restart the ic-healthd container                      |
-| `up`              | Create the sidecar                                    |
-| `down`            | Stop and remove the sidecar                           |
+| Subcommand        | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| `logs [--follow]` | Stream the ic-healthd container log                       |
+| `reload`          | Send SIGHUP to force a full manual resync (rarely needed) |
+| `restart`         | Restart the ic-healthd container                          |
+| `up`              | Create the sidecar                                        |
+| `down`            | Stop and remove the sidecar                               |
 
 `healthd up` accepts `--image`, `--binary`, `--incus`, and `--network`. It refuses with an
 error when no service in the project requires healthd (no healthcheck, no restart
@@ -248,7 +268,7 @@ sets the env vars on the sidecar automatically):
 | --------------- | ----------------------------------- | --------------------- | ------------------------------------------------------------ |
 | `--incus`       | `INCUS_COMPOSE_HEALTHD_INCUS`       | -                     | Incus API URL to connect to                                  |
 | `--token`       | `INCUS_COMPOSE_HEALTHD_TOKEN`       | -                     | Trust token used to register the client cert                 |
-| `--project`     | `INCUS_COMPOSE_HEALTHD_PROJECTS`    | -                     | Project(s) to manage (repeatable)                            |
+| `--project`     | `INCUS_COMPOSE_HEALTHD_PROJECTS`    | -                     | Projects to manage (required)                                |
 | `--own-project` | `INCUS_COMPOSE_HEALTHD_OWN_PROJECT` | -                     | Project the daemon's own container runs in                   |
 | `--own-name`    | `INCUS_COMPOSE_HEALTHD_OWN_NAME`    | -                     | The daemon's own instance name; empty means it skips itself  |
 | `--data-dir`    | `INCUS_COMPOSE_HEALTHD_DATA_DIR`    | `/var/lib/ic-healthd` | Persistent directory for the generated cert/key              |
@@ -305,7 +325,9 @@ the host and attach a project to it with `--external-healthd`.
    just run -P examples/many-dependencies/ up --external-healthd
    ```
 
-4. Reload the daemon after changing config keys by sending it SIGHUP:
+4. Config key changes (and instance create/start/stop/delete) take effect on
+   their own via the Incus event stream - no reload needed. Force a full manual
+   resync if you ever want one, by sending SIGHUP:
 
    ```bash
    kill -HUP <pid-from-step-2>
@@ -317,8 +339,12 @@ Default image: `ghcr.io/lxc/incus-compose/ic-healthd:{version}`
 
 Override with `--healthd-image` flag or `INCUS_COMPOSE_HEALTHD_IMAGE` env var.
 
-The container is named `{project}-ic-healthd` and tagged with
-`user.healthcheck.daemon=true` so ic-healthd skips itself during discovery.
+The container is named `{project}-ic-healthd` and carries two tags:
+`user.healthcheck.ignore=true`, so ic-healthd skips itself during discovery and
+every event handler, and `user.healthcheck.daemon=true`, which incus-compose
+uses to locate the sidecar instance (`healthd logs`/`restart`/etc.) - `ignore`
+is a general opt-out any instance can carry, so it can't double as the
+sidecar's own identifying marker.
 
 ## Debugging ic-healthd
 
@@ -385,10 +411,12 @@ why it fails:
 incus-compose exec <service> -- sh -c 'wget -q --spider http://localhost; echo exit: $?'
 ```
 
-### 6. Reload after editing keys
+### 6. Force a manual resync
 
-If you change `user.healthcheck.*` keys directly (instead of via `up`), tell the
-running daemon to re-read them:
+If you change `user.healthcheck.*` keys directly (instead of via `up`), ic-healthd
+picks them up on its own via the Incus event stream - no action needed. If you
+ever suspect it missed something (e.g. after a change made while its event
+listener was disconnected and before it reconnected), force a full resync:
 
 ```bash
 incus-compose healthd reload   # sends SIGHUP
