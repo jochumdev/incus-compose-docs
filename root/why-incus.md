@@ -9,7 +9,7 @@ title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-07-16T01:06:29.127855596Z"
+leafwiki_updated_at: "2026-07-16T01:24:55.933702447Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -51,16 +51,13 @@ That lightness is a feature you feel every day.
 Running an OCI engine inside an Incus container is a common workaround, but
 you pay for it:
 
-```
-┌─────────────────────────────┐
-│    Incus Container          │
-│  ┌──────────────────────┐   │
-│  │   OCI Engine Daemon  │   │
-│  │  ┌────────────────┐  │   │
-│  │  │  Your App      │  │   │
-│  │  └────────────────┘  │   │
-│  └──────────────────────┘   │
-└─────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph container["Incus Container"]
+        subgraph engine["OCI Engine Daemon"]
+            app["Your App"]
+        end
+    end
 ```
 
 - Double overhead - two container runtimes doing one job
@@ -73,13 +70,11 @@ you pay for it:
 Incus can run OCI images directly - the app is PID 1, no init system and no
 second engine in between. `incus-compose` drives exactly that mode:
 
-```
-┌─────────────────────────────┐
-│          Incus              │
-│  ┌────────────────┐         │
-│  │   Your App     │         │
-│  └────────────────┘         │
-└─────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph incus["Incus"]
+        app["Your App"]
+    end
 ```
 
 - One layer of containerization instead of two
