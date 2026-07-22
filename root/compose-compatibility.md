@@ -328,28 +328,25 @@ services:
     image: docker.io/postgres:16-alpine
     networks:
       backend:
-        ipv4_address: 10.100.0.10
-        x-incus:
-          ipv4.gateway: 10.100.0.1
 
   web:
     image: docker.io/nginx:alpine
+    depends_on:
+      db: service_healthy
     networks:
       backend:
-        ipv4_address: 10.100.0.11
-        ipv6_address: fd42:abc::11
-        x-incus:
-          ipv4.gateway: 10.100.0.1
-          ipv6.gateway: fd42:abc::
+      frontend:
+        ipv4_address: 10.100.0.2/24
+        ipv6_address: fd42:abc::2/64
 
 networks:
-  backend:
+  frontend:
     x-incus:
-      ipv4.address: 10.100.0.1/24
-      ipv6.address: fd42:abc::1/64
-      x-incus:
-        ipv4.gateway: 10.100.0.1
-        ipv6.gateway: fd42:abc::
+      ipv4.address: "10.0.0.1/24"
+      ipv6.address: "fd42:abc::1/64"
+
+  backend:
+    internal: true
 ```
 
 The address is set as `ipv4.address` / `ipv6.address` on the Incus NIC device. The bridge's
@@ -358,7 +355,16 @@ built-in DHCP server reserves it so the instance always receives that address on
 The address must fall within the static zone (first quarter of the block) to avoid conflicts
 with DHCP-assigned addresses.
 
-It is important that you set `ipv4.gateway` / `ipv6.gateway` as well so your container can reach the internet / the lan.
+Setting `internal: true` on a network disables its gateway by setting `ipv4.gateway` and
+`ipv6.gateway` to `none`. This requires Incus 7.3 or later (or the 7.0.2 LTS point release).
+Override this per-service with `x-incus-compose.internal: false`.
+
+:::warning
+An address without a netmask (e.g. `10.100.0.2` instead of `10.100.0.2/24`) is invalid and
+fails silently.
+:::
+
+_`internal: true` since: v1.1.0_
 
 ### Volumes
 
@@ -668,7 +674,7 @@ services:
 
 `nat: true` requires Incus 7.2 or later (or the 7.0.1 LTS point release) for ARP/NDP-based
 instance IP detection. Combining `nat: true` with a static instance IP additionally requires
-Incus 7.3 or later (or the 7.0.2 LTS point release) — both unreleased at the time of writing.
+Incus 7.3 or later (or the 7.0.2 LTS point release).
 
 > **Warning:** with `nat: true`, published ports are not reachable via `localhost`/`127.0.0.1` on
 > the host running incus-compose. The nftables DNAT rules only masquerade traffic for the
@@ -676,6 +682,8 @@ Incus 7.3 or later (or the 7.0.2 LTS point release) — both unreleased at the t
 > keeps its `127.0.0.1` source address, which is dropped or fails to route back. Use the host's
 > real (LAN/bridge) address to reach the port, or stick with the default userspace proxy if you
 > need `localhost` access to work.
+
+_Since: v1.1.0_
 
 ### Network Naming
 

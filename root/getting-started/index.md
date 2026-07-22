@@ -198,7 +198,7 @@ Typical uses:
 
 - Remove Docker-only port publishing with `ports: !reset []`
 - Add explicit health checks for `ic-healthd`
-- Set static service IPs on Incus networks
+- Set [static service IPs](/compose-compatibility#static-ip-assignment) on Incus networks
 - Pass raw Incus network or instance options via `x-incus`
 
 Example `compose.incus.yaml`:
@@ -211,7 +211,7 @@ services:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost"]
     networks:
       default:
-        ipv4_address: 10.131.32.17
+        ipv4_address: 10.131.32.17/24
 
 networks:
   default:
