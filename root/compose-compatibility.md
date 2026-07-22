@@ -322,6 +322,11 @@ Setting `ipv4.dhcp.ranges` or `ipv6.dhcp.ranges` in `x-incus` disables auto-calc
 A service can be assigned a fixed IP on a specific network using the standard Compose
 `ipv4_address` / `ipv6_address` fields on the per-service network attachment:
 
+:::warning
+An address without a netmask (e.g. `10.100.0.2` instead of `10.100.0.2/24`) is invalid and
+fails silently.
+:::
+
 ```yaml
 services:
   db:
@@ -358,11 +363,6 @@ with DHCP-assigned addresses.
 Setting `internal: true` on a network disables its gateway by setting `ipv4.gateway` and
 `ipv6.gateway` to `none`. This requires Incus 7.3 or later (or the 7.0.2 LTS point release).
 Override this per-service with `x-incus-compose.internal: false`.
-
-:::warning
-An address without a netmask (e.g. `10.100.0.2` instead of `10.100.0.2/24`) is invalid and
-fails silently.
-:::
 
 _`internal: true` since: v1.1.0_
 
