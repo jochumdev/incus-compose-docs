@@ -18,30 +18,33 @@ leafwiki_last_author_id: icZYCpLDg
 
 ## Global Options
 
-| Option                      | Description                                                                                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `-f`, `--file`              | Compose files (repeatable)                                                                                                                                  |
-| `-p`, `--project-name`      | Project name                                                                                                                                                |
-| `-P`, `--project-directory` | Working directory                                                                                                                                           |
-| `--profile`                 | Compose profiles (repeatable)                                                                                                                               |
-| `--env-file`                | Environment files (repeatable)                                                                                                                              |
-| `-E`, `--os-env`            | Include OS env vars                                                                                                                                         |
-| `--remote`                  | Incus remote (`INCUS_REMOTE`)                                                                                                                               |
-| `--ansi`                    | Color output: never/always/auto (`INCUS_COMPOSE_ANSI`)                                                                                                      |
-| `--image-cache`             | Incus project used as image cache (`INCUS_COMPOSE_IMAGE_CACHE`, default: `default`); set `""` to disable caching and pull straight into the project. Always disabled on Windows and macOS clients, regardless of this flag, see [Environment Variables](/environment-variables#incus-connection) |
-| `--storage-pool`            | Default storage pool for volumes (`INCUS_COMPOSE_STORAGE_POOL`, default: `detect` for auto-detection)                                                       |
-| `--workers`                 | Number of concurrent workers (`INCUS_COMPOSE_WORKERS`, default: `4`)                                                                                        |
-| `--debug`                   | Debug logging                                                                                                                                               |
+Every option below (and every command-specific one further down) can also be
+set via an environment variable - see [Environment Variables](/environment-variables)
+for the full list.
 
-Supports [no-color.org](https://no-color.org/) via a `NO_COLOR` env var.
+| Option                      | Description                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `-f`, `--file`              | Compose files (repeatable)                                                                              |
+| `-p`, `--project-name`      | Project name                                                                                            |
+| `-P`, `--project-directory` | Working directory                                                                                       |
+| `--profile`                 | Compose profiles (repeatable)                                                                           |
+| `--env-file`                | Environment files (repeatable)                                                                          |
+| `-E`, `--os-env`            | Include OS env vars                                                                                     |
+| `--remote`                  | Incus remote                                                                                            |
+| `--ansi`                    | Color output: never/always/auto                                                                         |
+| `--image-cache`             | Incus project used as image cache (default: `default`); set `""` to disable caching and pull straight into the project. Always disabled on Windows and macOS clients, regardless of this flag |
+| `--storage-pool`            | Default storage pool for volumes (default: `detect` for auto-detection)                                 |
+| `--workers`                 | Number of concurrent workers (default: `4`)                                                              |
+| `--debug`                   | Debug logging                                                                                            |
+
+Supports the [no-color.org](https://no-color.org/) convention.
 
 ### Disabling the Cache
 
-Set `--image-cache ""` (or `INCUS_COMPOSE_IMAGE_CACHE=""`) to skip the cache
-project and pull images straight into each project instead. This trades the
-shared cache (and its rate-limit/re-pull savings) for one fewer copy per
-image - useful if you don't want a persistent cache project on the server at
-all.
+Set `--image-cache ""` to skip the cache project and pull images straight into
+each project instead. This trades the shared cache (and its rate-limit/re-pull
+savings) for one fewer copy per image - useful if you don't want a persistent
+cache project on the server at all.
 
 ## up
 
@@ -59,17 +62,17 @@ incus-compose up [SERVICE...]
 | `--pull`               | Pull policy: `always` (refresh from registry), `missing`/`policy` (use cache if present), `never` (never pull); default: `policy` |
 | `--build`              | Rebuild build-configured service images before starting containers                                                                |
 | `--no-build`           | Do not build images; fail if a required built image is missing                                                                    |
-| `--builder`            | Preferred builder, binary name or absolute path (`INCUS_COMPOSE_BUILDER`); empty for auto-detect                                  |
+| `--builder`            | Preferred builder, binary name or absolute path; empty for auto-detect                                                            |
 | `--no-deps`            | Don't start linked services (depends_on)                                                                                          |
 | `--timeout`            | Stop/start timeout (default: 1m)                                                                                                  |
 | `--dependency-timeout` | Max time to wait for `service_healthy` depends_on (default: 5m; `0` = no limit)                                                   |
 | `--scale`              | Scale service: `web=3` (repeatable)                                                                                               |
 | `--no-healthd`         | Don't create healthd sidecar for healthchecks                                                                                     |
 | `--external-healthd`   | Use an existing (unmanaged) healthd; don't create or look one up                                                                  |
-| `--healthd-image`      | Healthd OCI image (`INCUS_COMPOSE_HEALTHD_IMAGE`); `{version}` is replaced with the incus-compose version                         |
+| `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                         |
 | `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                    |
-| `--healthd-incus`      | Incus API URL healthd connects to (`INCUS_COMPOSE_HEALTHD_INCUS`); overrides `x-incus-compose.healthd.incus`; bridge IP if unset  |
-| `--healthd-network`    | Network for healthd (`INCUS_COMPOSE_HEALTHD_NETWORK`); overrides `x-incus-compose.healthd.network`; project default if unset      |
+| `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; bridge IP if unset                                  |
+| `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; project default if unset                                        |
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
@@ -227,8 +230,8 @@ incus-compose exec [options] SERVICE COMMAND [ARGS...]
 | `-w`, `--workdir` | Path to workdir directory for this command                             |
 
 `exec` shells out to your local `incus` client and targets the instance via
-`INCUS_PROJECT`. It uses your local Incus remote configuration (`incus remote` /
-`INCUS_REMOTE`), not a connection configured through `INCUS_COMPOSE_URL`.
+`INCUS_PROJECT`. It uses your local Incus remote configuration (`incus remote`),
+not incus-compose's own connection settings.
 
 Like `docker compose exec`, the command runs as the instance's user and group by
 default — the image's `oci.uid` / `oci.gid`, or the numeric IDs from the service
