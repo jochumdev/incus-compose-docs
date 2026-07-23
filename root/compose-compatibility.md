@@ -245,6 +245,7 @@ When this option is set, incus-compose does not create compose-managed Incus net
 - Bridge networks (Incus default)
 - Network isolation between services
 - DNS resolution by service name and by instance name
+- Extra DNS names per service via `aliases` (see below)
 - External networks (pre-existing Incus networks)
 - `x-incus` extension — pass any Incus network config key directly (see below)
 - Automatic DHCP range configuration on creation (see below)
@@ -365,6 +366,40 @@ Setting `internal: true` on a network disables its gateway by setting `ipv4.gate
 Override this per-service with `x-incus-compose.internal: false`.
 
 _`internal: true` since: v1.1.0_
+
+#### Network Aliases
+
+The standard Compose `aliases` field on a service's network attachment registers
+extra DNS names for that instance:
+
+```yaml
+services:
+  db:
+    image: docker.io/postgres:16-alpine
+    container_name: my-db
+    networks:
+      default:
+        aliases:
+          - db.mydomain.lan
+```
+
+Each alias becomes a `cname=<alias>,<instance>` record in the network's
+`raw.dnsmasq`, resolving straight to the instance — no DHCP lease to wait for,
+unlike the IP-based service-name records described in
+[DNS Resolution](#dns-resolution). Aliases on networks shared by multiple
+projects (`external: true` / `x-incus-compose.network`) coexist without
+clobbering each other's records, the same way service-name records do.
+
+:::warning
+Because a CNAME alias can only point at one target, `aliases` is for
+single-instance services. Declaring it on a service with more than one
+replica registers the same alias against every replica's instance name,
+which dnsmasq does not support (an alias must be unique) and produces
+undefined DNS behavior. Use the service name — which does round-robin — for
+scaled services instead.
+:::
+
+_Since: v1.1.0_
 
 ### Volumes
 
@@ -802,6 +837,9 @@ database-1  → specific instance (registered by Incus dnsmasq)
 This matches Docker Compose behavior. No configuration is required — records are
 written automatically to the project bridge network's `raw.dnsmasq` and updated
 whenever the scale changes.
+
+A service can also register extra DNS names for itself via `aliases` — see
+[Network Aliases](#network-aliases).
 
 **Note:** Setting `raw.dnsmasq` on the bridge disables AppArmor for the dnsmasq
 process (not for containers). dnsmasq still runs as an unprivileged user.
