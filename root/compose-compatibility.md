@@ -59,6 +59,7 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `command` - Override container command
 - `working_dir` - Set working directory
 - `user` - Run the container process as a specific UID/GID (numeric only, see below)
+- `dns` / `dns_search` / `domainname` - DNS resolver configuration (see below)
 - `environment` - Environment variables
 - `labels` - Metadata (stored as `user.label.*` config, see below)
 - `depends_on` - Service dependency order
@@ -148,6 +149,37 @@ and group names (e.g. `nginx` or `nginx:www-data`) are not resolved and will fai
 > translation time.
 
 _Since: 1.0.0-beta.22_
+
+#### DNS
+
+`dns`, `dns_search`, and `domainname` map to Incus's `oci.dns.*` instance
+config keys, which seed the container's initial `/etc/resolv.conf`:
+
+```yaml
+services:
+  web:
+    image: docker.io/nginx:alpine
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    dns_search:
+      - example.com
+    domainname: example.com
+```
+
+becomes:
+
+```yaml
+config:
+  oci.dns.nameservers: 8.8.8.8,1.1.1.1
+  oci.dns.search: example.com
+  oci.dns.domain: example.com
+```
+
+Each key is only set when the corresponding compose field is non-empty. `dns_opt`
+has no Incus equivalent and is not mapped.
+
+_Since: v1.1.0_
 
 #### x-incus Instance Extensions
 
