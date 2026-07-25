@@ -25,8 +25,9 @@ incus-compose does not implement a builder itself and does not use the Buildah G
 Builder selection:
 
 1. `INCUS_COMPOSE_BUILDER`, when set
-2. `podman`, when found in `PATH`
-3. `docker`, when found in `PATH`
+2. `buildah`, when found in `PATH`
+3. `podman`, when found in `PATH`
+4. `docker`, when found in `PATH`
 
 Examples:
 
