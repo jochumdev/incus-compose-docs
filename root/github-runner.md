@@ -192,7 +192,15 @@ New self-hosted runner**, then register:
 ```bash
 sudo -u runner -iH
 cd actions-runner
+```
+
+Optain that one from: https://github.com/lxc/incus-compose/settings/actions/runners/new
+
+```bash
 ./config.sh --url https://github.com/lxc/incus-compose --token XXX
+```
+
+```bash
 echo "HOME=/home/runner" >> ~/actions-runner/.env
 ```
 
