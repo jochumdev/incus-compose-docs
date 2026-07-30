@@ -30,25 +30,38 @@ Placeholders to replace as you go: `example.com` (your OCI registry mirror
 domain), `<ip-from-above>` (the container's bridge IP), and the `--token`
 registration token from GitHub.
 
-## 1. Create the runner container — _host_
+## 1. Load the `openvswitch` module for ovn support — _host (user)_
 
 ```bash
-incus --project=ic-github-runner launch images:debian/trixie runner-local -c security.privileged=true -c security.nesting=true
-incus --project=ic-github-runner exec runner-local /bin/bash
+echo 'openvswitch' > sudo tee /etc/modules-load.d/50-openvswitch.conf
+sudo modprobe openvswitch
+```
+
+## 2. Create the runner container — _host (user)_
+
+Sadly `security.privileged` is needed for podman builds to work.
+
+```bash
+incus project create ic-runner
+INCUS_PROJECT=ic-runner incus profile device add default root disk path=/ pool=default
+INCUS_PROJECT=ic-runner incus profile device add default eth0 nic network=incusbr0
+
+incus --project=ic-runner launch images:debian/trixie runner -c security.nesting=true -c security.privileged=true
+incus --project=ic-runner exec runner /bin/bash
 ```
 
 The `exec` drops you into a root shell inside the container; the next steps run
 there.
 
-## 2. Install base packages — _container (root)_
+## 3. Install base packages — _container (root)_
 
 ```bash
-apt install sudo sudo-rs vim golang git shellcheck
+apt-get install -qy sudo sudo-rs vim golang git shellcheck podman jq
 ln -s /usr/sbin/sudo-rs /usr/local/sbin/sudo
 ln -s /usr/share/zoneinfo/Europe/Vienna /etc/timezone
 ```
 
-## 3. Install Incus from the Zabbly repository — _container (root)_
+## 4. Install Incus from the Zabbly repository — _container (root)_
 
 ```bash
 curl -fsSL https://pkgs.zabbly.com/key.asc -o /etc/apt/keyrings/zabbly.asc
@@ -63,39 +76,40 @@ Signed-By: /etc/apt/keyrings/zabbly.asc
 
 EOF'
 
-apt update; apt install incus podman skopeo xdelta3 umoci jq nano
+apt-get -q update; apt-get -qy install incus-client
 ```
 
-## 4. Create the `runner` user — _container (root)_
-
-The `incus-admin` group lets the runner talk to the nested Incus daemon without
-`sudo`.
+## 5. Create the `runner` user — _container (root)_
 
 ```bash
 adduser --disabled-password --shell /usr/bin/bash runner
-usermod -aG incus-admin runner
 ```
 
-## 5. Install golangci-lint — _runner user_
+## 6. Install golangci-lint — _runner user_
 
 The install script drops the binary in `~/.local/bin`. Create that directory _before_
 logging in: Debian's `~/.profile` only adds `~/.local/bin` to `PATH` if it exists at
 login, so log out and back in afterwards to pick it up.
 
 ```bash
-sudo -u runner -iH
-mkdir -p ~/.local/bin
-curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b ~/.local/bin
-exit
+sudo -u runner bash -c 'mkdir -p ~/.local/bin; curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b ~/.local/bin'
 
 sudo -u runner -iH
 which golangci-lint
 ```
 
-## 6. Install other tools and configure podman - _runner user_
+## 7. Install other tools and configure podman - _runner user_
 
 ```bash
 go install gotest.tools/gotestsum@latest
+```
+
+```bash
+echo 'if [ -d "$HOME/go/bin" ]; then PATH="$HOME/go/bin:$PATH"; fi' >> ~/.profile
+```
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.local/bin
 ```
 
 ```bash
@@ -105,14 +119,6 @@ loginctl enable-linger runner
 ```
 
 restart the container/vm.
-
-## 7. Initialise the nested Incus daemon — _runner user_
-
-Accept the defaults unless you have a reason not to.
-
-```bash
-incus admin init
-```
 
 ## 8. Add OCI registry remotes — _runner user_
 
@@ -132,14 +138,36 @@ over HTTPS, and add a remote pointing at it.
 
 ```bash
 incus remote generate-certificate
-incus config trust add-certificate ~/.config/incus/client.crt
-ip a show dev incusbr0
-export IP=<ip-from-above>
-incus config set core.https_address=:8443
-incus remote add local-https $IP --accept-certificate
 ```
 
-## 10. Download the GitHub Actions runner — _runner user_
+## 10. Install the nested incus containers — _host (user)_
+
+Copy the runners client.crt first
+
+```sh
+incus --project=ic-runner file pull runner/home/runner/.config/incus/client.crt runner-client.crt
+```
+
+```sh
+export INCUS_PROJECT=ic-runner
+
+./setup-nested-incus.sh -c runner-client.crt -n ict-stable -r stable -o -f
+./setup-nested-incus.sh -c runner-client.crt -n ict-custom -r stable -p local -b vmbr0 -o -f
+./setup-nested-incus.sh -c runner-client.crt -n ict-lts -r lts-7.0 -o -f
+./setup-nested-incus.sh -c runner-client.crt -n ict-daily -r daily -o -f
+```
+
+## 11. Register the remotes on the runner — _runner user_
+
+```bash
+for remote in "ict-stable" "ict-lts" "ict-custom" "ict-daily"; do
+  incus remote rm "${remote}"
+  incus remote add "${remote}" "${remote}" --accept-certificate
+done
+incus remote list
+```
+
+## 12. Download the GitHub Actions runner — _runner user_
 
 ```bash
 mkdir actions-runner; cd actions-runner
@@ -148,7 +176,7 @@ tar xf actions-runner.tar.gz; rm -f actions-runner.tar.gz
 exit
 ```
 
-## 11. Install runner dependencies — _container (root)_
+## 13. Install runner dependencies — _container (root)_
 
 The dependency installer needs root, so run it after the `exit` above.
 
@@ -156,7 +184,7 @@ The dependency installer needs root, so run it after the `exit` above.
 /home/runner/actions-runner/bin/installdependencies.sh
 ```
 
-## 12. Register the runner — _runner user_
+## 14. Register the runner — _runner user_
 
 Get a registration token from the repository's **Settings → Actions → Runners →
 New self-hosted runner**, then register:
@@ -206,13 +234,14 @@ Enter name of work folder: [press Enter for _work]
 √ Settings Saved.
 ```
 
-## 13. Run the runner as a service — _container (root)_
+## 15. Run the runner as a service — _container (root)_
 
 ```bash
 exit
 pushd /home/runner/actions-runner
 ./svc.sh install runner
 ./svc.sh start
+exit
 ```
 
 The runner is now registered and starts automatically with the container.
