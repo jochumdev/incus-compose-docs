@@ -88,7 +88,7 @@ incus-compose build [SERVICE...]
 
 | Option       | Description                                           |
 | ------------ | ----------------------------------------------------- |
-| `--no-cache` | Do not use cache when building the image              |
+| `--no-cache` | Disable the builder's layer cache, and skip the shared image cache the build would otherwise land in (see [Builds - Image Caching](/builds#image-caching)) |
 | `--pull`     | Always attempt to pull a newer version of base images |
 
 When service names are provided, only matching build-configured services are built. Services without `build:` are skipped. Built images are imported into the Incus project and used by `up`.

@@ -105,11 +105,47 @@ localhost/<project>-<service>
 | `dockerfile`        | Alternate Dockerfile or Containerfile path.                                                         |
 | `dockerfile_inline` | Inline Dockerfile content. incus-compose writes it to a temporary file before invoking the builder. |
 | `args`              | Build arguments, passed as `--build-arg KEY=VALUE`. Args without values are ignored.                |
-| `no_cache`          | Passed as `--no-cache`.                                                                             |
+| `no_cache`          | Passed as `--no-cache` to the builder; also skips the shared image cache for this build (see [Image Caching](#image-caching)). |
 | `pull`              | Passed as `--pull`.                                                                                 |
 | `target`            | Multi-stage build target, passed as `--target`.                                                     |
 | `platforms`         | A single platform is supported. Multiple platforms are rejected.                                    |
 | service `platform`  | Used as the build platform when `build.platforms` is not set.                                       |
+
+## Image Caching
+
+By default, a built image is imported into the shared image-cache project
+first (the `default` project, or whatever `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
+points at) and then copied from there into the compose project, the same
+path pulled images take. This lets other projects reuse the built image
+without rebuilding it, instead of every project holding its own private
+copy.
+
+:::warning
+The cache entry is keyed by the built image's Incus alias (derived from the
+local image name, `localhost/<project>-<service>` unless `image:` is set
+explicitly). If two services in different projects build under the same
+image name, they share one cache entry - whichever build runs last
+overwrites it for both. Give services that build different content
+distinct `image:` names, or opt out per service with `build.no_cache: true`
+below.
+:::
+
+Set `no_cache: true` on the service's `build:` block to skip the shared
+cache and import straight into the project instead, avoiding cross-project
+collisions for that service:
+
+```yaml
+services:
+  web:
+    build:
+      context: .
+      no_cache: true
+```
+
+With no cache configured at all (`--image-cache ""`), every build imports
+directly into the project, same as `no_cache: true`.
+
+_Since: v1.1.0_
 
 ## Platform handling
 
@@ -156,7 +192,7 @@ incus-compose build [SERVICE...]
 
 | Option       | Description                                                                            |
 | ------------ | -------------------------------------------------------------------------------------- |
-| `--no-cache` | Disable builder cache for this build. Also enabled when `build.no_cache: true` is set. |
+| `--no-cache` | Disable the builder's layer cache for this build, and skip the shared image cache (see [Image Caching](#image-caching)). Also enabled when `build.no_cache: true` is set. |
 | `--pull`     | Pull newer base images for this build. Also enabled when `build.pull: true` is set.    |
 
 ## up build behavior

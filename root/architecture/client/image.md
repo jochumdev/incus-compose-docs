@@ -222,6 +222,28 @@ that only changes manifest metadata would be invisible to `RefreshImage`
 ("already up to date") even though the tag points to a newer image. Without
 `--pull`, an already-cached image is reused as-is.
 
+## Built Images and Caching
+
+`ensureBuild`/`buildImage` (the `Config.Build != nil` path) follow the same
+cache-then-copy shape as the pull path above, so a built image benefits from
+the 3-stage flow too: the rootfs/metadata tarball goes into `r.cache` first,
+then gets copied into the project via `CopyImage`. This is what lets a built
+image (for example the ic-healthd sidecar image built by CI/dev tooling) be
+produced once and reused by every project instead of being rebuilt or
+re-copied per project.
+
+`buildImage` takes the direct-to-project path instead when either is true:
+
+- `buildCfg.NoCache` is set (compose `build.no_cache: true` or CLI `--no-cache`)
+- `r.cache == nil` (no image cache configured, e.g. `--image-cache ""`)
+
+Because the cache entry is keyed by the built image's Incus alias
+(`r.incusName`, derived from the local image name), two different builds
+that resolve to the same image name collide in the cache - the later build
+wins. `no_cache: true` is the per-service escape hatch from that collision,
+at the cost of no longer sharing the build across projects. See
+[Builds - Image Caching](/builds#image-caching) for the user-facing version.
+
 ## Podman Compatibility
 
 Images with "localhost" remote (common in podman) are converted to "local":
