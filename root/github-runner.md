@@ -202,6 +202,7 @@ Optain that one from: https://github.com/lxc/incus-compose/settings/actions/runn
 
 ```bash
 echo "HOME=/home/runner" >> ~/actions-runner/.env
+echo "TEST_PROCS=12" >> ~/actions-runner/.env
 ```
 
 The interactive prompts look like this (the values shown are the ones used
