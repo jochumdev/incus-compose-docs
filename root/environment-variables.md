@@ -182,14 +182,14 @@ are abbreviated; run `incus-compose <command> --help` for the full text and defa
 | `up`      | `INCUS_COMPOSE_UP_NO_START`           | `--no-start`           | Don't start containers after creating     |
 | `up`      | `INCUS_COMPOSE_UP_TIMEOUT`            | `--timeout`            | Timeout for stopping/starting a service   |
 | `up`      | `INCUS_COMPOSE_UP_DEPENDENCY_TIMEOUT` | `--dependency-timeout` | Max wait for `service_healthy` depends_on |
-| `up`      | `INCUS_COMPOSE_UP_SCALE`              | `--scale`              | Scale SERVICE to NUM instances            |
+| `up/down` | `INCUS_COMPOSE_SCALE`                 | `--scale`              | Scale SERVICE to NUM instances            |
 | `up`      | `INCUS_COMPOSE_UP_PULL`               | `--pull`               | Pull policy                               |
 | `up`      | `INCUS_COMPOSE_UP_BUILD`              | `--build`              | Build images before starting              |
 | `up`      | `INCUS_COMPOSE_UP_BUILDER`            | `--builder`            | Preferred builder binary or path          |
 | `up`      | `INCUS_COMPOSE_UP_NO_BUILD`           | `--no-build`           | Do not build images even if missing       |
 | `up`      | `INCUS_COMPOSE_UP_NO_DEPS`            | `--no-deps`            | Don't start linked services               |
 | `up`      | `INCUS_COMPOSE_UP_DETACH`             | `--detach`, `-d`       | Run containers in the background          |
-| `up`      | `INCUS_COMPOSE_NO_HEALTHD`            | `--no-healthd`         | Don't create the healthd sidecar          |
+| `up/down` | `INCUS_COMPOSE_NO_HEALTHD`            | `--no-healthd`         | Don't create the healthd sidecar          |
 | `up`      | `INCUS_COMPOSE_EXTERNAL_HEALTHD`      | `--external-healthd`   | Use healthd but don't create/look it up   |
 | `up`      | `INCUS_COMPOSE_HEALTHD_IMAGE`         | `--healthd-image`      | Healthd OCI image                         |
 | `up`      | `INCUS_COMPOSE_HEALTHD_BINARY`        | `--healthd-binary`     | Local ic-healthd binary path              |
