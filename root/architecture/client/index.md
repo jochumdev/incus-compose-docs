@@ -73,6 +73,7 @@ func main() {
 - [Hooks](/architecture/client/hooks) - Hook system details
 - [Image](/architecture/client/image) - Image resource
 - [Instance](/architecture/client/instance) - Instance resource
+- [Storage Volume](/architecture/client/storage_volume) - SFTP access and the VolumeLock advisory lock
 
 See also [Architecture Overview](/architecture).
 
