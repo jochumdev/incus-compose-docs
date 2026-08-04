@@ -102,7 +102,7 @@ localhost/<project>-<service>
 | Option              | Support                                                                                             |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
 | `context`           | Build context directory. Relative paths are resolved by compose-go.                                 |
-| `dockerfile`        | Alternate Dockerfile or Containerfile path.                                                         |
+| `dockerfile`        | Alternate Dockerfile or Containerfile path, resolved relative to `context` (absolute paths are used as given). |
 | `dockerfile_inline` | Inline Dockerfile content. incus-compose writes it to a temporary file before invoking the builder. |
 | `args`              | Build arguments, passed as `--build-arg KEY=VALUE`. Args without values are ignored.                |
 | `no_cache`          | Passed as `--no-cache` to the builder; also skips the shared image cache for this build (see [Image Caching](#image-caching)). |
@@ -116,23 +116,59 @@ localhost/<project>-<service>
 By default, a built image is imported into the shared image-cache project
 first (the `default` project, or whatever `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
 points at) and then copied from there into the compose project, the same
-path pulled images take. This lets other projects reuse the built image
-without rebuilding it, instead of every project holding its own private
-copy.
+path pulled images take.
+
+```mermaid
+flowchart LR
+    B[builder<br/>or registry] -->|only on a cache miss| C[(image cache<br/>shared)]
+    C -->|copy| P1[project A]
+    C -->|copy| P2[project B]
+    C -->|copy| P3[project C]
+```
+
+The cache is checked **before** the builder runs. If it already holds the
+image's alias, nothing is built and nothing is pulled - the image is copied
+straight from the cache into your project. So the first `up` anywhere builds,
+and every project after that copies.
+
+That is what makes "build once, use many" work with `build:` left in place, and
+it is also what lets a machine that cannot build at all - no `podman`, `docker`
+or `buildah`, which is common on Windows and macOS - consume an image someone
+else built, as long as it is in the cache.
+
+### The cache key is the image name
+
+A built image is stored in the cache under its Incus alias, which comes from
+the service's image name and nothing else:
+
+| Compose                        | Cache alias                    |
+| ------------------------------ | ------------------------------ |
+| `image: ghcr.io/me/app:v1`     | `ghcr.io/me/app:v1`            |
+| `image: myapp:latest`          | `docker.io/library/myapp:latest` |
+| no `image:`, service `web`     | `local/web:latest`             |
+
+Nothing else feeds the key - not the project name, not the build context, not
+the Dockerfile. Two builds that resolve to the same image name are the same
+cache entry, whichever project or compose file they came from, and the last
+build to finish wins for all of them.
+
+So the image name is the knob: set `image:` explicitly on every service that
+builds, and give services that build different content different names. The
+`localhost/<service>` fallback has no project prefix, so relying on it means
+two projects that both have a service called `web` share one entry.
 
 :::warning
-The cache entry is keyed by the built image's Incus alias (derived from the
-local image name, `localhost/<project>-<service>` unless `image:` is set
-explicitly). If two services in different projects build under the same
-image name, they share one cache entry - whichever build runs last
-overwrites it for both. Give services that build different content
-distinct `image:` names, or opt out per service with `build.no_cache: true`
-below.
+Because a cache hit skips the builder entirely, editing your Dockerfile or
+build context does **not** trigger a rebuild on its own - the image name is
+unchanged, so the cached image still matches. Use `--build` to force one, or
+bump the tag in `image:`. This mirrors `docker compose`, where an existing
+image is reused until you pass `--build`.
 :::
 
 Set `no_cache: true` on the service's `build:` block to skip the shared
-cache and import straight into the project instead, avoiding cross-project
-collisions for that service:
+cache and import straight into the project instead. The service then rebuilds
+in every project, which is also how you avoid sharing a cache entry with a
+same-named build elsewhere:
 
 ```yaml
 services:
@@ -144,6 +180,49 @@ services:
 
 With no cache configured at all (`--image-cache ""`), every build imports
 directly into the project, same as `no_cache: true`.
+
+_Since: v1.1.0_
+
+## Reusing a built image across projects
+
+Nothing special is needed. Keep the `build:` block where it is, give the
+service an explicit `image:` name, and every project that uses that name gets
+the cached image:
+
+```yaml
+services:
+  myapp:
+    image: ghcr.io/example/myapp:v1
+    build:
+      context: .
+```
+
+The first `up` builds and populates the cache. Every later `up` - same project
+or another one, same machine or another one against the same Incus - finds the
+alias and copies it. The image name is the whole contract.
+
+A consumer that only wants to *use* the image can drop the `build:` block
+entirely:
+
+```yaml
+services:
+  web:
+    image: ghcr.io/example/myapp:v1
+```
+
+Both forms hit the same cache entry. Dropping `build:` is worth doing when the
+consumer has no access to the build context, or when you want `up` to fail
+loudly rather than build if the image is somehow missing. This is how the
+ic-healthd sidecar image is distributed in this repo.
+
+Because a machine only builds on a cache miss, a client with no local
+`buildah`/`podman`/`docker` - common on Windows and macOS - can run either form
+as long as someone has seeded the cache.
+
+Rebuild under a new tag (`:v2`) when the content changes rather than
+overwriting an existing one. Consumers already holding a project copy of `:v1`
+will not pick up an in-place replacement, and `--build` only forces a rebuild
+for whoever runs it.
 
 _Since: v1.1.0_
 
@@ -197,13 +276,19 @@ incus-compose build [SERVICE...]
 
 ## up build behavior
 
-For build-configured services, `up` defaults to building only when the Incus image is missing.
+For build-configured services, `up` builds only when the image is missing from
+**both** the compose project and the shared image cache - see
+[Image Caching](#image-caching).
 
-| Command                       | Behavior                                                                       |
-| ----------------------------- | ------------------------------------------------------------------------------ |
-| `incus-compose up`            | Build missing build-configured images. Use existing built images when present. |
-| `incus-compose up --build`    | Force rebuild build-configured images.                                         |
-| `incus-compose up --no-build` | Never build. Fail if a required built image is missing.                        |
+| Command                       | Behavior                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------- |
+| `incus-compose up`            | Build only on a cache miss. Copy from the cache when the alias is already there. |
+| `incus-compose up --build`    | Force rebuild, replacing the cached image.                                       |
+| `incus-compose up --no-build` | Never build. Fail if a required built image is missing.                          |
+
+In practice: the first `up` anywhere builds, and every `up` after that - in the
+same project or a different one - copies from the cache. `--build` is how you
+pick up changes to your Dockerfile or context.
 
 ## Unsupported build options
 
