@@ -203,7 +203,7 @@ Located in `test/fixtures/`. Each fixture is a minimal compose scenario.
 
 ### Available Fixtures
 
-- `simple-nginx/` - Simplest case
+- `simple/` - Simplest case
 - `wordpress/` - Multi-service with volumes
 - `with_profiles/` - Profile testing
 - `with_env/` - Environment variable testing
@@ -260,7 +260,7 @@ just test ./client/...
 just pre-commit
 
 # Test a compose file
-just run -f test/fixtures/simple-nginx/compose.yaml config
+just run -f test/fixtures/simple/compose.yaml config
 ```
 
 ## Best Practices
