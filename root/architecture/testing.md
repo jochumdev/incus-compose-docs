@@ -94,47 +94,108 @@ Tests live alongside the code they test:
 client/
   ├── client.go
   ├── client_test.go      # Tests for client.go
-  ├── resources.go
-  └── resources_test.go   # Tests for resources.go
+  ├── resource_image.go
+  └── resource_image_test.go   # Tests for resource_image.go
 project/
   ├── project.go
   └── project_test.go     # Tests for project.go
 ```
 
-## Unit Tests
+## Unit, integration and E2E
 
-Unit tests use mock resources that implement `client.ResourceOperation` interface. They require no Incus connection and run fast.
+Tests are not split by directory or build tag. Which tier a test belongs to is
+decided by the skip helper it calls on its first line:
 
-**Examples**: `client/operation_test.go`, `client/resources_test.go`
+| Tier | Guard | Needs Incus | Runs with |
+| --- | --- | --- | --- |
+| unit | none | no | every command, including `just test-local` |
+| integration | `skipLocal(t)` | yes | `just test` |
+| E2E | `skipE2E(t)` | yes | `just test-e2e` |
+
+- **Unit** tests exercise pure logic - name parsing and sanitizing, config
+  translation, argument building, `buildArgs`, snapshot rendering. No guard, so
+  they run everywhere and must stay fast.
+- **Integration** tests call `skipLocal(t)` and drive a real nested Incus. Most
+  resource tests live here: they create a throwaway project, act on it, and let
+  `t.Cleanup` tear it down. `INCUS_COMPOSE_TEST_LOCAL=1` (set by `just
+  test-local`) skips them, which is why a green `just test-local` proves much
+  less than a green `just test`.
+- **E2E** tests call `skipE2E(t)` and are the slow, full-CLI ones. They are
+  skipped unless `INCUS_COMPOSE_TEST_E2E=1` (set by `just test-e2e`), so they
+  stay out of the normal loop.
+
+There is no mocking of `incus.InstanceServer`. Anything that needs Incus talks
+to the real nested one; that is the point of the integration tier.
+
+**Examples**: `client/resource_image_test.go` mixes all three - parsing tests
+with no guard, ensure/lock tests behind `skipLocal`.
 
 **Run with**:
 
 ```bash
-just test-local
+just test-local   # unit only
+just test         # unit + integration
+just test-e2e     # unit + integration + E2E
 ```
 
-### Mock Pattern
+### The one mock
 
-Mocks implement the same interfaces as real resources:
+There is a single mock, `mockResource` in `client/resource_test.go`. It exists
+to test ordering logic (`groupByPriority`) without touching a server, and it
+implements `Resource` only:
 
 ```go
-type MockInstance struct {
-    name     string
-    kind     string
-    priority int
-    exists   bool
-    done     bool
-    error    error
-}
-
-func (m *MockInstance) Name() string { return m.name }
-func (m *MockInstance) Kind() string { return m.kind }
-func (m *MockInstance) Priority() int { return m.priority }
-func (m *MockInstance) Exists() bool { return m.exists }
-func (m *MockInstance) Done() bool { return m.done }
-func (m *MockInstance) Error() error { return m.error }
-func (m *MockInstance) Handle() error { return m.error }
+func newMockResource(name string, kind Kind, priority int, ensured bool) *mockResource
 ```
+
+Use it rather than writing another; anything needing more than a name, kind and
+priority belongs in the integration tier against real Incus.
+
+## Prove the test red before you trust it green
+
+A test written against a fix you just made passes for two possible reasons: the
+fix works, or the test never checked anything. Those are indistinguishable until
+you make it fail.
+
+So before a fix is done, break it back and watch the test go red:
+
+```bash
+# disable the fix (an `if false &&` on the guard is enough), then:
+just test ./client/ -run TestTheThing -count=1
+```
+
+Two things this catches regularly:
+
+- **Assertions that cannot fail.** A `require.Error` passes on *any* error,
+  including "builder not found" when you meant to prove "the builder ran". Assert
+  on something only the real path produces.
+- **Setups that never reproduce the condition.** A concurrency test whose workers
+  resolve to different names never contends, and passes whether or not the fix
+  exists. If the test still passes with the fix disabled, the test is wrong, not
+  the fix.
+
+Always pass `-count=1` when re-running: Go caches successful results and a cached
+`0.000s` "pass" tells you nothing about the code you just changed. For anything
+concurrent, use `-count=5` or more - a race that reproduces one run in three will
+otherwise look fixed.
+
+## Test the failures too
+
+Green-path coverage only shows the feature works when everything is available.
+Most of what users hit is the other half, and error behaviour is exactly what
+regresses silently:
+
+- **Every guard needs a test.** `pull never` with nothing stored, `--no-build`
+  with a missing image, no source and no cache configured. Each guard is a
+  branch, and an untested branch is a branch that stops working.
+- **Assert the error, not just that one happened.** `require.ErrorIs(err,
+  ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
+  URL. Sentinel errors exist so callers can branch on them - test them the way a
+  caller would.
+- **Assert what did *not* happen.** Often the real contract is an absence: the
+  cache was not repopulated, the builder was not invoked, the other lock was not
+  released. A pointing-at-nothing build context or a nulled-out source turns
+  "it didn't go there" into something you can assert.
 
 ## Test Fixtures
 
