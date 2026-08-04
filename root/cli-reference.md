@@ -59,7 +59,7 @@ incus-compose up [SERVICE...]
 | `-d`, `--detach`       | Detached mode: run containers in the background                                                                                   |
 | `--recreate`           | Recreate containers even if they exist                                                                                            |
 | `--no-start`           | Don't start containers after creating                                                                                             |
-| `--pull`               | Pull policy: `always` (refresh from registry), `missing`/`policy` (use cache if present), `never` (never pull); default: `policy` |
+| `--pull`               | Pull policy: `always` (refresh from the registry), `missing`/`policy` (use the store if present), `never` (never contact a registry; fail when the image is not stored); default: `policy` |
 | `--build`              | Rebuild build-configured service images before starting containers                                                                |
 | `--no-build`           | Do not build images; fail if a required built image is missing                                                                    |
 | `--builder`            | Preferred builder, binary name or absolute path; empty for auto-detect                                                            |
@@ -89,7 +89,7 @@ incus-compose build [SERVICE...]
 | Option       | Description                                           |
 | ------------ | ----------------------------------------------------- |
 | `--no-cache` | Disable the builder's layer cache, and skip the shared image cache the build would otherwise land in (see [Builds - Image Caching](/builds#image-caching)) |
-| `--pull`     | Always attempt to pull a newer version of base images |
+| `--pull`     | Pull policy for the images this build depends on: `always`, `missing`/`policy`, `never`. Base-image freshness is the builder's own concern, set `build.pull: true` in the compose file for that |
 
 When service names are provided, only matching build-configured services are built. Services without `build:` are skipped. Built images are imported into the Incus project and used by `up`.
 
@@ -281,7 +281,7 @@ incus-compose pull [SERVICE...]
 | ------------------------------- | ------------------------------------------------------------------------------ |
 | `--ignore-buildable`            | Ignore images that can be built                                                |
 | `--ignore-build-failures`       | Pull what it can and ignores images with pull failures                         |
-| `--policy`                      | Apply pull policy ("missing","always") - ignored just for compatibilty now     |
+| `--policy`                      | Pull policy: `always` (default), `missing`, `never`                            |
 | `--no-healthd`                  | Don't pull the healthd sidecar                                                 |
 | `--healthd-image`               | Healthd OCI image to use; {version} is replaced with the incus-compose version |
 | `--include-deps`, `--with-deps` | Also pull linked services                                                      |

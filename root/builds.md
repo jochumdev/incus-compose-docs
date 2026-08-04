@@ -272,7 +272,7 @@ incus-compose build [SERVICE...]
 | Option       | Description                                                                            |
 | ------------ | -------------------------------------------------------------------------------------- |
 | `--no-cache` | Disable the builder's layer cache for this build, and skip the shared image cache (see [Image Caching](#image-caching)). Also enabled when `build.no_cache: true` is set. |
-| `--pull`     | Pull newer base images for this build. Also enabled when `build.pull: true` is set.    |
+| `--pull`     | Pull policy for the images this build depends on: `always`, `missing`/`policy`, `never`. Base-image freshness is separate - set `build.pull: true` in the compose file, which is passed to the builder as its own `--pull`. |
 
 ## up build behavior
 
