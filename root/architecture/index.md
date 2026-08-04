@@ -153,7 +153,7 @@ export INCUS_COMPOSE_KEY="./certs/client.key"
 **Provided connection (for testing):**
 
 ```go
-client.New(ctx, client.ClientProvideConnection(instanceServer, cacheServer))
+client.New(ctx, client.ClientProvideConnection(instanceServer))
 ```
 
 ## Environment Variables
