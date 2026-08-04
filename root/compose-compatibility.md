@@ -611,6 +611,33 @@ services:
         mode: 0o440
 ```
 
+#### Overwriting Image Files
+
+Configs and secrets are written into the instance before it first starts, and
+they replace a file the image already ships at that target. This is how you
+override an application's own default config:
+
+```yaml
+services:
+  web:
+    image: docker.io/library/caddy:2-alpine
+    configs:
+      - source: caddyfile
+        target: /etc/caddy/Caddyfile
+
+configs:
+  caddyfile:
+    file: ./Caddyfile
+```
+
+Docker achieves the same by mounting over the path, so the image file is only
+hidden for the container's lifetime. incus-compose writes into the instance's
+root filesystem instead, so the replacement is permanent for that instance -
+the original is gone until the instance is recreated.
+
+_Changed in 1.2.0_: a target that already existed in the image was previously
+left untouched, which silently ignored the config or secret.
+
 ## Not Supported (Yet)
 
 ### External Secrets and Configs
