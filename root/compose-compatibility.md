@@ -56,7 +56,8 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 ### Services
 
 - `image` - OCI images from any registry
-- `command` - Override container command
+- `command` - Override container command (appends, see below)
+- `entrypoint` - Override the container entrypoint (see below)
 - `working_dir` - Set working directory
 - `user` - Run the container process as a specific UID/GID (numeric only, see below)
 - `dns` / `dns_search` / `domainname` - DNS resolver configuration (see below)
@@ -149,6 +150,47 @@ and group names (e.g. `nginx` or `nginx:www-data`) are not resolved and will fai
 > translation time.
 
 _Since: 1.0.0-beta.22_
+
+#### Entrypoint and Command
+
+`entrypoint:` behaves as the compose spec describes: it replaces the image's
+entrypoint, and the image's default command is discarded, so the container runs
+exactly `entrypoint:` followed by `command:`.
+
+```yaml
+services:
+  web:
+    image: docker.io/library/busybox:glibc
+    entrypoint: ["httpd", "-f", "-v", "-p", "8080", "-h", "/www"]
+```
+
+| `entrypoint:` | `command:` | The container runs           |
+| ------------- | ---------- | ---------------------------- |
+| set           | unset      | `entrypoint`                 |
+| set           | set        | `entrypoint` + `command`     |
+| set           | `[]`       | `entrypoint`                 |
+| `[]`          | set        | `command`                    |
+| `[]`          | unset      | rejected - nothing to run    |
+| unset         | set        | image entrypoint + `command` |
+
+**`command:` on its own is appended, not substituted.** That last row is the one
+place incus-compose deviates from Docker, and it is a limitation of the Incus
+API rather than a choice: Incus derives an OCI container's entrypoint from the
+runtime bundle's resolved arguments, which already have the image's `ENTRYPOINT`
+and `CMD` concatenated, and never exposes the two separately. Without that split
+there is no way to replace `CMD` while keeping `ENTRYPOINT`.
+
+So an image with `ENTRYPOINT ["caddy"]` and `CMD ["run"]` plus
+`command: ["version"]` runs `caddy run version`, where Docker would run
+`caddy version`. **Set `entrypoint:` when you need the command to be exactly
+what you wrote** - it takes the image out of the equation entirely.
+
+[lxc/incus#3765](https://github.com/lxc/incus/pull/3765) is the upstream
+proposal to expose the split. If it lands, `command:` on its own will substitute
+like Docker does, which will be a breaking change for anyone relying on today's
+append.
+
+_Since: v1.2.0_
 
 #### DNS
 
