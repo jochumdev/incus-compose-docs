@@ -88,7 +88,7 @@ GlobalClient
 Images go through three stages:
 
 1. **Remote** - OCI registry (docker.io, ghcr.io)
-2. **Cache** - Incus `default` project (configurable via `INCUS_COMPOSE_IMAGE_CACHE`)
+2. **Cache** - Incus `incus-compose-cache` project (configurable via `INCUS_COMPOSE_IMAGE_CACHE`)
 3. **Project** - per-project copy used by the instance
 
 ```

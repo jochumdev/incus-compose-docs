@@ -22,7 +22,7 @@ The Image resource handles OCI image pulling and caching in Incus.
 Images go through three stages:
 
 1. **Remote** - OCI registry (docker.io, ghcr.io)
-2. **Cache** - Local image store (the `default` project unless overridden via `--image-cache`)
+2. **Cache** - Local image store (the `incus-compose-cache` project unless overridden via `--image-cache`)
 3. **Project** - Per project copy of the image
 
 Projects are created with `features.images=true`, so each project keeps its own
@@ -74,7 +74,10 @@ type ImageConfig struct {
     Image string
 }
 
-const DefaultLockVolume = "ic-image-lock"
+const (
+    DefaultCacheProject = "incus-compose-cache"
+    DefaultLockVolume   = "ic-image-lock"
+)
 ```
 
 ### Cache Configuration
@@ -82,7 +85,7 @@ const DefaultLockVolume = "ic-image-lock"
 - **CacheClient**: For library users who manage their own cache
 - **CacheProject**: For CLI users, specifies project name (auto-created); the CLI
   sets this from `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
-- **Default**: Uses the `default` project
+- **Default**: Uses the `incus-compose-cache` project (`client.DefaultCacheProject`)
 
 The cache is a `*Client`, not a bare `incusClient.InstanceServer`, because the
 [lock volume](#locking) is a `StorageVolume` resource that has to be ensured in

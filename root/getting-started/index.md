@@ -340,7 +340,7 @@ Projects are isolated: separate networks, volumes, and instances.
 
 ## Image Caching
 
-Images are cached in either the `default` project or project you set via the `INCUS_COMPOSE_IMAGE_CACHE` env:
+Images are cached in either the `incus-compose-cache` project or the project you set via the `INCUS_COMPOSE_IMAGE_CACHE` env:
 
 ```bash
 $ incus project list

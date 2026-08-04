@@ -114,7 +114,7 @@ localhost/<project>-<service>
 ## Image Caching
 
 By default, a built image is imported into the shared image-cache project
-first (the `default` project, or whatever `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
+first (the `incus-compose-cache` project, or whatever `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
 points at) and then copied from there into the compose project, the same
 path pulled images take.
 

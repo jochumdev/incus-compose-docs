@@ -36,7 +36,7 @@ just test
 
 ### Image Cache
 
-Tests use a dedicated cache project (`incus-compose-tests-cache`) separate from the CLI's image cache (the `default` project unless `--image-cache` is set). This keeps test images isolated and avoids polluting the user's cache.
+Tests use a dedicated cache project (`incus-compose-tests-cache`) separate from the CLI's image cache (`incus-compose-cache` unless `--image-cache` is set). This keeps test images isolated and avoids polluting the user's cache.
 
 The test cache is configured via `ClientProvideConnection` in test setup, pointing to a test-specific project.
 

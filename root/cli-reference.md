@@ -32,7 +32,7 @@ for the full list.
 | `-E`, `--os-env`            | Include OS env vars                                                                                     |
 | `--remote`                  | Incus remote                                                                                            |
 | `--ansi`                    | Color output: never/always/auto                                                                         |
-| `--image-cache`             | Incus project used as image cache (default: `default`); set `""` to disable caching and pull straight into the project |
+| `--image-cache`             | Incus project used as image cache (default: `incus-compose-cache`); set `""` to disable caching and pull straight into the project |
 | `--storage-pool`            | Default storage pool for volumes (default: `detect` for auto-detection)                                 |
 | `--workers`                 | Number of concurrent workers (default: `4`)                                                              |
 | `--debug`                   | Debug logging                                                                                            |
