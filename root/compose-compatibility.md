@@ -894,6 +894,50 @@ incus-compose up  # MY_VAR NOT available (security)
 
 Use `.env` files or `--os-env` flag for docker-compose compatibility.
 
+### Config Output
+
+`config --format=yaml` is byte-identical to `docker compose config`.
+`config --format=json` deliberately is not.
+
+Docker renders JSON straight from the compose model, and compose-go tags every
+extension field `json:"-"` - so `docker compose config --format json` silently
+drops every `x-` block. incus-compose renders JSON through the YAML
+representation instead, which keeps them:
+
+```yaml
+services:
+  web:
+    image: docker.io/nginx:alpine
+    x-incus:
+      limits.cpu: "2"
+```
+
+```json
+{
+  "services": {
+    "web": {
+      "image": "docker.io/nginx:alpine",
+      "x-incus": { "limits.cpu": "2" }
+    }
+  }
+}
+```
+
+Since `x-incus` and `x-incus-compose` carry most of what makes a compose file
+Incus-specific, dropping them would make the JSON output useless for scripting.
+
+Two consequences of rendering through YAML:
+
+- Fields Docker emits as explicit nulls - `command`, `entrypoint`, and a
+  network's empty `ipam` - are omitted here rather than written as `null`/`{}`.
+- Object keys are sorted alphabetically rather than following the compose-spec
+  field order. JSON objects are unordered, so this only matters if you diff the
+  raw text.
+
+Parse the JSON rather than diffing it against `docker compose` output.
+
+_Since: v1.2.0_
+
 ## Testing Compatibility
 
 To test if your compose file works:
