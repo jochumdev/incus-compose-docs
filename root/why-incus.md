@@ -113,6 +113,22 @@ you connect to a remote Linux host over HTTPS and manage OCI app containers,
 system containers, and full VMs - all without Docker Desktop, WSL, or a local
 Linux VM.
 
+```mermaid
+flowchart LR
+    subgraph D["your desktop - Windows, macOS, or Linux"]
+        CLI["incus<br/>incus-compose"]
+    end
+
+    subgraph H["a Linux host"]
+        INCUSD[incusd]
+        INCUSD --> OCI[OCI application containers]
+        INCUSD --> SYS[system containers]
+        INCUSD --> VM[virtual machines]
+    end
+
+    CLI -->|HTTPS| INCUSD
+```
+
 Docker Desktop cannot do this: on Windows and macOS it runs a hidden Linux VM
 to host the engine. With Incus the workload lives on real Linux infrastructure
 and your laptop stays light.

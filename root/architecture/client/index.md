@@ -175,4 +175,21 @@ err = stack.Run(client.ActionDelete, client.OptionForce())
 | StorageVolume | 4096     | `StorageVolumeConfig` |
 | Instance      | 8192     | `InstanceConfig`      |
 
-Lower priority runs first on ensure, last on delete.
+Lower priority runs first on ensure, last on delete. `ForAction()` picks the
+direction:
+
+```mermaid
+flowchart LR
+    subgraph asc["ensure / start - ascending"]
+        direction LR
+        A1["Profile<br/>512"] --> A2["Image<br/>1024"] --> A3["Network<br/>2048"] --> A4["StorageVolume<br/>4096"] --> A5["Instance<br/>8192"]
+    end
+
+    subgraph desc["stop / delete - descending"]
+        direction LR
+        D1["Instance<br/>8192"] --> D2["StorageVolume<br/>4096"] --> D3["Network<br/>2048"] --> D4["Image<br/>1024"] --> D5["Profile<br/>512"]
+    end
+```
+
+Resources of the same priority run in parallel through the WorkerPool; the
+priority groups themselves run one after another.

@@ -19,6 +19,21 @@ This example runs three [distribution](https://github.com/distribution/distribut
 
 Each cache holds images for 168 h (7 days) before re-validating with the upstream.
 
+```mermaid
+flowchart LR
+    IC["incus / incus-compose"] --> CAD["Caddy<br/>TLS termination"]
+
+    CAD -->|docker-registry.example.com| R1["docker-registry<br/>10.132.32.17:5000"]
+    CAD -->|ghcr-registry.example.com| R2["ghcr-registry<br/>10.132.32.18:5000"]
+    CAD -->|gitlab-registry.example.com| R3["gitlab-registry<br/>10.132.32.19:5000"]
+
+    R1 -->|on a cache miss| U1[registry-1.docker.io]
+    R2 -->|on a cache miss| U2[ghcr.io]
+    R3 -->|on a cache miss| U3[registry.gitlab.com]
+
+    IC -.->|"direct-docker.io, bootstrap only"| U1
+```
+
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/oci-registry-cache).
 
 ## Prerequisites

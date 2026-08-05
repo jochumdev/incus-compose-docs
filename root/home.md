@@ -23,6 +23,28 @@ Bring the familiar Docker Compose workflow to [Incus](https://linuxcontainers.or
 - Manage complex multi-container applications with familiar commands
 - Benefit from Incus's resource efficiency and security model
 
+```mermaid
+flowchart LR
+    subgraph F["your files"]
+        direction TB
+        CY[compose.yaml]
+        CI["compose.incus.yaml<br/>optional Incus overrides"]
+        DE[.env]
+    end
+
+    F --> IC[incus-compose]
+    IC --> P
+
+    subgraph P["one Incus project per compose project"]
+        direction TB
+        IMG["images<br/>copied from the shared cache"]
+        NET["bridge networks<br/>real IPs and DNS"]
+        VOL["storage volumes<br/>UID/GID shifted"]
+        INST["instances<br/>web-1, db-1, ..."]
+        HD["ic-healthd<br/>healthchecks and restarts"]
+    end
+```
+
 New to Incus? See [Why Incus?](/why-incus) for what the platform brings over
 a classic OCI engine setup.
 

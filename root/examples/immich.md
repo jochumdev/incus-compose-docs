@@ -18,6 +18,28 @@ The files for this example are on [Github](https://github.com/lxc/incus-compose/
 
 Five services, following [Immich's official Compose layout](https://docs.immich.app/install/docker-compose): `server`, `machine-learning`, `microservices` (background workers, split from `server` via `IMMICH_WORKERS_INCLUDE`/`EXCLUDE`), `redis`, and `database` (a Postgres fork with vector search support). Version, secrets, and storage paths come from `.env`.
 
+Arrows are `depends_on: service_healthy`; `server` and `microservices` share the
+`library` volume:
+
+```mermaid
+flowchart LR
+    SRV["server<br/>published on 2283"]
+    MS["microservices<br/>background workers"]
+    ML["machine-learning<br/>model-cache volume"]
+    R[(redis)]
+    DB[("database<br/>Postgres with vector search")]
+    LIB["library volume<br/>pool from UPLOAD_POOL"]
+
+    SRV --> R
+    SRV --> DB
+    SRV --> ML
+    SRV --> MS
+    MS --> R
+    MS --> DB
+    SRV --- LIB
+    MS --- LIB
+```
+
 ## Usage
 
 ```bash

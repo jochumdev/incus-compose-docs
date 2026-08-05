@@ -16,6 +16,28 @@ leafwiki_last_author_id: icZYCpLDg
 
 # CLI Reference
 
+## Instance Lifecycle
+
+Which command leaves you where:
+
+```mermaid
+stateDiagram-v2
+    state "not created" as absent
+
+    [*] --> absent
+    absent --> running: up
+    absent --> stopped: up --no-start
+    stopped --> running: start
+    running --> stopped: stop
+    running --> running: restart
+    running --> absent: down
+    stopped --> absent: down
+```
+
+`down` removes the instances and the per-project image copies but keeps volumes
+and the shared image cache. `down --volumes` also deletes the volumes;
+`down --project` removes the whole Incus project.
+
 ## Global Options
 
 Every option below (and every command-specific one further down) can also be
@@ -72,7 +94,8 @@ incus-compose up [SERVICE...]
 | `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                         |
 | `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                    |
 | `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; bridge IP if unset                                  |
-| `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; project default if unset                                        |
+| `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; project default if unset; project scope only                    |
+| `--healthd-scope`      | `global` (shared daemon in the Incus `default` project, the default) or `project`; loses to a scope the project already carries    |
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
@@ -318,11 +341,20 @@ incus-compose healthd <subcommand>
 | `logs [--follow]` | Stream the ic-healthd container log   |
 | `reload`          | Send SIGHUP to the ic-healthd process |
 | `restart`         | Restart the ic-healthd container      |
-| `up [--recreate]` | Create or recreate the sidecar        |
-| `down`            | Stop and remove the sidecar           |
+| `up`              | Create the sidecar                    |
+| `down [--force]`  | Stop and remove the sidecar           |
 
-`healthd up` also accepts `--image`, `--binary`, `--incus`, and `--network`. See
-[Health Checking - Network Configuration](/healthd#network-configuration).
+Each follows the project's scope, so in a `global`-scope project they act on the
+shared daemon in the Incus `default` project. With no compose file present they
+all act on the shared daemon directly: `healthd up` creates one, the rest fail
+with `no ic-healthd is running` when there is none. `healthd down` asks first
+when other projects rely on that daemon; `--force` skips the question and is
+required without a terminal.
+
+`healthd up` also accepts `--image`, `--binary`, `--incus`, `--network` and
+`--scope`. See
+[Health Checking - Scope](/healthd#scope-one-daemon-or-one-per-project) and
+[Network Configuration](/healthd#network-configuration).
 
 ## list
 

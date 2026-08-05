@@ -21,6 +21,13 @@ The files for this example are on [Github](https://github.com/lxc/incus-compose/
 | `dnscrypt-proxy` | Resolver clients point at. Forwards `example.com` (and `10.in-addr.arpa`) to `knot`; everything else goes out over DNSCrypt/DoH to public resolvers. | `10.179.215.2` |
 | `knot`           | Authoritative DNS server for the `example.com` zone.                                                                                                 | `10.179.215.3` |
 
+```mermaid
+flowchart LR
+    C[a client on your network] --> DP["dnscrypt-proxy<br/>10.179.215.2"]
+    DP -->|"example.com<br/>10.in-addr.arpa"| K["knot<br/>10.179.215.3<br/>authoritative"]
+    DP -->|everything else| PUB["public resolvers<br/>over DNSCrypt / DoH"]
+```
+
 Both attach to the pre-existing external `incusbr0` network, alongside [`caddy`](https://docs.incus-compose.org/examples/caddy), which serves the `*.example.com` sites this zone resolves to.
 
 ## Usage

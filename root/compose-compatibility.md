@@ -292,25 +292,44 @@ Any [Project option](https://linuxcontainers.org/incus/docs/main/reference/proje
 
 #### x-incus-compose Healthd
 
-Configure the ic-healthd sidecar's network and Incus endpoint with the top-level
-`x-incus-compose.healthd` extension:
+Configure the ic-healthd sidecar with the top-level `x-incus-compose.healthd`
+extension:
 
 ```yaml
 x-incus-compose:
   healthd:
+    scope: global
     incus: https://:8443
     network: :default
+    workers: 32
+    restart-workers: 12
+    x-incus:
+      limits.cpu: 2
+      limits.memory: 256MB
 
 services:
   web:
     image: docker.io/nginx:alpine
 ```
 
-`network` is `<project>:<network>` for a managed network or a plain bridge name;
-`incus` is the API URL healthd connects to. Both default to the project's own
-network and the connection's port. The same values are available as
-`--healthd-network`/`--healthd-incus` (CLI overrides the compose file). See
-[Health Checking - Network Configuration](/healthd#network-configuration).
+| Key | Description |
+| --- | --- |
+| `scope` | `global` (one shared daemon in the Incus `default` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
+| `incus` | The Incus API URL healthd connects to. Defaults to the bridge gateway and the connection's port. |
+| `network` | `<project>:<network>` for a managed network, or a plain bridge name. Project scope only; defaults to the project's own network. |
+| `workers` | Health checks the daemon runs at once, over every project it watches. |
+| `restart-workers` | Restarts it runs at once, over every project it watches. |
+| `x-incus` | Raw Incus instance config for the sidecar, e.g. `limits.*`. |
+| `external` | Use a healthd you run yourself; incus-compose neither creates nor looks one up. |
+
+`scope`, `incus` and `network` are also `--healthd-scope`, `--healthd-incus` and
+`--healthd-network` on the CLI, which override the compose file. See
+[Health Checking - Scope](/healthd#scope-one-daemon-or-one-per-project) and
+[Network Configuration](/healthd#network-configuration).
+
+With `scope: global` the daemon is shared, so the first project to bring it up
+supplies `incus`, `workers`, `restart-workers` and `x-incus`; a later project
+asking for something different is warned and ignored.
 
 When this option is set, incus-compose does not create compose-managed Incus network resources for service network attachments. Instances use the network devices provided by the copied profile instead. Service-level static IP assignments (`ipv4_address` / `ipv6_address`) are not supported in this mode because incus-compose does not create explicit NIC devices.
 
@@ -730,6 +749,24 @@ to a local Incus over the Unix socket or to a remote daemon over HTTPS:
 | Bind mounts   | Supported                        | Not supported — use named volumes                 |
 | Health checks | Set `--healthd-incus` explicitly | Auto (reuses the connection's port and bridge IP) |
 
+```mermaid
+flowchart LR
+    subgraph L["local - unix socket"]
+        direction TB
+        CU[client] --> BM["bind mounts: supported"]
+        CU --> SET["health checks: set --healthd-incus<br/>yourself, there is no port to reuse"]
+    end
+
+    subgraph R["remote - HTTPS"]
+        direction TB
+        CH[client] --> BM2["bind mounts: not supported,<br/>use named volumes"]
+        CH --> HC["health checks: automatic,<br/>the connection's port is reused"]
+    end
+
+    L --> D["incusd<br/>needs core.https_address<br/>either way"]
+    R --> D
+```
+
 Bind mounts read the host filesystem the daemon runs on, so they only work when
 that host is your machine. For health checks, ic-healthd reaches Incus over
 HTTPS; over a Unix socket there is no port to reuse, so the endpoint must be set
@@ -789,6 +826,18 @@ ports:
 ```yaml
 ports:
   - "8080:80" # Incus proxy device
+```
+
+```mermaid
+flowchart LR
+    HOST[host port 8080] --> D{"x-incus-compose.nat?"}
+    D -->|"false, the default"| PX["Incus proxy device<br/>a userspace Go process<br/>per forwarded connection"]
+    D -->|true| NAT["nftables DNAT rule<br/>kernel mode, Incus 7.2 or later"]
+    PX --> C[container port 80]
+    NAT --> C
+
+    LO["127.0.0.1 on the host"] --> PX
+    LO -.->|"not reachable"| NAT
 ```
 
 Both work the same from outside. By default incus-compose uses userspace proxy devices (a Go

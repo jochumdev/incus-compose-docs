@@ -280,6 +280,30 @@ For build-configured services, `up` builds only when the image is missing from
 **both** the compose project and the shared image cache - see
 [Image Caching](#image-caching).
 
+```mermaid
+flowchart TD
+    S([up]) --> B{"service has build:?"}
+    B -->|no| PULL[the pull path]
+    B -->|yes| NB{--no-build?}
+
+    NB -->|yes| MISS{image present anywhere?}
+    MISS -->|no| FAIL([fail])
+    MISS -->|yes| USE([use it])
+
+    NB -->|no| FB{--build?}
+    FB -->|yes| BUILD[run the builder]
+    FB -->|no| INP{already in the project?}
+
+    INP -->|yes| USE
+    INP -->|no| INC{alias in the shared cache?}
+    INC -->|yes| COPY[copy cache to project]
+    INC -->|no| BUILD
+
+    BUILD --> IMP["import into the cache,<br/>unless no_cache: true"]
+    IMP --> COPY
+    COPY --> USE
+```
+
 | Command                       | Behavior                                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------- |
 | `incus-compose up`            | Build only on a cache miss. Copy from the cache when the alias is already there. |

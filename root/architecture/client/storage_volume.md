@@ -39,6 +39,30 @@ acquire, and when `stale > 0` the background heartbeat keeps using it too.
 | `0` | Never taken over; holder never refreshes it | Infrequent, operator-driven locks. A crashed holder leaves a stuck lock - a visible failure naming the file to remove, instead of a silent correctness bug. |
 | `> 0` | A background goroutine refreshes the lock's mtime every `stale/3`; another caller's `Lock` reaps it once its mtime is older than `stale` | Frequent, unattended locks where a crashed holder must not block everyone else forever. |
 
+```mermaid
+flowchart TD
+    S(["Lock(ctx, sc, name, stale)"]) --> OP["OpenFile with<br/>O_CREATE, O_EXCL, O_WRONLY"]
+    OP -->|created| OWN["write host:pid:rand"]
+    OP -->|exists| ST{"stale > 0?"}
+
+    ST -->|no| WAIT["wait, retry<br/>until ctx is done"]
+    ST -->|yes| MT{"mtime older<br/>than stale?"}
+    MT -->|no| WAIT
+    MT -->|yes| REAP[remove the lock file]
+    REAP --> WAIT
+    WAIT --> OP
+
+    OWN --> HB{"stale > 0?"}
+    HB -->|yes| BEAT["heartbeat goroutine:<br/>Chtimes every stale/3"]
+    HB -->|no| HELD
+    BEAT --> HELD([lock held])
+
+    HELD --> UL(["Unlock()"])
+    UL --> CHK{"file still names<br/>this holder?"}
+    CHK -->|yes| DEL[delete the lock file]
+    CHK -->|no| KEEP["leave it - someone<br/>reaped and took over"]
+```
+
 ### Why `O_EXCL`, not read-compare-write
 
 `CreateStorageVolumeFile` (the general volume-file API) only supports

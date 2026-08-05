@@ -26,6 +26,22 @@ Every resource action (ensure, delete, start, stop) can be intercepted with hook
 
 Hooks receive the action context and can modify errors, abort actions, or add logging.
 
+```mermaid
+flowchart LR
+    S([RunAction]) --> B1["before hook<br/>added 1st"]
+    B1 --> B2["before hook<br/>added 2nd"]
+    B2 --> ACT[the action]
+    ACT --> A2["after hook<br/>added 2nd"]
+    A2 --> A1["after hook<br/>added 1st"]
+    A1 --> R([error returned to the caller])
+
+    B1 -.->|returns an error| ABORT(["aborted - the action never runs"])
+    B2 -.->|returns an error| ABORT
+```
+
+Before hooks run in the order they were added, after hooks in the reverse order,
+so a pair registered together brackets everything registered after it.
+
 Two more hooks fire once per client lifecycle rather than per action:
 
 - **Connected hooks** - Run once when the client opens, before any action
@@ -201,6 +217,22 @@ if err := client.Open(); err != nil {
     return err
 }
 defer func() { _ = client.Done() }()
+```
+
+```mermaid
+sequenceDiagram
+    participant A as your code
+    participant C as project Client
+    participant H as hooks
+
+    A->>C: Open()
+    C->>H: connected hooks, FIFO
+    Note over H: an error aborts Open()<br/>and skips the remaining ones
+    A->>C: stack.Run(action)
+    C->>H: before / after hooks, once per resource
+    A->>C: Done()
+    C->>H: done hooks, LIFO
+    Note over H: all of them run,<br/>there is no short-circuit
 ```
 
 ### Connected Hooks

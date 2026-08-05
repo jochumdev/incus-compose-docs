@@ -26,6 +26,16 @@ A single `caddy` service on the pre-existing external `incusbr0` network (static
 | `immich.example.com`                                                                      | [`immich`](https://docs.incus-compose.org/examples/immich) at `10.131.32.17:2283`                     |
 | `docker-registry.example.com`, `ghcr-registry.example.com`, `gitlab-registry.example.com` | [`oci-registry-cache`](https://docs.incus-compose.org/examples/oci-registry-cache)'s three registries |
 
+```mermaid
+flowchart LR
+    B[browser] -->|HTTPS| CAD["caddy<br/>10.179.215.4"]
+    CAD -->|"example.com, www.example.com"| ST["static site<br/>sites/example.com"]
+    CAD -->|git.example.com| G["gitea<br/>10.136.32.17:3000"]
+    CAD -->|clock.example.com| K["kimai<br/>10.137.32.17:8001"]
+    CAD -->|immich.example.com| IM["immich<br/>10.131.32.17:2283"]
+    CAD -->|"the three registry domains"| RG["oci-registry-cache<br/>10.132.32.17-19:5000"]
+```
+
 The [`dns`](https://docs.incus-compose.org/examples/dns) example serves the authoritative `example.com` zone these domains resolve against.
 
 ## Usage

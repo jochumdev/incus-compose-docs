@@ -38,6 +38,13 @@ CURRENT_USER=${USER}
 
 Only variables explicitly defined in `.env` files are passed to your compose project. Your shell's environment (like `PATH`, `EDITOR`, etc.) is **not** automatically included.
 
+```mermaid
+flowchart LR
+    ENV[".env plus<br/>--env-file files"] --> M[compose model]
+    OS["your shell environment<br/>PATH, EDITOR, ..."] -.->|"only where a .env line<br/>interpolates it"| ENV
+    OS -->|"--os-env / -E"| M
+```
+
 ### Why This Matters
 
 - **Security**: Sensitive environment variables from your shell don't accidentally leak into containers
@@ -98,6 +105,15 @@ incus-compose --os-env up
 
 Every global flag can be set via an environment variable. Flags given on the command line take precedence over environment variables.
 
+```mermaid
+flowchart TD
+    S([resolve a flag]) --> A{given on the command line?}
+    A -->|yes| USEF[use the flag]
+    A -->|no| B{"INCUS_COMPOSE_* variable set?"}
+    B -->|yes| USEE[use the variable]
+    B -->|no| USED[use the built-in default]
+```
+
 Every command-specific flag can be set too, scoped per command as
 `INCUS_COMPOSE_<COMMAND>_<FLAG>` - e.g. `--timeout` on `up` is
 `INCUS_COMPOSE_UP_TIMEOUT`, `--timeout` on `down` is `INCUS_COMPOSE_DOWN_TIMEOUT`.
@@ -142,6 +158,7 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 | ----------------------- | ----------- | ---------------------------------------------------------------- |
 | `INCUS_COMPOSE_ANSI`    | `--ansi`    | Control ANSI output: `never`, `always`, `auto` (default: `auto`) |
 | `INCUS_COMPOSE_DEBUG`   | `--debug`   | Enable debug logging (`true`/`1`)                                |
+| `INCUS_COMPOSE_TRACE`   | `--trace`   | Per-event logging, which implies `--debug`; read by ic-healthd   |
 | `INCUS_COMPOSE_WORKERS` | `--workers` | Number of concurrent workers (default: `4`)                      |
 | `NO_COLOR`              | --          | Disable color output ([no-color.org](https://no-color.org/))     |
 
@@ -149,9 +166,9 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 `healthd down`), not global ones - see [Command Flags](#command-flags) below for
 their per-command variable names.
 
-The ic-healthd daemon itself reads a further set of `INCUS_COMPOSE_HEALTHD_*`
-variables (`_TOKEN`, `_PROJECTS`, `_OWN_PROJECT`, `_OWN_NAME`, `_DATA_DIR`,
-`_SECRETS_DIR`, `_DEBUG`), which incus-compose injects into the sidecar. See [Running ic-healthd Directly](/healthd#running-ic-healthd-directly).
+The ic-healthd daemon reads a further set of `INCUS_COMPOSE_HEALTHD_*` variables
+of its own, which incus-compose injects into the sidecar - see
+[The ic-healthd daemon](#the-ic-healthd-daemon) below.
 
 ### Examples
 
@@ -194,7 +211,8 @@ are abbreviated; run `incus-compose <command> --help` for the full text and defa
 | `up`      | `INCUS_COMPOSE_HEALTHD_IMAGE`         | `--healthd-image`      | Healthd OCI image                         |
 | `up`      | `INCUS_COMPOSE_HEALTHD_BINARY`        | `--healthd-binary`     | Local ic-healthd binary path              |
 | `up`      | `INCUS_COMPOSE_HEALTHD_INCUS`         | `--healthd-incus`      | Incus API URL for the sidecar             |
-| `up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`       | `--healthd-network`    | Network for the sidecar                   |
+| `up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`       | `--healthd-network`    | Network for the sidecar (project scope)   |
+| `up`      | `INCUS_COMPOSE_HEALTHD_SCOPE`         | `--healthd-scope`      | `global` or `project`                     |
 | `down`    | `INCUS_COMPOSE_DOWN_RMI`              | `--rmi`                | Remove images used by services            |
 | `down`    | `INCUS_COMPOSE_DOWN_IMAGES`           | `--images`             | Remove known images from the project      |
 | `down`    | `INCUS_COMPOSE_DOWN_TIMEOUT`          | `--timeout`            | Timeout for stopping                      |
@@ -281,13 +299,47 @@ flags above.
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image             |
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_BINARY`          | `--binary`       | Local ic-healthd binary path  |
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_INCUS`           | `--incus`        | Incus API URL for the sidecar |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`         | `--network`      | Network for the sidecar       |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`         | `--network`      | Network for the sidecar (project scope) |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_SCOPE`           | `--scope`        | `global` or `project`         |
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_PULL`            | `--pull`         | Pull policy                   |
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping          |
 | `healthd down`    | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image             |
+| `healthd down`    | `INCUS_COMPOSE_HEALTHD_DOWN_FORCE`      | `--force`        | Stop a shared daemon without asking |
 | `healthd down`    | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping          |
 | `healthd logs`    | `INCUS_COMPOSE_HEALTHD_LOGS_FOLLOW`     | `--follow`, `-f` | Follow log output             |
 | `healthd restart` | `INCUS_COMPOSE_HEALTHD_RESTART_TIMEOUT` | `--timeout`      | Timeout for stopping          |
+
+### The ic-healthd daemon
+
+These are read by the `ic-healthd` binary itself, not by incus-compose. In the
+normal flow incus-compose sets them on the sidecar and you never touch them;
+they matter when you run the daemon yourself (see
+[ic-healthd Internals - Running the daemon directly](/architecture/healthd#running-the-daemon-directly)).
+
+| Variable                               | Flag               | Default                    | Description                                       |
+| -------------------------------------- | ------------------ | -------------------------- | ------------------------------------------------- |
+| `INCUS_COMPOSE_HEALTHD_INCUS`          | `--incus`          | -                          | Incus API URL the daemon connects to              |
+| `INCUS_COMPOSE_HEALTHD_TOKEN`          | `--token`          | -                          | One-time trust token used to register its cert    |
+| `INCUS_COMPOSE_HEALTHD_PROJECTS`       | `--project`        | -                          | Projects to watch, comma-separated; see below     |
+| `INCUS_COMPOSE_HEALTHD_PROJECT_MARKER` | `--project-marker` | `user.healthcheck.scope=global` | Project config `KEY=VALUE` consulted when `_PROJECTS` is unset |
+| `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`    | `--own-project`    | -                          | Project the daemon's own container runs in        |
+| `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | `--own-name`       | -                          | The daemon's own instance name; empty skips itself |
+| `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `--data-dir`       | `/var/lib/ic-healthd`      | Persistent directory for the generated cert/key   |
+| `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `--secrets-dir`    | `/run/secrets`             | Tmpfs directory holding the token file            |
+| `INCUS_COMPOSE_HEALTHD_DEBUG`          | `--debug`          | `false`                    | Verbose logging                                   |
+| `INCUS_COMPOSE_HEALTHD_TRACE`          | `--trace`          | `false`                    | Per-event logging, which implies `--debug`        |
+
+`_PROJECTS` may be left unset, in which case the daemon watches every project it
+can see whose config matches `_PROJECT_MARKER` - by default
+`user.healthcheck.scope=global`, which is what incus-compose stamps on the
+projects it hands to the shared daemon. A bare key means `KEY=true`. Set
+`_PROJECTS` explicitly and it is used verbatim, marker ignored. Either way the
+daemon's trust token bounds what it can see at all.
+
+Note that `INCUS_COMPOSE_HEALTHD_INCUS` appears twice on this page with two
+different readers: on `up` and `healthd up` it tells *incus-compose* what
+endpoint to configure the sidecar with, and here it is what the *daemon* dials.
+They agree in the normal flow because the former is how the latter gets set.
 
 ## See Also
 

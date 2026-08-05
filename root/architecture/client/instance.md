@@ -122,41 +122,46 @@ Attached after instance creation:
 - Storage volumes (need UID/GID for shifting)
 - Bind mounts
 
-Post-devices require UID/GID from the created instance to configure proper ownership.
+Post-devices require UID/GID from the created instance to configure proper
+ownership, which is why an instance is written twice:
+
+```mermaid
+sequenceDiagram
+    participant C as client
+    participant I as Incus
+    participant V as StorageVolume
+
+    C->>I: CreateInstanceFromImage<br/>with the nic and proxy devices
+    I-->>C: instance created
+    C->>C: read oci.uid / oci.gid
+    C->>V: Ensure with Shifted, UID, GID
+    V-->>C: volume ready
+    C->>I: UpdateInstance with the disk devices
+    Note over C,I: two writes, because the UID/GID<br/>only exists after the first one
+```
 
 ## Instance.Ensure() Flow
 
-```
-1. Check if instance exists
-   |-- Found: store reference, extract UID/GID, return
-   |-- Not found + Create=false: return ErrNotFound
+```mermaid
+flowchart TD
+    S([Ensure]) --> EX{instance exists?}
+    EX -->|yes| ADOPT["store reference,<br/>extract oci.uid / oci.gid"]
+    ADOPT --> DONE([ensured])
+    EX -->|"no, Create=false"| NF([ErrNotFound])
+    EX -->|"no, Create=true"| BM{"bind mount over a<br/>remote connection?"}
 
-2. Validate bind mounts (reject if remote connection)
+    BM -->|yes| BMERR([ErrBindMountRemote])
+    BM -->|no| DEP{"all Config.Resources<br/>ensured?"}
 
-3. Check all Resources are ensured
-   |-- Any not ensured: return ErrDependencyNotEnsured
+    DEP -->|no| DEPERR([ErrDependencyNotEnsured])
+    DEP -->|yes| PRE["build the pre-device map:<br/>Devices + ExtraDevices,<br/>add a root disk if the profile has none"]
 
-4. Build pre-devices map
-   |-- Convert Devices + ExtraDevices to Incus format
-   |-- Add root disk if not in profile
-
-5. Get image from resource store
-
-6. Create instance from cache image
-   |-- CreateInstanceFromImage(cache, imgInfo, req)
-
-7. Extract UID/GID from created instance
-   |-- Read oci.uid, oci.gid from config
-
-8. Process post-devices (volumes)
-   |-- For each PostDevice where DeviceType=disk:
-       |-- If StorageVolumeConfig != nil:
-           |-- Set Shifted=true, UID, GID on volume
-           |-- StorageVolume.Ensure()
-       |-- Convert to Incus device format
-
-9. Update instance with post-devices
-   |-- UpdateInstance() with new devices map
+    PRE --> IMG[get the image from the resource store]
+    IMG --> CR["CreateInstanceFromImage(cache, imgInfo, req)"]
+    CR --> UID["read oci.uid / oci.gid<br/>off the created instance"]
+    UID --> POST["per PostDevice disk:<br/>set Shifted, UID, GID,<br/>then StorageVolume.Ensure()"]
+    POST --> UPD["UpdateInstance with the<br/>post-device map"]
+    UPD --> DONE
 ```
 
 ## UID/GID Shifting

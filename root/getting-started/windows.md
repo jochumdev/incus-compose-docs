@@ -14,6 +14,21 @@ Incus itself is a Linux daemon - it does not run on Windows. On Windows you run
 the `incus` client and `incus-compose` as **clients** that drive a remote Incus
 server over HTTPS. No Docker and no WSL required.
 
+```mermaid
+flowchart LR
+    subgraph W["Windows 10 / 11"]
+        BIN["on your PATH:<br/>incus.exe<br/>incus-compose.exe"]
+    end
+
+    subgraph S["a Linux Incus server"]
+        INCUSD["incusd<br/>core.https_address set"]
+        INCUSD --> INST["your instances"]
+    end
+
+    BIN -->|"HTTPS, client certificate"| INCUSD
+    BIN -.->|"not available from here:<br/>builds, bind mounts"| INST
+```
+
 _Since 1.0.0: Windows has been tested with version 1.0.0, MacOS by the lack of one not yet_
 
 ## Prerequisites

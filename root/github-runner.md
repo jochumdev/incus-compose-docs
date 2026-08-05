@@ -30,6 +30,23 @@ Placeholders to replace as you go: `example.com` (your OCI registry mirror
 domain), `<ip-from-above>` (the container's bridge IP), and the `--token`
 registration token from GitHub.
 
+```mermaid
+flowchart TD
+    HOSTI["host (user):<br/>Incus"] --> PRJ
+
+    subgraph PRJ["Incus project ic-runner"]
+        direction LR
+        RC["runner<br/>privileged + nesting"]
+        NESTED["ict-stable, ict-lts,<br/>ict-custom, ict-daily<br/>each runs its own nested Incus"]
+    end
+
+    RC --> ROOT["container (root) shell:<br/>apt, podman, incus-client,<br/>installdependencies.sh, svc.sh"]
+    RC --> RU["runner user shell:<br/>go, just, gotestsum, golangci-lint,<br/>the actions-runner service"]
+
+    RU -->|"one incus remote per nested daemon"| NESTED
+    RU -->|"OCI mirror remotes"| MIR["docker.io, ghcr.io and registry.gitlab.com<br/>mirrors on your own domain"]
+```
+
 ## 1. Load the `openvswitch` module for ovn support — _host (user)_
 
 ```bash

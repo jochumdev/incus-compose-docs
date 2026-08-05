@@ -51,13 +51,15 @@ incus-compose/
 
 ### Package Dependencies
 
-```
-cmd/incus-compose
-    ├── client   (creates GlobalClient, runs Stack)
-    └── project  (loads compose, configures client resources)
+```mermaid
+flowchart LR
+    CMD[cmd/incus-compose]
+    PRJ[project]
+    CLI[client]
 
-project
-    └── client   (calls client.Resource() to create resources)
+    CMD -->|"creates GlobalClient, runs Stack"| CLI
+    CMD -->|"loads compose"| PRJ
+    PRJ -->|"calls client.Resource()"| CLI
 ```
 
 The CLI creates a GlobalClient and loads the compose project. Then project takes over:
@@ -70,17 +72,20 @@ for execution.
 
 ## Resource Hierarchy
 
-```
-GlobalClient
-  ├── imageCache (default project, configurable via INCUS_COMPOSE_IMAGE_CACHE)
-  └── Client (project-scoped)
-        ├── Profile
-        ├── Image
-        ├── Network
-        ├── StorageVolume
-        └── Instance
-              ├── Devices (pre-creation)
-              └── PostDevices (post-creation)
+```mermaid
+flowchart TD
+    GC[GlobalClient]
+    GC --> IC[("imageCache<br/>default project<br/>INCUS_COMPOSE_IMAGE_CACHE")]
+    GC --> C["Client<br/>project-scoped"]
+
+    C --> PR[Profile]
+    C --> IM[Image]
+    C --> NW[Network]
+    C --> SV[StorageVolume]
+    C --> IN[Instance]
+
+    IN --> DEV["Devices<br/>pre-creation"]
+    IN --> PDEV["PostDevices<br/>post-creation"]
 ```
 
 ## Image Caching (3-Stage Flow)
@@ -91,9 +96,11 @@ Images go through three stages:
 2. **Cache** - Incus `incus-compose-cache` project (configurable via `INCUS_COMPOSE_IMAGE_CACHE`)
 3. **Project** - per-project copy used by the instance
 
-```
-Registry ──pull──> Cache ──copy──> Project ──use──> Instance
-           (slow)
+```mermaid
+flowchart LR
+    R["registry<br/>docker.io, ghcr.io"] -->|"pull (slow)"| C[("cache project<br/>incus-compose-cache")]
+    C -->|copy| P[compose project]
+    P -->|use| I[instance]
 ```
 
 Benefits:
@@ -272,6 +279,7 @@ See the [docs index](/architecture) for all user and contributor docs. Closely r
 - [Client Package](/architecture/client) - Resources, Stack, WorkerPool
 - [Testing](/architecture/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
+- [ic-healthd Internals](/architecture/healthd) - the listener, the router, and the per-project schedulers
 - [Progress](/architecture/progress) - Live operation progress and the terminal renderer
 
 ## Need Help?

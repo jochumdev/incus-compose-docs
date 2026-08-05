@@ -22,13 +22,26 @@ into terminal output.
 
 ## Data Flow
 
-```
-Incus operation
-  -> operation hook registers op.AddHandler   (client)
-  -> reportProgress reads Metadata "*_progress"
-  -> Progress{Percent, Text}
-  -> progressHandler callback                  (set by the consumer)
-  -> renderer paints a line                    (cmd/incus-compose)
+```mermaid
+flowchart LR
+    subgraph cl["client"]
+        OP[Incus operation] --> AH["operation hook registers<br/>op.AddHandler"]
+        AH --> RP["reportProgress reads<br/>Metadata *_progress"]
+        RP --> PG["Progress<br/>Percent, Text"]
+        WAIT["in-client wait<br/>no Incus operation"] -->|emitProgress| PG
+        FIN[action completes] --> HK[AddHookAfter]
+    end
+
+    subgraph cm["cmd/incus-compose"]
+        HD[progressHandler callback]
+        MD[markDone]
+        REN[renderer paints a line]
+        HD --> REN
+        MD --> REN
+    end
+
+    PG --> HD
+    HK --> MD
 ```
 
 Two distinct signals feed a line, and they arrive on different paths:
@@ -106,7 +119,19 @@ Selected once, from whether stderr is a real terminal:
   control. Piped output and `NO_COLOR` both degrade to this cleanly.
 
 Color is gated on `noColor`; cursor movement is gated on `animate` - so the two
-concerns degrade independently.
+concerns degrade independently:
+
+```mermaid
+flowchart TD
+    S([startProgress]) --> T{stderr is a terminal?}
+    T -->|yes| A["animate<br/>repaint the block in place,<br/>spinner ticker 120ms, bars"]
+    T -->|no| P["plain<br/>one line per status change,<br/>no cursor control"]
+
+    A --> NC{"NO_COLOR, or --ansi never?"}
+    P --> NC
+    NC -->|yes| MONO[no color]
+    NC -->|no| COL[color]
+```
 
 ### Line Identity and Ordering
 

@@ -156,6 +156,21 @@ This will:
 - Create networks and volumes
 - Start containers in dependency order
 
+```mermaid
+flowchart TD
+    S([incus-compose up]) --> P["create the Incus project,<br/>named after your directory"]
+    P --> HD{"any healthcheck, restart policy,<br/>or service_healthy dependency?"}
+    HD -->|yes| SC[start the ic-healthd sidecar]
+    HD -->|no| IMG
+    SC --> IMG{"image already in the cache?"}
+    IMG -->|yes| CP[copy it into the project]
+    IMG -->|no| PULL["pull from the registry,<br/>store it in the cache"]
+    PULL --> CP
+    CP --> NV[create networks and volumes]
+    NV --> INST["create and start instances<br/>in dependency order"]
+    INST --> WAIT["wait for service_healthy<br/>dependencies to report healthy"]
+```
+
 If your compose file uses health checks, incus-compose manages the `ic-healthd` sidecar automatically. It is transparent during normal use, but it is also a core component: all `healthcheck`, `restart:` and `depends_on: service_healthy` behavior is enforced by this sidecar, not by Incus. A working healthd is also required to bring up a project that has `service_healthy` dependencies - `up` waits for healthd to report them healthy, so a broken healthd makes `up` hang and fail (unless you pass `--no-healthd`). If health, restart, or startup behavior ever looks wrong, debug healthd first - see [Health Checking](/healthd) and [Debugging ic-healthd](/healthd#debugging-ic-healthd).
 
 ### 3. Check status
@@ -253,7 +268,13 @@ volumes:
   pgdata:
 ```
 
-Services start in order: db → api → web
+Services start in dependency order:
+
+```mermaid
+flowchart LR
+    DB[db] -->|"api depends_on db"| API[api]
+    API -->|"web depends_on api"| WEB[web]
+```
 
 ### Using environment files
 

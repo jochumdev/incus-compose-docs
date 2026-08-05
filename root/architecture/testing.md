@@ -112,6 +112,18 @@ decided by the skip helper it calls on its first line:
 | integration | `skipLocal(t)` | yes | `just test` |
 | E2E | `skipE2E(t)` | yes | `just test-e2e` |
 
+```mermaid
+flowchart TD
+    T([a test function]) --> G{first line?}
+    G -->|no guard| U["unit<br/>pure logic, no Incus"]
+    G -->|"skipLocal(t)"| I["integration<br/>real nested Incus"]
+    G -->|"skipE2E(t)"| E["E2E<br/>full CLI, slow"]
+
+    U --> C1["just test-local<br/>just test<br/>just test-e2e"]
+    I --> C2["just test<br/>just test-e2e"]
+    E --> C3[just test-e2e]
+```
+
 - **Unit** tests exercise pure logic - name parsing and sanitizing, config
   translation, argument building, `buildArgs`, snapshot rendering. No guard, so
   they run everywhere and must stay fast.
