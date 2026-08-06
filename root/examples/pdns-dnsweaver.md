@@ -1,3 +1,11 @@
+---
+leafwiki_id: s0f9PpyDgI
+leafwiki_title: pdns-dnsweaver
+leafwiki_created_at: "2026-08-06T07:11:18.249759374Z"
+leafwiki_updated_at: "2026-08-06T07:11:18.249759374Z"
+leafwiki_creator_id: system
+leafwiki_last_author_id: system
+---
 # pdns-dnsweaver
 
 [PowerDNS](https://www.powerdns.com/) is a leading provider of secure open-source and commercial DNS software, backed by MariaDB here.
