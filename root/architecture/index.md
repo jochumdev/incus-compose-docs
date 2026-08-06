@@ -180,7 +180,7 @@ services:
   web:
     image: docker.io/nginx:alpine
     x-incus:
-      limits.memory: 512MB
+      limits.memory: 512MiB
       limits.cpu: "2"
       security.nesting: "false"
 

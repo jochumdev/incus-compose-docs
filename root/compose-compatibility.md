@@ -36,7 +36,7 @@ services:
   web:
     ports: !reset []
     x-incus:
-      limits.memory: 512MB
+      limits.memory: 512MiB
 
 networks:
   default:
@@ -232,7 +232,7 @@ services:
   web:
     image: docker.io/nginx:alpine
     x-incus:
-      limits.memory: 512MB
+      limits.memory: 512MiB
       limits.cpu: "2"
       security.privileged: "true"
 ```
@@ -275,7 +275,7 @@ _Since 1.0.0-beta.22_
 ```yaml
 x-incus:
   limits.cpu: "4"
-  limits.memory: 2049MB # +1 MiB
+  limits.memory: 2049MiB # +1 MiB
   limits.virtual-machines: 0
 
 services:
@@ -285,7 +285,7 @@ services:
       replicas: 4
     x-incus:
       limits.cpu: "1"
-      limits.memory: 512MB
+      limits.memory: 512MiB
 ```
 
 Any [Project option](https://linuxcontainers.org/incus/docs/main/reference/projects/) is accepted.
@@ -305,7 +305,7 @@ x-incus-compose:
     restart-workers: 12
     x-incus:
       limits.cpu: 2
-      limits.memory: 256MB
+      limits.memory: 256MiB
 
 services:
   web:
@@ -609,7 +609,7 @@ services:
   app:
     x-incus:
       limits.cpu: "1"
-      limits.memory: 512MB
+      limits.memory: 512MiB
 ```
 
 Any Incus instance config key is accepted. See [Architecture](/architecture#x-incus-raw-incus-options) for full details.

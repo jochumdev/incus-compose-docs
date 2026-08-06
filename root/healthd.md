@@ -423,13 +423,13 @@ act on the shared daemon in the `default` project:
 | `logs [--follow]` | Stream the ic-healthd container log                       |
 | `reload`          | Send SIGHUP to force a full manual resync (rarely needed) |
 | `restart`         | Restart the ic-healthd container                          |
-| `up`              | Create the sidecar                                        |
+| `up`              | Create the sidecar, or replace one running an older image |
 | `down [--force]`  | Stop and remove the sidecar                               |
 
-`healthd up` accepts `--image`, `--binary`, `--incus`, `--network` and
-`--scope`. Inside a project it refuses with an error when no service there
-requires healthd (no healthcheck, no restart policy, no `service_healthy`
-dependency).
+`healthd up` accepts `--image`, `--binary`, `--incus`, `--network`, `--scope`,
+`--pull` and `--timeout`. Inside a project it refuses with an error when no
+service there requires healthd (no healthcheck, no restart policy, no
+`service_healthy` dependency).
 
 ### Outside a project
 
@@ -456,7 +456,9 @@ question, and is required when there is no terminal to ask on (CI, scripts).
 Everything the daemon is configured with - debug logging, `workers`,
 `restart-workers`, `x-incus`, `incus` - is injected as environment on the
 container when it is *created*, and a running daemon is never reconfigured in
-place. Changing any of them is therefore a recreate:
+place. None of it is compared against what the daemon runs either: `up` replaces
+a sidecar only for a newer image (see
+[Sidecar Image](#sidecar-image)), so changing any of these is a manual recreate:
 
 ```bash
 # verbose logging on
@@ -530,17 +532,29 @@ so ic-healthd skips itself during discovery and every event handler, and
 instance (`healthd logs`/`restart`/etc.) - `ignore` is a general opt-out any
 instance can carry, so it can't double as the sidecar's own identifying marker.
 
-`up` upgrades the daemon for you: when the image you ask for is a *newer*
-release than the one it is running, it is replaced by one built from that image.
-The comparison is semver and only ever moves forward, so a machine on an older
-incus-compose cannot downgrade a daemon shared with everybody else. Tags that
-are not release versions - moving tags like `latest`, and `git describe` builds
-- are not comparable, so those replace on any difference and CI and
-`--healthd-binary` keep rolling.
+Both `incus-compose up` and `incus-compose healthd up` upgrade the daemon for
+you: when the image you ask for is a *newer* release than the one it is running,
+the sidecar is stopped, removed and recreated from that image. The comparison is
+semver and only ever moves forward, so a machine on an older incus-compose
+cannot downgrade a daemon shared with everybody else. Tags that are not release
+versions - moving tags like `latest`, and `git describe` builds - are not
+comparable, so those replace on any difference and CI and `--healthd-binary`
+keep rolling.
+
+Updating the daemon on a server therefore needs no compose file and no project:
+
+```bash
+incus-compose self-update
+incus-compose healthd up
+```
+
+**The image alias is the only thing that triggers this.** A daemon running the
+image you asked for is left alone however much else differs - see
+[Changing the daemon's settings](#changing-the-daemons-settings).
 
 ## Sizing the sidecar
 
-The sidecar runs with `limits.cpu: 2` and `limits.memory: 256MB`. Change that,
+The sidecar runs with `limits.cpu: 2` and `limits.memory: 256MiB`. Change that,
 or set any other Incus instance config on it, with `x-incus`:
 
 ```yaml
@@ -550,7 +564,7 @@ x-incus-compose:
     restart-workers: 8
     x-incus:
       limits.cpu: 4
-      limits.memory: 512MB
+      limits.memory: 512MiB
 ```
 
 `workers` (32) and `restart-workers` (12) cap the health checks and the restarts

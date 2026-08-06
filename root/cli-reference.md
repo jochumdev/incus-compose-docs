@@ -322,7 +322,7 @@ Examples:
 ```bash
 incus-compose incus list                        # list instances in this project
 incus-compose incus config show web-1           # show instance config
-incus-compose incus config set web-1 limits.memory 512MB
+incus-compose incus config set web-1 limits.memory 512MiB
 incus-compose incus exec web-1 -- bash
 ```
 
@@ -336,13 +336,13 @@ Manage the ic-healthd sidecar. See [Health Checking](/healthd) for full details.
 incus-compose healthd <subcommand>
 ```
 
-| Subcommand        | Description                           |
-| ----------------- | ------------------------------------- |
-| `logs [--follow]` | Stream the ic-healthd container log   |
-| `reload`          | Send SIGHUP to the ic-healthd process |
-| `restart`         | Restart the ic-healthd container      |
-| `up`              | Create the sidecar                    |
-| `down [--force]`  | Stop and remove the sidecar           |
+| Subcommand        | Description                                               |
+| ----------------- | --------------------------------------------------------- |
+| `logs [--follow]` | Stream the ic-healthd container log                       |
+| `reload`          | Send SIGHUP to the ic-healthd process                     |
+| `restart`         | Restart the ic-healthd container                          |
+| `up`              | Create the sidecar, or replace one running an older image |
+| `down [--force]`  | Stop and remove the sidecar                               |
 
 Each follows the project's scope, so in a `global`-scope project they act on the
 shared daemon in the Incus `default` project. With no compose file present they
@@ -351,8 +351,8 @@ with `no ic-healthd is running` when there is none. `healthd down` asks first
 when other projects rely on that daemon; `--force` skips the question and is
 required without a terminal.
 
-`healthd up` also accepts `--image`, `--binary`, `--incus`, `--network` and
-`--scope`. See
+`healthd up` also accepts `--image`, `--binary`, `--incus`, `--network`,
+`--scope`, `--pull` and `--timeout`. See
 [Health Checking - Scope](/healthd#scope-one-daemon-or-one-per-project) and
 [Network Configuration](/healthd#network-configuration).
 
