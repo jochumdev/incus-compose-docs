@@ -93,7 +93,7 @@ incus-compose up [SERVICE...]
 | `--external-healthd`   | Use an existing (unmanaged) healthd; don't create or look one up                                                                  |
 | `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                         |
 | `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                    |
-| `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; bridge IP if unset                                  |
+| `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP |
 | `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; project default if unset; project scope only                    |
 | `--healthd-scope`      | `global` (shared daemon in the Incus `default` project, the default) or `project`; loses to a scope the project already carries    |
 

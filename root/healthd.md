@@ -308,8 +308,8 @@ set by `incus-compose stop`) are not restarted.
 
 > Project scope only. The shared daemon runs in the `default` project and takes
 > its NIC and root disk from that project's `default` profile, so `network` does
-> not apply to it. `incus` still does, and defaults to the gateway of whatever
-> bridge that profile's NIC attaches to.
+> not apply to it. `incus` still does, and where it would fall back to a bridge
+> gateway it uses the one that profile's NIC attaches to.
 
 ic-healthd runs in its own container and must reach the Incus HTTPS API from the
 inside. Two things are configured:
@@ -336,8 +336,8 @@ name: my-project
 x-incus-compose:
   healthd:
     # Incus API endpoint healthd connects to.
-    # Default: the bridge IP of `network` below, with the port incus-compose
-    # itself connected on.
+    # Default: `core.https_address` when it names a host, else the bridge IP
+    # of `network` below with the port incus-compose itself connected on.
     incus: https://<ip-of-the-projects-bridge>:8443
     # `<project>:<network>` for a managed network, or a plain bridge name.
     # We assume the current project if you leave the first part empty.
@@ -366,15 +366,22 @@ reach Incus over that bridge.
 
 ### `incus`
 
-- **Empty (default)** - `https://<network gateway IP>:<client port>`. The port is
-  the one incus-compose used for its own connection, so Incus must be listening on
-  the bridge IP (commonly all interfaces, `core.https_address = :8443`). This
-  requires a HTTPS connection; over a unix socket there is no port to reuse, so set
-  `--healthd-incus` explicitly.
+- **Empty (default)** - resolved in this order:
+
+  1. **`core.https_address`, if it names a host.** `10.0.0.5:8443` is used as
+     `https://10.0.0.5:8443` and nothing below is consulted. A bare `:8443` names
+     no host, so it falls through.
+  2. **The bridge gateway of `network`, with the port incus-compose connected
+     on.** This is the case `core.https_address = :8443` lands in: Incus listens
+     on all interfaces, so the bridge IP reaches it. It needs a HTTPS connection -
+     over a unix socket there is no port to reuse, so set `--healthd-incus`
+     explicitly.
 - **An explicit URL** - used verbatim, e.g. `https://10.0.0.1:8443`. Combine with
   `network` to pin both the bridge and the endpoint.
 
 ### Combinations
+
+`empty` below means the fallback, i.e. `core.https_address` names no host.
 
 | `network`                  | `incus` | Behavior                                      |
 | -------------------------- | ------- | --------------------------------------------- |

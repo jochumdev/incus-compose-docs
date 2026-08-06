@@ -747,20 +747,20 @@ to a local Incus over the Unix socket or to a remote daemon over HTTPS:
 | Feature       | Local (Unix socket)              | Remote (HTTPS)                                    |
 | ------------- | -------------------------------- | ------------------------------------------------- |
 | Bind mounts   | Supported                        | Not supported — use named volumes                 |
-| Health checks | Set `--healthd-incus` explicitly | Auto (reuses the connection's port and bridge IP) |
+| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto |
 
 ```mermaid
 flowchart LR
     subgraph L["local - unix socket"]
         direction TB
         CU[client] --> BM["bind mounts: supported"]
-        CU --> SET["health checks: set --healthd-incus<br/>yourself, there is no port to reuse"]
+        CU --> SET["health checks: automatic only if<br/>core.https_address names a host"]
     end
 
     subgraph R["remote - HTTPS"]
         direction TB
         CH[client] --> BM2["bind mounts: not supported,<br/>use named volumes"]
-        CH --> HC["health checks: automatic,<br/>the connection's port is reused"]
+        CH --> HC["health checks: automatic,<br/>core.https_address or the bridge IP"]
     end
 
     L --> D["incusd<br/>needs core.https_address<br/>either way"]
@@ -768,9 +768,14 @@ flowchart LR
 ```
 
 Bind mounts read the host filesystem the daemon runs on, so they only work when
-that host is your machine. For health checks, ic-healthd reaches Incus over
-HTTPS; over a Unix socket there is no port to reuse, so the endpoint must be set
-explicitly — see [Network Configuration](/healthd#network-configuration).
+that host is your machine.
+
+For health checks, ic-healthd reaches Incus over HTTPS. When
+`core.https_address` names a host (`10.0.0.5:8443`) that address is used, however
+you connected. Only a bare `:8443` falls back to the bridge IP plus the port
+incus-compose connected on — which a Unix socket does not have, so there the
+endpoint must be set explicitly. See
+[Network Configuration](/healthd#network-configuration).
 
 ## Behavioral Differences
 
