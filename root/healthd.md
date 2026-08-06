@@ -336,8 +336,8 @@ name: my-project
 x-incus-compose:
   healthd:
     # Incus API endpoint healthd connects to.
-    # Default: `core.https_address` when it names a host, else the bridge IP
-    # of `network` below with the port incus-compose itself connected on.
+    # Default: `core.https_address` when it names a host, else the host address
+    # on `network` below with the port incus-compose itself connected on.
     incus: https://<ip-of-the-projects-bridge>:8443
     # `<project>:<network>` for a managed network, or a plain bridge name.
     # We assume the current project if you leave the first part empty.
@@ -358,11 +358,12 @@ x-incus-compose:
   creates it if needed, so healthd can come up before the rest of the project.
 - **`<project>:<network>`** - a managed Incus network, optionally in another
   project. It must already exist; incus-compose never creates it.
-- **A value without `:`** - a host bridge name (e.g. `incusbr0`). It must already
-  exist.
+- **A value without `:`** - a host bridge name (e.g. `incusbr0`, or a bridge
+  Incus does not manage such as `br0`). It must already exist.
 
-The network's IPv4 gateway is used as the default Incus endpoint, so healthd can
-reach Incus over that bridge.
+The host's address on that bridge is used as the default Incus endpoint, so
+healthd can reach Incus over it: the IPv4 gateway for a managed network, and the
+address the interface itself carries for an unmanaged bridge.
 
 ### `incus`
 
@@ -373,9 +374,15 @@ reach Incus over that bridge.
      no host, so it falls through.
   2. **The bridge gateway of `network`, with the port incus-compose connected
      on.** This is the case `core.https_address = :8443` lands in: Incus listens
-     on all interfaces, so the bridge IP reaches it. It needs a HTTPS connection -
-     over a unix socket there is no port to reuse, so set `--healthd-incus`
-     explicitly.
+     on all interfaces, so the bridge IP reaches it.
+  3. **The host address of `network`, when it is an unmanaged bridge.** A bridge
+     Incus does not manage has no gateway in its config, so the address the host
+     itself carries on that interface is used, provided Incus answers on it.
+
+  Steps 2 and 3 need a HTTPS connection - over a unix socket there is no port to
+  reuse, so set `--healthd-incus` explicitly. If the bridge carries no address
+  Incus listens on, `healthd up` fails and names what it found rather than
+  guessing an endpoint the sidecar cannot reach.
 - **An explicit URL** - used verbatim, e.g. `https://10.0.0.1:8443`. Combine with
   `network` to pin both the bridge and the endpoint.
 
