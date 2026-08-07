@@ -50,7 +50,7 @@ flowchart TD
 ## 1. Load the `openvswitch` module for ovn support — _host (user)_
 
 ```bash
-echo 'openvswitch' > sudo tee /etc/modules-load.d/50-openvswitch.conf
+sudo bash -c "echo 'openvswitch' > /etc/modules-load.d/50-openvswitch.conf"
 sudo modprobe openvswitch
 ```
 
