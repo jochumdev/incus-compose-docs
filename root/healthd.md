@@ -164,8 +164,13 @@ listener, so by default there is exactly one on the server:
 
 | Scope | Where it runs | Watches |
 | --- | --- | --- |
-| `global` (default) | instance `ic-healthd` in the Incus `default` project | every project marked `user.healthcheck.scope=global` |
+| `global` (default) | instance `ic-healthd` in the Incus `incus-compose-healthd` project | every project marked `user.healthcheck.scope=global` |
 | `project` | instance `{project}-ic-healthd` in the project | that one project |
+
+The shared daemon gets a project, a bridge (`ic-healthd`) and a root disk of its
+own, so nothing about how your `default` project is set up can break it. Both
+are created on the first `healthd up` and neither is removed by
+`healthd down`.
 
 `up` writes the choice to the Incus project as `user.healthcheck.scope`, and
 that stored value then beats both the flag and the compose file:
@@ -306,11 +311,6 @@ set by `incus-compose stop`) are not restarted.
 
 ## Network Configuration
 
-> Project scope only. The shared daemon runs in the `default` project and takes
-> its NIC and root disk from that project's `default` profile, so `network` does
-> not apply to it. `incus` still does, and where it would fall back to a bridge
-> gateway it uses the one that profile's NIC attaches to.
-
 ic-healthd runs in its own container and must reach the Incus HTTPS API from the
 inside. Two things are configured:
 
@@ -319,11 +319,11 @@ inside. Two things are configured:
 
 ```mermaid
 flowchart LR
-    subgraph P["compose project"]
-        H["ic-healthd<br/>{project}-ic-healthd"]
+    subgraph P["its project"]
+        H["ic-healthd<br/>or {project}-ic-healthd"]
     end
 
-    H -->|NIC| BR["network:<br/>the project default bridge,<br/>project:network,<br/>or a host bridge"]
+    H -->|NIC| BR["network:<br/>that project's own bridge,<br/>project:network,<br/>or a host bridge"]
     BR -->|"IPv4 gateway"| EP["incus:<br/>https://gateway:client-port<br/>or a pinned URL"]
     EP --> API[Incus HTTPS API]
 ```
@@ -341,7 +341,7 @@ x-incus-compose:
     incus: https://<ip-of-the-projects-bridge>:8443
     # `<project>:<network>` for a managed network, or a plain bridge name.
     # We assume the current project if you leave the first part empty.
-    # Default: the `default` network of the current project.
+    # Default: the bridge of the project the daemon runs in.
     network: :default
 ```
 
@@ -354,16 +354,19 @@ x-incus-compose:
 
 ### `network`
 
-- **Empty (default)** - the `default` network of the current project. incus-compose
-  creates it if needed, so healthd can come up before the rest of the project.
+- **Empty (default)** - a bridge of the project the daemon runs in, created if
+  needed: `ic-healthd` for the shared daemon, the project's own `default`
+  network for a project-scoped one. Either way healthd can come up before the
+  rest of the project.
 - **`<project>:<network>`** - a managed Incus network, optionally in another
-  project. It must already exist; incus-compose never creates it.
+  project. A network the compose file declares is created before the sidecar
+  attaches to it; anything else must already exist.
 - **A value without `:`** - a host bridge name (e.g. `incusbr0`, or a bridge
   Incus does not manage such as `br0`). It must already exist.
 
-The host's address on that bridge is used as the default Incus endpoint, so
-healthd can reach Incus over it: the IPv4 gateway for a managed network, and the
-address the interface itself carries for an unmanaged bridge.
+The bridge's IPv4 gateway is used as the default Incus endpoint, so healthd can
+reach Incus over it. A bridge Incus does not manage carries no gateway in its
+config, so pair one with an explicit `incus` below.
 
 ### `incus`
 
@@ -375,14 +378,11 @@ address the interface itself carries for an unmanaged bridge.
   2. **The bridge gateway of `network`, with the port incus-compose connected
      on.** This is the case `core.https_address = :8443` lands in: Incus listens
      on all interfaces, so the bridge IP reaches it.
-  3. **The host address of `network`, when it is an unmanaged bridge.** A bridge
-     Incus does not manage has no gateway in its config, so the address the host
-     itself carries on that interface is used, provided Incus answers on it.
 
-  Steps 2 and 3 need a HTTPS connection - over a unix socket there is no port to
-  reuse, so set `--healthd-incus` explicitly. If the bridge carries no address
-  Incus listens on, `healthd up` fails and names what it found rather than
-  guessing an endpoint the sidecar cannot reach.
+  Step 2 needs a HTTPS connection - over a unix socket there is no port to
+  reuse, so set `--healthd-incus` explicitly. It also needs a managed bridge; on
+  one Incus does not manage there is no gateway to read and `healthd up` fails
+  naming the network rather than guessing an endpoint the sidecar cannot reach.
 - **An explicit URL** - used verbatim, e.g. `https://10.0.0.1:8443`. Combine with
   `network` to pin both the bridge and the endpoint.
 
@@ -392,8 +392,8 @@ address the interface itself carries for an unmanaged bridge.
 
 | `network`                  | `incus` | Behavior                                      |
 | -------------------------- | ------- | --------------------------------------------- |
-| default                    | empty   | Project bridge IP + client port (the default) |
-| default                    | URL     | Project bridge for the NIC, pinned endpoint   |
+| default                    | empty   | Own bridge IP + client port (the default)     |
+| default                    | URL     | Own bridge for the NIC, pinned endpoint       |
 | bridge / `project:network` | empty   | Different bridge, auto-detected IP            |
 | bridge / `project:network` | URL     | Different bridge, pinned endpoint             |
 
@@ -423,7 +423,7 @@ daemon bounded to itself, at the cost of one container each.
 
 The `healthd` command group manages the sidecar directly without touching
 services. Each follows the project's scope, so in a `global`-scope project they
-act on the shared daemon in the `default` project:
+act on the shared daemon in the `incus-compose-healthd` project:
 
 | Subcommand        | Description                                               |
 | ----------------- | --------------------------------------------------------- |
@@ -583,8 +583,8 @@ shared daemon watching many projects is the case worth raising them for.
 > **Quota.** A **project-scoped** sidecar lives in your project, so its
 > `limits.cpu`/`limits.memory` are *added* to what your services use when Incus
 > checks a project-level `limits.*`. Budget for it. The shared daemon lives in
-> the `default` project and does not count against any compose project, which is
-> one more reason the default scope is `global`.
+> its own project and does not count against any compose project, which is one
+> more reason the default scope is `global`.
 
 The first project to bring the shared daemon up supplies its `incus`, `workers`,
 `restart-workers` and `x-incus`; a later project whose healthd block differs is
@@ -647,9 +647,9 @@ incus-compose healthd logs --follow
 
 ### 4. Confirm the sidecar is actually running
 
-The container is named `ic-healthd` in the Incus `default` project, or
-`{project}-ic-healthd` for a project-scoped one. If it is missing or stopped,
-nothing is being monitored:
+The container is named `ic-healthd` in the Incus `incus-compose-healthd`
+project, or `{project}-ic-healthd` for a project-scoped one. If it is missing or
+stopped, nothing is being monitored:
 
 ```bash
 incus-compose list        # the daemon is listed by default (since 1.0.0-rc.1)
