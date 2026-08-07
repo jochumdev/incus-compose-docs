@@ -95,7 +95,7 @@ incus-compose up [SERVICE...]
 | `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                    |
 | `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP |
 | `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                   |
-| `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose-healthd` project, the default) or `project`; loses to a scope the project already carries |
+| `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose` project, the default) or `project`; loses to a scope the project already carries |
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
@@ -345,7 +345,7 @@ incus-compose healthd <subcommand>
 | `down [--force]`  | Stop and remove the sidecar                               |
 
 Each follows the project's scope, so in a `global`-scope project they act on the
-shared daemon in the Incus `incus-compose-healthd` project. With no compose file present they
+shared daemon in the Incus `incus-compose` project. With no compose file present they
 all act on the shared daemon directly: `healthd up` creates one, the rest fail
 with `no ic-healthd is running` when there is none. `healthd down` asks first
 when other projects rely on that daemon; `--force` skips the question and is

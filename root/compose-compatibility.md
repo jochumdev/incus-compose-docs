@@ -314,7 +314,7 @@ services:
 
 | Key | Description |
 | --- | --- |
-| `scope` | `global` (one shared daemon in the Incus `incus-compose-healthd` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
+| `scope` | `global` (one shared daemon in the Incus `incus-compose` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
 | `incus` | The Incus API URL healthd connects to. Defaults to the bridge gateway and the connection's port. |
 | `network` | `<project>:<network>` for a managed network, or a plain bridge name. Defaults to the bridge of the project the daemon runs in. |
 | `workers` | Health checks the daemon runs at once, over every project it watches. Default 128. |

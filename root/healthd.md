@@ -164,7 +164,7 @@ listener, so by default there is exactly one on the server:
 
 | Scope | Where it runs | Watches |
 | --- | --- | --- |
-| `global` (default) | instance `ic-healthd` in the Incus `incus-compose-healthd` project | every project marked `user.healthcheck.scope=global` |
+| `global` (default) | instance `ic-healthd` in the Incus `incus-compose` project | every project marked `user.healthcheck.scope=global` |
 | `project` | instance `{project}-ic-healthd` in the project | that one project |
 
 The shared daemon gets a project, a bridge (`ic-healthd`) and a root disk of its
@@ -423,7 +423,7 @@ daemon bounded to itself, at the cost of one container each.
 
 The `healthd` command group manages the sidecar directly without touching
 services. Each follows the project's scope, so in a `global`-scope project they
-act on the shared daemon in the `incus-compose-healthd` project:
+act on the shared daemon in the `incus-compose` project:
 
 | Subcommand        | Description                                               |
 | ----------------- | --------------------------------------------------------- |
@@ -647,7 +647,7 @@ incus-compose healthd logs --follow
 
 ### 4. Confirm the sidecar is actually running
 
-The container is named `ic-healthd` in the Incus `incus-compose-healthd`
+The container is named `ic-healthd` in the Incus `incus-compose`
 project, or `{project}-ic-healthd` for a project-scoped one. If it is missing or
 stopped, nothing is being monitored:
 
