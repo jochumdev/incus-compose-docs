@@ -301,8 +301,8 @@ x-incus-compose:
     scope: global
     incus: https://:8443
     network: :default
-    workers: 32
-    restart-workers: 12
+    workers: 128
+    restart-workers: 32
     x-incus:
       limits.cpu: 2
       limits.memory: 256MiB
@@ -317,8 +317,8 @@ services:
 | `scope` | `global` (one shared daemon in the Incus `incus-compose-healthd` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
 | `incus` | The Incus API URL healthd connects to. Defaults to the bridge gateway and the connection's port. |
 | `network` | `<project>:<network>` for a managed network, or a plain bridge name. Defaults to the bridge of the project the daemon runs in. |
-| `workers` | Health checks the daemon runs at once, over every project it watches. |
-| `restart-workers` | Restarts it runs at once, over every project it watches. |
+| `workers` | Health checks the daemon runs at once, over every project it watches. Default 128. |
+| `restart-workers` | Restarts it runs at once, over every project it watches. Default 32. |
 | `x-incus` | Raw Incus instance config for the sidecar, e.g. `limits.*`. |
 | `external` | Use a healthd you run yourself; incus-compose neither creates nor looks one up. |
 

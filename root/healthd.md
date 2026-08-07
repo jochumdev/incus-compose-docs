@@ -567,14 +567,14 @@ or set any other Incus instance config on it, with `x-incus`:
 ```yaml
 x-incus-compose:
   healthd:
-    workers: 64
-    restart-workers: 8
+    workers: 256
+    restart-workers: 64
     x-incus:
       limits.cpu: 4
       limits.memory: 512MiB
 ```
 
-`workers` (32) and `restart-workers` (12) cap the health checks and the restarts
+`workers` (128) and `restart-workers` (32) cap the health checks and the restarts
 the daemon runs at once across every project it watches. They are separate pools
 because a restart holds its worker far longer than a check does - see
 [ic-healthd Internals - Worker pools](/architecture/healthd#worker-pools). A

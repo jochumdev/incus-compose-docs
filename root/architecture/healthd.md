@@ -315,8 +315,8 @@ Every flag has a matching env var:
 | `--own-name`       | `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | -                          | The daemon's own instance name; empty means it skips itself  |
 | `--data-dir`       | `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `/var/lib/ic-healthd`      | Persistent directory for the generated cert/key              |
 | `--secrets-dir`    | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `/run/secrets`             | Tmpfs directory holding the one-time registration token file |
-| `--workers`        | `INCUS_COMPOSE_HEALTHD_WORKERS`        | `32`                       | Health checks running at once, over every watched project    |
-| `--restart-workers`| `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS`| `12`                       | Restarts running at once, over every watched project         |
+| `--workers`        | `INCUS_COMPOSE_HEALTHD_WORKERS`        | `128`                      | Health checks running at once, over every watched project    |
+| `--restart-workers`| `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS`| `32`                       | Restarts running at once, over every watched project         |
 | `--debug`          | `INCUS_COMPOSE_HEALTHD_DEBUG`          | `false`                    | Verbose logging                                              |
 | `--trace`          | `INCUS_COMPOSE_HEALTHD_TRACE`          | `false`                    | Per-event logging, which implies `--debug`                   |
 
