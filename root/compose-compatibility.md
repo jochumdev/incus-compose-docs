@@ -312,15 +312,15 @@ services:
     image: docker.io/nginx:alpine
 ```
 
-| Key | Description |
-| --- | --- |
-| `scope` | `global` (one shared daemon in the Incus `incus-compose` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
-| `incus` | The Incus API URL healthd connects to. Defaults to the bridge gateway and the connection's port. |
-| `network` | `<project>:<network>` for a managed network, or a plain bridge name. Defaults to the bridge of the project the daemon runs in. |
-| `workers` | Health checks the daemon runs at once, over every project it watches. Default 128. |
-| `restart-workers` | Restarts it runs at once, over every project it watches. Default 32. |
-| `x-incus` | Raw Incus instance config for the sidecar, e.g. `limits.*`. |
-| `external` | Use a healthd you run yourself; incus-compose neither creates nor looks one up. |
+| Key               | Description                                                                                                                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scope`           | `global` (one shared daemon in the Incus `incus-compose` project, the default) or `project` (a sidecar of this project's own). Loses to a scope the Incus project already carries. |
+| `incus`           | The Incus API URL healthd connects to. Defaults to the bridge gateway and the connection's port.                                                                                   |
+| `network`         | `<project>:<network>` for a managed network, or a plain bridge name. Defaults to the bridge of the project the daemon runs in.                                                     |
+| `workers`         | Health checks the daemon runs at once, over every project it watches. Default 128.                                                                                                 |
+| `restart-workers` | Restarts it runs at once, over every project it watches. Default 32.                                                                                                               |
+| `x-incus`         | Raw Incus instance config for the sidecar, e.g. `limits.*`.                                                                                                                        |
+| `external`        | Use a healthd you run yourself; incus-compose neither creates nor looks one up.                                                                                                    |
 
 `scope`, `incus` and `network` are also `--healthd-scope`, `--healthd-incus` and
 `--healthd-network` on the CLI, which override the compose file. See
@@ -497,12 +497,14 @@ _Since: v1.1.0_
 ### Volumes
 
 - Named volumes (Incus custom storage volumes)
-- Bind mounts (local connections only)
+- Bind mounts — pass-through when incusd runs on your machine, or copied in with
+  `x-incus-compose.seed` against any server (see below)
 - Read-only volumes
 - Automatic UID/GID shifting
 - tmpfs mounts (with optional size limit)
 - `x-incus` extension — pass any Incus volume config key directly (see below)
 - `x-incus-compose.pool` — select the storage pool for a named volume (see below)
+- `x-incus-compose.seed` — copy a bind mount's source into the instance (see below)
 
 Not supported:
 
@@ -572,7 +574,44 @@ Volumes are stored with a `vol-` prefix. Long names are hashed, so `my-very-long
 incus-compose incus storage volume list default
 ```
 
-Then update `x-incus-compose.pool` in your compose file and run `incus-compose up --recreate` to reattach.
+#### x-incus-compose Volume Seeding
+
+A bind mount is normally passed through: Incus attaches a disk device and
+**incusd** resolves the source path on its own filesystem, so the files have to
+be on the server. Set `x-incus-compose.seed: true` inline on the volume entry to
+**copy** the source instead, which is how a bind mount works against a server
+that is not your machine:
+
+```yaml
+services:
+  web:
+    image: docker.io/library/busybox:glibc
+    volumes:
+      - type: bind
+        source: ./html
+        target: /www
+        read_only: true
+        x-incus-compose:
+          seed: true
+```
+
+The source is read by incus-compose, on the machine you run it from, and must
+exist there. What happens next depends on what it is:
+
+- **A directory** becomes a custom storage volume, filled from the directory
+  when the volume is **created**. Later changes on your machine do not
+  propagate — the volume goes its own way from there, and `up` will not re-seed
+  it. Delete the volume to start over.
+- **A single file** is pushed into the instance on **every start**, while it is
+  still stopped, overwriting what is there. Handy for a config or a key you want
+  refreshed each time.
+
+Seeding is a copy, in one direction. Nothing written inside the container comes
+back out, so it does not replace a named volume for data you mean to keep.
+
+Seeding is off by default — bind mounts are plain pass-through unless you ask.
+
+_Since: v1.0.0_
 
 ### Environment
 
@@ -744,10 +783,10 @@ Not supported:
 With that in place, a few behaviors still depend on whether incus-compose talks
 to a local Incus over the Unix socket or to a remote daemon over HTTPS:
 
-| Feature       | Local (Unix socket)              | Remote (HTTPS)                                    |
-| ------------- | -------------------------------- | ------------------------------------------------- |
-| Bind mounts   | Supported                        | Not supported — use named volumes                 |
-| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto |
+| Feature       | Local (Unix socket)                                                     | Remote (HTTPS)                                                    |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Bind mounts   | Supported                                                               | Pass-through only when incusd is the same machine; otherwise seed |
+| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto                                                              |
 
 ```mermaid
 flowchart LR
@@ -759,7 +798,7 @@ flowchart LR
 
     subgraph R["remote - HTTPS"]
         direction TB
-        CH[client] --> BM2["bind mounts: not supported,<br/>use named volumes"]
+        CH[client] --> BM2["bind mounts: pass-through only if<br/>incusd is this same machine,<br/>else seed or a named volume"]
         CH --> HC["health checks: automatic,<br/>core.https_address or the bridge IP"]
     end
 
@@ -767,8 +806,21 @@ flowchart LR
     R --> D
 ```
 
-Bind mounts read the host filesystem the daemon runs on, so they only work when
-that host is your machine.
+The line for bind mounts is not the transport, it is which machine holds the
+files. A pass-through bind is a disk device whose source **incusd** opens on its
+own filesystem, so the path has to be on the server. Over HTTPS to the machine
+you are sitting at — a `local-https` remote, say — that is still true and bind
+mounts work normally.
+
+Talking to a server somewhere else, incus-compose refuses a pass-through bind
+with `not on the same host` rather than handing incusd a path it will not find.
+The check compares the remote's address against your own interfaces, so it also
+refuses a different machine that happens to have the same directory layout, even
+though incusd could have resolved it.
+
+Copy the files across with
+[`x-incus-compose.seed`](#x-incus-compose-volume-seeding) and none of this
+applies — that is what the option is for.
 
 For health checks, ic-healthd reaches Incus over HTTPS. When
 `core.https_address` names a host (`10.0.0.5:8443`) that address is used, however

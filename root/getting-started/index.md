@@ -42,8 +42,9 @@ from itself. Without `core.https_address` set, `up` fails with
 silently skipped.
 
 Only the server setting matters here; the client connection itself can stay on
-the Unix socket (bind mounts still work that way — see
-[Compose Compatibility](/compose-compatibility#local-vs-remote-incus)).
+the Unix socket. See
+[Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus) for the
+handful of behaviours that do depend on how you connect.
 
 ### HTTPS Remote (for remote servers and health checks)
 
@@ -328,10 +329,14 @@ Named volumes are Incus custom storage volumes with automatic UID/GID shifting:
 ```yaml
 volumes:
   data:/app/data  # Named volume with proper permissions
-  ./local:/app    # Bind mount (local connections only)
+  ./local:/app    # Bind mount (incusd must be on this machine)
 ```
 
-Bind mounts only work with local Incus (Unix socket). For remote Incus, use named volumes.
+A bind mount is passed through to incusd, which opens the path on its own
+filesystem — so it works when the server is this machine, over the Unix socket
+or over HTTPS. Against a server elsewhere, either use a named volume or set
+[`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
+to copy the files across.
 
 ### Networks
 

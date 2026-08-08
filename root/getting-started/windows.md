@@ -26,7 +26,7 @@ flowchart LR
     end
 
     BIN -->|"HTTPS, client certificate"| INCUSD
-    BIN -.->|"not available from here:<br/>builds, bind mounts"| INST
+    BIN -.->|"not available from here: builds,<br/>and bind mounts unless seeded"| INST
 ```
 
 _Since 1.0.0: Windows has been tested with version 1.0.0, MacOS by the lack of one not yet_
@@ -115,9 +115,14 @@ incus list --all-projects
 
 ## Notes and limitations
 
-- **Remote-only.** Because you always talk to a remote server over HTTPS,
-  **bind mounts are not supported** - use named volumes instead. Health checks
-  work automatically over HTTPS. See
+- **Remote-only.** The Incus server is never this machine, so a plain
+  pass-through bind mount is refused - incusd would look for the source path on
+  the Linux server, where it isn't. Add
+  [`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
+  to the volume entry and the files are copied across instead, which works from
+  here and is what the option exists for. A named volume is the other answer,
+  for data that lives on the server anyway. Health checks work automatically
+  over HTTPS. See
   [Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus).
 - **Builds** need a local `podman` or `docker` which are not available on Windows.
 

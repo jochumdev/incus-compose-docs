@@ -5,26 +5,25 @@ How the daemon is put together. For what it does and how to configure it, see
 
 The whole daemon is three kinds of goroutine and the channels between them:
 
-| Part | Count | Owns |
-| --- | --- | --- |
-| The listener handler | one per generation | decoding an Incus event |
-| The router | one | the connection, the project registry, project-scoped events |
-| A scheduler | one per watched project | that project's instances and their timers |
-| A worker | `--workers` + `--restart-workers` | one check or restart, whichever project it came from |
+| Part                 | Count                             | Owns                                                        |
+| -------------------- | --------------------------------- | ----------------------------------------------------------- |
+| The listener handler | one per generation                | decoding an Incus event                                     |
+| The router           | one                               | the connection, the project registry, project-scoped events |
+| A scheduler          | one per watched project           | that project's instances and their timers                   |
+| A worker             | `--workers` + `--restart-workers` | one check or restart, whichever project it came from        |
 
 ```mermaid
 flowchart LR
     I[Incus<br/>all-projects lifecycle events]
 
     subgraph daemon["ic-healthd"]
-        H[AddHandler<br/>decode]
         R{{router<br/>runProjects}}
         SA[scheduler<br/>project A]
         SB[scheduler<br/>project B]
     end
 
-    I -->|websocket| H
-    H -->|intake, 256| R
+    I -->|"websocket"| Q[["AddChannel, 1000<br/>ordered"]]
+    Q --> R
     R -->|"start / stop"| REG[(registry<br/>map name to projectData)]
     R -->|events, 32| SA
     R -->|events, 32| SB
@@ -79,20 +78,20 @@ listener generation.
 flowchart TD
     S([runProjects]) --> G[open all-projects listener]
     G -->|error| GW[wait 1s] --> G
-    G --> AH[AddHandler: decode into intake]
+    G --> AH[AddChannel]
     AH --> SC[resolve scope]
     SC --> REC[reconcile registry:<br/>stop what left, start what appeared]
     REC --> RS[push resync to every scheduler]
     RS --> L{select}
 
     L -->|ctx done| END([return])
-    L -->|listener disconnected| G
+    L -->|channel closed| G
     L -->|reload / SIGHUP| G
-    L -->|event from intake| RT[route it] --> L
+    L -->|event| RT[decode, route it] --> L
 ```
 
-Reconciling happens **after** the handler is registered, not before. A project
-created in between then arrives as an event rather than falling in the gap
+Reconciling happens **after** the channel is added, not before. A project
+created in between then queues on the channel rather than falling in the gap
 between the two.
 
 The resync push is what covers the gap that already happened: while there was no
@@ -125,17 +124,24 @@ it. `start` and `stop` are closures over it for the same reason.
 does **not** wait for the goroutine to finish. A scheduler that is wedged must
 not be able to hang the router that is trying to be rid of it.
 
-### Backpressure
+### Ordering and backpressure
 
-Every send is blocking, and nothing is ever dropped for lack of room. The
-buffers (`intakeBuffer` 256, `projectBuffer` 32, `resultBuffer` 32) only buy
-slack while a loop is between selects.
+Events arrive on one channel from `AddChannel`, so the router sees them in the
+order Incus sent them. That is load-bearing rather than tidy: handled the other
+way round, a stop and the start after it leave the daemon holding a restart for
+an instance that is already running, and it force-stops it a backoff later.
+
+Every send from there on is blocking, and nothing is dropped for lack of room.
+The remaining buffers (`projectBuffer` 32, `resultBuffer` 32) only buy slack
+while a loop is between selects.
 
 The consequence is deliberate: one wedged scheduler eventually stalls routing
-for everyone, and further back, the websocket read. That is a visible, recoverable
-failure (the server drops a listener that stops reading, which triggers a
-reconnect and a resync) rather than a silent one. Dropping a `stopped` event
-instead would mean a crashed instance is never restarted, and nothing would say so.
+for everyone, and behind it the event channel fills. At 1000 pending the client
+gives up on the listener and closes the channel, which the router reads as the
+end of a generation and answers with a reconnect and a resync. That is a
+visible, recoverable failure rather than a silent one; dropping a `stopped`
+event instead would mean a crashed instance is never restarted, and nothing
+would say so.
 
 A routed send selects on three things, so it cannot outlive its target:
 
@@ -167,7 +173,7 @@ than resolving the whole scope again.
 stamps the scope on a project in `healthdUp`, after removing any sidecar the
 project owned, so no project is ever in two daemons' scope at once.
 
-That the match is on a *value* and not merely on a key present is what makes the
+That the match is on a _value_ and not merely on a key present is what makes the
 upgrade safe: a project scoped to its own sidecar carries `project` and a
 project from before the key existed carries nothing, so neither matches
 `global`. For the operator's view of the same thing, see
@@ -305,20 +311,20 @@ or a separately managed container - and attach projects to it with
 
 Every flag has a matching env var:
 
-| Flag               | Env var                                | Default                    | Description                                                  |
-| ------------------ | -------------------------------------- | -------------------------- | ------------------------------------------------------------ |
-| `--incus`          | `INCUS_COMPOSE_HEALTHD_INCUS`          | -                          | Incus API URL to connect to                                  |
-| `--token`          | `INCUS_COMPOSE_HEALTHD_TOKEN`          | -                          | Trust token used to register the client cert                 |
-| `--project`        | `INCUS_COMPOSE_HEALTHD_PROJECTS`       | -                          | Projects to manage; empty means every marked project         |
-| `--project-marker` | `INCUS_COMPOSE_HEALTHD_PROJECT_MARKER` | `user.healthcheck.scope=global` | Project config `KEY=VALUE` that opts a project in when `--project` is empty |
-| `--own-project`    | `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`    | -                          | Project the daemon's own container runs in                   |
-| `--own-name`       | `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | -                          | The daemon's own instance name; empty means it skips itself  |
-| `--data-dir`       | `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `/var/lib/ic-healthd`      | Persistent directory for the generated cert/key              |
-| `--secrets-dir`    | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `/run/secrets`             | Tmpfs directory holding the one-time registration token file |
-| `--workers`        | `INCUS_COMPOSE_HEALTHD_WORKERS`        | `128`                      | Health checks running at once, over every watched project    |
-| `--restart-workers`| `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS`| `32`                       | Restarts running at once, over every watched project         |
-| `--debug`          | `INCUS_COMPOSE_HEALTHD_DEBUG`          | `false`                    | Verbose logging                                              |
-| `--trace`          | `INCUS_COMPOSE_HEALTHD_TRACE`          | `false`                    | Per-event logging, which implies `--debug`                   |
+| Flag                | Env var                                 | Default                         | Description                                                                 |
+| ------------------- | --------------------------------------- | ------------------------------- | --------------------------------------------------------------------------- |
+| `--incus`           | `INCUS_COMPOSE_HEALTHD_INCUS`           | -                               | Incus API URL to connect to                                                 |
+| `--token`           | `INCUS_COMPOSE_HEALTHD_TOKEN`           | -                               | Trust token used to register the client cert                                |
+| `--project`         | `INCUS_COMPOSE_HEALTHD_PROJECTS`        | -                               | Projects to manage; empty means every marked project                        |
+| `--project-marker`  | `INCUS_COMPOSE_HEALTHD_PROJECT_MARKER`  | `user.healthcheck.scope=global` | Project config `KEY=VALUE` that opts a project in when `--project` is empty |
+| `--own-project`     | `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`     | -                               | Project the daemon's own container runs in                                  |
+| `--own-name`        | `INCUS_COMPOSE_HEALTHD_OWN_NAME`        | -                               | The daemon's own instance name; empty means it skips itself                 |
+| `--data-dir`        | `INCUS_COMPOSE_HEALTHD_DATA_DIR`        | `/var/lib/ic-healthd`           | Persistent directory for the generated cert/key                             |
+| `--secrets-dir`     | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`     | `/run/secrets`                  | Tmpfs directory holding the one-time registration token file                |
+| `--workers`         | `INCUS_COMPOSE_HEALTHD_WORKERS`         | `128`                           | Health checks running at once, over every watched project                   |
+| `--restart-workers` | `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS` | `32`                            | Restarts running at once, over every watched project                        |
+| `--debug`           | `INCUS_COMPOSE_HEALTHD_DEBUG`           | `false`                         | Verbose logging                                                             |
+| `--trace`           | `INCUS_COMPOSE_HEALTHD_TRACE`           | `false`                         | Per-event logging, which implies `--debug`                                  |
 
 `--own-project` and `--own-name` are how the daemon writes its own health status;
 leaving `--own-name` empty means it skips itself.
@@ -330,7 +336,7 @@ There are two ways to say it, and they do not mix:
 - **An explicit list.** `--project a --project b` (or
   `INCUS_COMPOSE_HEALTHD_PROJECTS=a,b`) watches exactly those, marker ignored.
 - **The marker.** With no `--project`, every project the daemon can see carrying
-  `user.healthcheck.scope: "global"` in its *project* config. incus-compose
+  `user.healthcheck.scope: "global"` in its _project_ config. incus-compose
   stamps that on the projects it hands to the shared daemon, so a daemon started
   this way picks those up and leaves everything else - project-scoped projects,
   projects from before the key existed, and anything not incus-compose's -

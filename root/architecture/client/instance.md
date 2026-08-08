@@ -13,6 +13,7 @@ leafwiki_updated_at: "2026-07-05T23:55:54.390783125Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Instance Details
 
 Instance is the most complex resource due to device handling and UID/GID shifting for volumes.
@@ -148,10 +149,7 @@ flowchart TD
     EX -->|yes| ADOPT["store reference,<br/>extract oci.uid / oci.gid"]
     ADOPT --> DONE([ensured])
     EX -->|"no, Create=false"| NF([ErrNotFound])
-    EX -->|"no, Create=true"| BM{"bind mount over a<br/>remote connection?"}
-
-    BM -->|yes| BMERR([ErrBindMountRemote])
-    BM -->|no| DEP{"all Config.Resources<br/>ensured?"}
+    EX -->|"no, Create=true"| DEP{"all Config.Resources<br/>ensured?"}
 
     DEP -->|no| DEPERR([ErrDependencyNotEnsured])
     DEP -->|yes| PRE["build the pre-device map:<br/>Devices + ExtraDevices,<br/>add a root disk if the profile has none"]
@@ -185,15 +183,26 @@ This ensures files in the volume are owned by the correct user inside the contai
 
 ## Bind Mount Restriction
 
-Bind mounts only work with local (Unix socket) connections:
+The client layer has no opinion on bind mounts — a disk device with no
+`StorageVolumeConfig` is passed to Incus as-is. The restriction lives one level
+up, in `instanceVolumeDevices()` (`project/instance.go`), because it is a
+question about the compose file rather than about the device:
 
 ```go
-if dev.Config.Disk.StorageVolumeConfig == nil && client.IsRemote() {
-    return ErrBindMountRemote
-}
+// Refuse bind without seed on remote hosts.
+err := c.Global().SameHost()
 ```
 
-The source path must be accessible to the Incus server.
+`GlobalClient.SameHost()` returns nil for a Unix socket, and otherwise compares
+the remote's resolved addresses against the local interfaces. So a pass-through
+bind is allowed whenever incusd is this machine, HTTPS included, and refused
+with `not on the same host` when it is not — incusd resolves the source path on
+its own filesystem, so a path from elsewhere would not be there.
+
+A volume carrying `x-incus-compose.seed` skips the check entirely: a directory
+becomes a `StorageVolume` with `HostPath` set, seeded at creation, and a single
+file becomes an `InstanceFile` pushed from `start()`. Both read the source
+locally and write it to the server, so neither needs the hosts to match.
 
 ## Instance Lifecycle
 

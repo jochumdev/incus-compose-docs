@@ -13,6 +13,7 @@ leafwiki_updated_at: "2026-07-05T04:58:05.905573716Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Errors
 
 The client package uses a sentinel-based error system with automatic context enrichment.
@@ -57,9 +58,13 @@ if errors.Is(err, client.ErrOperation) {
 | `ErrNotEnsured`           | Operation requires resource to be ensured first |
 | `ErrOperation`            | Error within an Incus operation                 |
 | `ErrCreate`               | Resource creation failed                        |
+| `ErrDelete`               | Resource deletion failed                        |
 | `ErrAborted`              | Operation aborted (e.g., by hook)               |
 | `ErrConnectionFailed`     | Connection attempt failed                       |
 | `ErrDisconnected`         | Client is not connected                         |
+| `ErrServerNotListening`   | `core.https_address` is not set on the server   |
+| `ErrRunning`              | Resource is already running                     |
+| `ErrNotRunning`           | Resource is not running                         |
 | `ErrUnsupportedAction`    | Resource does not support the action            |
 | `ErrUnknownResource`      | Unknown resource kind                           |
 | `ErrUnknownConfig`        | Unknown config for resource                     |
@@ -69,7 +74,6 @@ if errors.Is(err, client.ErrOperation) {
 | `ErrDeviceConflict`       | Device name conflict                            |
 | `ErrVolumeMismatch`       | Volume configuration mismatch                   |
 | `ErrBadDeviceConfig`      | Bad device configuration                        |
-| `ErrBindMountRemote`      | Bind mounts not supported over network          |
 | `ErrDependencyNotEnsured` | Dependency not ensured                          |
 | `ErrNilPointer`           | Nil pointer encountered                         |
 | `ErrUnknown`              | Unknown error (wraps non-Error types)           |

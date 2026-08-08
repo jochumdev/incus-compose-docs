@@ -68,7 +68,7 @@ flowchart LR
 | (the compose project) | project                     | Each compose project maps to its own Incus project.             |
 | network               | network (bridge)            | Compose network becomes an Incus managed bridge.                |
 | named volume          | custom storage volume       | With automatic UID/GID shifting.                                |
-| bind mount            | disk device (host path)     | Local Incus (Unix socket) only.                                 |
+| bind mount            | disk device (host path)     | Needs incusd on this machine, or `x-incus-compose.seed`.        |
 | image (OCI ref)       | image (cached, per-project) | Pulled via an OCI remote, cached, then copied into the project. |
 | healthcheck / restart | (enforced by ic-healthd)    | Incus does not run these; the sidecar does.                     |
 | -                     | profile                     | Incus-only; no compose equivalent.                              |
@@ -109,8 +109,11 @@ flowchart LR
 
 - **Named volume** (`data:/var/lib/app`) - becomes an Incus **custom storage
   volume** with automatic UID/GID shifting. Works locally and remotely.
-- **Bind mount** (`./config:/etc/app`) - mounts a host path directly. See
-  [Volumes](/compose-compatibility#volumes).
+- **Bind mount** (`./config:/etc/app`) - mounts a host path directly, so the
+  path must be on the machine incusd runs on. With
+  [`x-incus-compose.seed`](/compose-compatibility#x-incus-compose-volume-seeding)
+  the files are copied to the server instead, which works against any remote.
+  See [Volumes](/compose-compatibility#volumes).
 
 ### Image (OCI vs native)
 
