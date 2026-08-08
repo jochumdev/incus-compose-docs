@@ -99,17 +99,17 @@ localhost/<project>-<service>
 
 ## Supported build options
 
-| Option              | Support                                                                                             |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| `context`           | Build context directory. Relative paths are resolved by compose-go.                                 |
-| `dockerfile`        | Alternate Dockerfile or Containerfile path, resolved relative to `context` (absolute paths are used as given). |
-| `dockerfile_inline` | Inline Dockerfile content. incus-compose writes it to a temporary file before invoking the builder. |
-| `args`              | Build arguments, passed as `--build-arg KEY=VALUE`. Args without values are ignored.                |
+| Option              | Support                                                                                                                        |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `context`           | Build context directory. Relative paths are resolved by compose-go.                                                            |
+| `dockerfile`        | Alternate Dockerfile or Containerfile path, resolved relative to `context` (absolute paths are used as given).                 |
+| `dockerfile_inline` | Inline Dockerfile content. incus-compose writes it to a temporary file before invoking the builder.                            |
+| `args`              | Build arguments, passed as `--build-arg KEY=VALUE`. Args without values are ignored.                                           |
 | `no_cache`          | Passed as `--no-cache` to the builder; also skips the shared image cache for this build (see [Image Caching](#image-caching)). |
-| `pull`              | Passed as `--pull`.                                                                                 |
-| `target`            | Multi-stage build target, passed as `--target`.                                                     |
-| `platforms`         | A single platform is supported. Multiple platforms are rejected.                                    |
-| service `platform`  | Used as the build platform when `build.platforms` is not set.                                       |
+| `pull`              | Passed as `--pull`.                                                                                                            |
+| `target`            | Multi-stage build target, passed as `--target`.                                                                                |
+| `platforms`         | A single platform is supported. Multiple platforms are rejected.                                                               |
+| service `platform`  | Used as the build platform when `build.platforms` is not set.                                                                  |
 
 ## Image Caching
 
@@ -136,16 +136,18 @@ it is also what lets a machine that cannot build at all - no `podman`, `docker`
 or `buildah`, which is common on Windows and macOS - consume an image someone
 else built, as long as it is in the cache.
 
+_Since: v1.2.0-rc.2_
+
 ### The cache key is the image name
 
 A built image is stored in the cache under its Incus alias, which comes from
 the service's image name and nothing else:
 
-| Compose                        | Cache alias                    |
-| ------------------------------ | ------------------------------ |
-| `image: ghcr.io/me/app:v1`     | `ghcr.io/me/app:v1`            |
-| `image: myapp:latest`          | `docker.io/library/myapp:latest` |
-| no `image:`, service `web`     | `local/web:latest`             |
+| Compose                    | Cache alias                      |
+| -------------------------- | -------------------------------- |
+| `image: ghcr.io/me/app:v1` | `ghcr.io/me/app:v1`              |
+| `image: myapp:latest`      | `docker.io/library/myapp:latest` |
+| no `image:`, service `web` | `local/web:latest`               |
 
 Nothing else feeds the key - not the project name, not the build context, not
 the Dockerfile. Two builds that resolve to the same image name are the same
@@ -201,7 +203,7 @@ The first `up` builds and populates the cache. Every later `up` - same project
 or another one, same machine or another one against the same Incus - finds the
 alias and copies it. The image name is the whole contract.
 
-A consumer that only wants to *use* the image can drop the `build:` block
+A consumer that only wants to _use_ the image can drop the `build:` block
 entirely:
 
 ```yaml
@@ -269,9 +271,9 @@ If a service requests a platform that Incus does not report as supported, the bu
 incus-compose build [SERVICE...]
 ```
 
-| Option       | Description                                                                            |
-| ------------ | -------------------------------------------------------------------------------------- |
-| `--no-cache` | Disable the builder's layer cache for this build, and skip the shared image cache (see [Image Caching](#image-caching)). Also enabled when `build.no_cache: true` is set. |
+| Option       | Description                                                                                                                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--no-cache` | Disable the builder's layer cache for this build, and skip the shared image cache (see [Image Caching](#image-caching)). Also enabled when `build.no_cache: true` is set.                                                   |
 | `--pull`     | Pull policy for the images this build depends on: `always`, `missing`/`policy`, `never`. Base-image freshness is separate - set `build.pull: true` in the compose file, which is passed to the builder as its own `--pull`. |
 
 ## up build behavior
@@ -304,8 +306,8 @@ flowchart TD
     COPY --> USE
 ```
 
-| Command                       | Behavior                                                                        |
-| ----------------------------- | --------------------------------------------------------------------------------- |
+| Command                       | Behavior                                                                         |
+| ----------------------------- | -------------------------------------------------------------------------------- |
 | `incus-compose up`            | Build only on a cache miss. Copy from the cache when the alias is already there. |
 | `incus-compose up --build`    | Force rebuild, replacing the cached image.                                       |
 | `incus-compose up --no-build` | Never build. Fail if a required built image is missing.                          |
