@@ -1,11 +1,12 @@
 ---
-date: 2026-08-08T01:56:03.000Z
+date: 2026-08-08T02:06:16.000Z
 dateCreated: 2026-07-12T02:06:29.777Z
+description: A split-horizon home resolver on Incus - dnscrypt-proxy facing the clients, knot serving the local zone authoritatively.
 tags: []
 leafwiki_id: 1rVTw5YDg
 leafwiki_title: DNS
 leafwiki_created_at: "2026-07-12T02:06:29.777616934Z"
-leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

@@ -1,11 +1,12 @@
 ---
-date: 2026-08-08T01:56:03.000Z
+date: 2026-08-08T02:06:16.000Z
 dateCreated: 2026-07-05T04:30:14.405Z
+description: Ready-to-run compose.yaml examples for Incus - Caddy, Gitea, Immich, Hugo, Kimai, PowerDNS, wikis, DNS resolvers and registry caches.
 tags: []
 leafwiki_id: 7c5CgufvR
 leafwiki_title: Examples
 leafwiki_created_at: "2026-07-05T04:30:14.40523729Z"
-leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

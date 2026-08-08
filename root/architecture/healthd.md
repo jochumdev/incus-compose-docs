@@ -1,10 +1,11 @@
 ---
-date: 2026-08-08T01:56:52.000Z
+date: 2026-08-08T02:06:16.000Z
 dateCreated: 2026-08-06T07:11:18.000Z
+description: Inside ic-healthd - the listener, the router and the per-project schedulers, why every send blocks, and how state survives an event-listener reconnect.
 leafwiki_id: AAf9EpsDRI
 leafwiki_title: ic-healthd Internals
 leafwiki_created_at: "2026-08-06T07:11:18.244006266Z"
-leafwiki_updated_at: "2026-08-08T01:56:52.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---

@@ -1,8 +1,9 @@
 ---
-date: 2026-08-08T01:56:03.000Z
+date: 2026-08-08T02:06:16.000Z
 dateCreated: 2026-08-02T19:32:24.000Z
+description: Storage volumes beyond the usual lifecycle - raw SFTP access to a volume's contents, and the advisory file lock built on top of it.
 leafwiki_created_at: "2026-08-02T19:32:24.000000000Z"
-leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
 ---
 
 # Storage Volume

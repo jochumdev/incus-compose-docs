@@ -1,11 +1,12 @@
 ---
-date: 2026-08-08T01:56:03.000Z
+date: 2026-08-08T02:06:16.000Z
 dateCreated: 2026-07-05T04:30:21.277Z
+description: Build and serve a Hugo static site on Incus - fast builds, no runtime dependencies, straight from a compose.yaml.
 tags: []
 leafwiki_id: jiajRXfvR
 leafwiki_title: Hugo
 leafwiki_created_at: "2026-07-05T04:30:21.277561198Z"
-leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
