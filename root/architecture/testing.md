@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:06:16.000Z
+date: 2026-08-08T02:08:44.000Z
 dateCreated: 2026-07-05T01:03:28.732Z
 description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, and the separate cache project tests use.
 editor: markdown
@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

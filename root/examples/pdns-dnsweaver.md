@@ -1,11 +1,13 @@
 ---
-date: 2026-08-08T02:06:16.000Z
+date: 2026-08-08T02:12:01.000Z
 dateCreated: 2026-08-06T07:11:18.000Z
 description: Run PowerDNS with PowerDNS-Admin on Incus, backed by MariaDB, with dnsweaver creating DNS records for running instances automatically.
+editor: markdown
+title: pdns-dnsweaver
 leafwiki_id: s0f9PpyDgI
 leafwiki_title: pdns-dnsweaver
 leafwiki_created_at: "2026-08-06T07:11:18.249759374Z"
-leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
