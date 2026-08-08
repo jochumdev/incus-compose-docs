@@ -425,11 +425,6 @@ daemon bounded to itself, at the cost of one container each.
 The `healthd` command group manages the sidecar directly without touching
 services. Each follows the project's scope, so in a `global`-scope project they
 act on the shared daemon in the `incus-compose` project:
-act on the shared daemon in the `default` project:
-
-act on the shared daemon in the `incus-compose-healthd` project:
-
-> > > > > > > v1.2
 
 | Subcommand        | Description                                               |
 | ----------------- | --------------------------------------------------------- |

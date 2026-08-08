@@ -374,24 +374,41 @@ networks:
     external: true
 ```
 
-**Name resolution** — incus-compose probes the following candidates in order and uses
-the first one that exists in Incus:
-
-1. `x-incus-compose.network` value — raw (literal)
-2. `x-incus-compose.network` value — sanitized (`{project}-{name}` / hash)
-3. Compose network name — raw
-4. Compose network name — sanitized
-
-Use `x-incus-compose.network` when the Incus network name does not follow the compose
-naming convention:
+Set `name:` when the Incus network is not called what the compose file calls it.
+A bare value is an Incus network name, taken literally — use it for a bridge you
+manage yourself:
 
 ```yaml
 networks:
   frontend:
     external: true
-    x-incus-compose:
-      network: my-production-net # tried as-is first, then sanitized
+    name: incusbr0
 ```
+
+Write it as **`<project>:<network>`** to borrow a network another compose project
+owns, naming it the way that project does rather than working out the Incus name
+by hand:
+
+```yaml
+networks:
+  shared:
+    external: true
+    name: alpha:dns # the "dns" network of the "alpha" compose project
+```
+
+The reference goes through the same [naming rules](#network-naming) the owning
+project used, so it keeps resolving after a rename to a hash — `alpha:dns`
+becomes `alpha-dns`, and a pair long enough to exceed the interface limit
+becomes the same `ic-` hash on both sides. Only the project that declares the
+network creates it; everyone else is `external: true`.
+
+**Name resolution** — incus-compose probes the following candidates in order and uses
+the first one that exists in Incus:
+
+1. `name:` value — literal, only when it names no project
+2. `name:` value — resolved (`{project}-{network}`, or its hash)
+3. Compose network name — raw
+4. Compose network name — sanitized
 
 If none of the candidates match an existing network, `up` fails with a not-found error.
 
@@ -480,7 +497,7 @@ Each alias becomes a `cname=<alias>,<instance>` record in the network's
 `raw.dnsmasq`, resolving straight to the instance — no DHCP lease to wait for,
 unlike the IP-based service-name records described in
 [DNS Resolution](#dns-resolution). Aliases on networks shared by multiple
-projects (`external: true` / `x-incus-compose.network`) coexist without
+projects (`external: true` / `name:`) coexist without
 clobbering each other's records, the same way service-name records do.
 
 :::warning

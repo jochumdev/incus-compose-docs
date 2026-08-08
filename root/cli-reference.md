@@ -347,15 +347,10 @@ incus-compose healthd <subcommand>
 
 Each follows the project's scope, so in a `global`-scope project they act on the
 shared daemon in the Incus `incus-compose` project. With no compose file present they
-shared daemon in the Incus `default` project. With no compose file present they
-
-shared daemon in the Incus `incus-compose-healthd` project. With no compose file present they
-
-> > > > > > > v1.2
-> > > > > > > all act on the shared daemon directly: `healthd up` creates one, the rest fail
-> > > > > > > with `no ic-healthd is running` when there is none. `healthd down` asks first
-> > > > > > > when other projects rely on that daemon; `--force` skips the question and is
-> > > > > > > required without a terminal.
+all act on the shared daemon directly: `healthd up` creates one, the rest fail
+with `no ic-healthd is running` when there is none. `healthd down` asks first
+when other projects rely on that daemon; `--force` skips the question and is
+required without a terminal.
 
 `healthd up` also accepts `--image`, `--binary`, `--incus`, `--network`,
 `--scope`, `--pull` and `--timeout`. See
