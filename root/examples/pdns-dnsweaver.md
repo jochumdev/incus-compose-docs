@@ -1,8 +1,12 @@
 ---
-date: 2026-08-07T08:03:36.000Z
-dateCreated: 2026-07-14T08:31:49.000Z
-leafwiki_created_at: "2026-07-14T08:31:49.000000000Z"
-leafwiki_updated_at: "2026-08-07T08:03:36.000000000Z"
+date: 2026-08-08T01:56:41.000Z
+dateCreated: 2026-08-06T07:11:18.000Z
+leafwiki_id: s0f9PpyDgI
+leafwiki_title: pdns-dnsweaver
+leafwiki_created_at: "2026-08-06T07:11:18.249759374Z"
+leafwiki_updated_at: "2026-08-08T01:56:41.000000000Z"
+leafwiki_creator_id: system
+leafwiki_last_author_id: system
 ---
 
 # pdns-dnsweaver
@@ -19,13 +23,13 @@ The files for this example are on [Github](https://github.com/lxc/incus-compose/
 
 ## The example
 
-| Service          | Role                                                       | Static IP     |
-| ---------------- | ------------------------------------------------------------ | -------------- |
-| `mariadb`        | Backing database for `pdns` and `pdns-admin`.               | —              |
+| Service          | Role                                                              | Static IP     |
+| ---------------- | ----------------------------------------------------------------- | ------------- |
+| `mariadb`        | Backing database for `pdns` and `pdns-admin`.                     | —             |
 | `pdns`           | PowerDNS authoritative server for the `DNSWEAVER_PDNS_ZONE` zone. | `10.138.32.3` |
-| `dnscrypt-proxy` | Resolver clients point at; forwards the zone to `pdns`.     | `10.138.32.2` |
-| `pdns-admin`     | Web UI for managing `pdns` zones/records.                   | `10.138.32.4` |
-| `dnsweaver`      | Watches Incus and syncs instance DNS records into `pdns`.   | —              |
+| `dnscrypt-proxy` | Resolver clients point at; forwards the zone to `pdns`.           | `10.138.32.2` |
+| `pdns-admin`     | Web UI for managing `pdns` zones/records.                         | `10.138.32.4` |
+| `dnsweaver`      | Watches Incus and syncs instance DNS records into `pdns`.         | —             |
 
 ```mermaid
 flowchart TD

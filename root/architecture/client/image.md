@@ -1,5 +1,5 @@
 ---
-date: 2026-08-04T05:53:28.000Z
+date: 2026-08-08T01:56:03.000Z
 dateCreated: 2026-07-05T01:03:37.823Z
 description: null
 editor: markdown
@@ -9,7 +9,7 @@ title: Image Resource
 leafwiki_id: yKmu3_fvg
 leafwiki_title: Image Resource
 leafwiki_created_at: "2026-07-05T03:54:01.463522503Z"
-leafwiki_updated_at: "2026-08-04T05:53:28.000000000Z"
+leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

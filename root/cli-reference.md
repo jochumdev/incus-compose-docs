@@ -1,5 +1,5 @@
 ---
-date: 2026-08-07T09:20:31.000Z
+date: 2026-08-08T01:58:43.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: null
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-07T09:20:31.000000000Z"
+leafwiki_updated_at: "2026-08-08T01:58:43.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: icZYCpLDg
 ---
@@ -44,20 +44,20 @@ Every option below (and every command-specific one further down) can also be
 set via an environment variable - see [Environment Variables](/environment-variables)
 for the full list.
 
-| Option                      | Description                                                                                           |
-| --------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `-f`, `--file`              | Compose files (repeatable)                                                                              |
-| `-p`, `--project-name`      | Project name                                                                                            |
-| `-P`, `--project-directory` | Working directory                                                                                       |
-| `--profile`                 | Compose profiles (repeatable)                                                                           |
-| `--env-file`                | Environment files (repeatable)                                                                          |
-| `-E`, `--os-env`            | Include OS env vars                                                                                     |
-| `--remote`                  | Incus remote                                                                                            |
-| `--ansi`                    | Color output: never/always/auto                                                                         |
+| Option                      | Description                                                                                                                        |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `-f`, `--file`              | Compose files (repeatable)                                                                                                         |
+| `-p`, `--project-name`      | Project name                                                                                                                       |
+| `-P`, `--project-directory` | Working directory                                                                                                                  |
+| `--profile`                 | Compose profiles (repeatable)                                                                                                      |
+| `--env-file`                | Environment files (repeatable)                                                                                                     |
+| `-E`, `--os-env`            | Include OS env vars                                                                                                                |
+| `--remote`                  | Incus remote                                                                                                                       |
+| `--ansi`                    | Color output: never/always/auto                                                                                                    |
 | `--image-cache`             | Incus project used as image cache (default: `incus-compose-cache`); set `""` to disable caching and pull straight into the project |
-| `--storage-pool`            | Default storage pool for volumes (default: `detect` for auto-detection)                                 |
-| `--workers`                 | Number of concurrent workers (default: `4`)                                                              |
-| `--debug`                   | Debug logging                                                                                            |
+| `--storage-pool`            | Default storage pool for volumes (default: `detect` for auto-detection)                                                            |
+| `--workers`                 | Number of concurrent workers (default: `4`)                                                                                        |
+| `--debug`                   | Debug logging                                                                                                                      |
 
 Supports the [no-color.org](https://no-color.org/) convention.
 
@@ -76,26 +76,26 @@ Create and start containers.
 incus-compose up [SERVICE...]
 ```
 
-| Option                 | Description                                                                                                                       |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `-d`, `--detach`       | Detached mode: run containers in the background                                                                                   |
-| `--recreate`           | Recreate containers even if they exist                                                                                            |
-| `--no-start`           | Don't start containers after creating                                                                                             |
+| Option                 | Description                                                                                                                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-d`, `--detach`       | Detached mode: run containers in the background                                                                                                                                            |
+| `--recreate`           | Recreate containers even if they exist                                                                                                                                                     |
+| `--no-start`           | Don't start containers after creating                                                                                                                                                      |
 | `--pull`               | Pull policy: `always` (refresh from the registry), `missing`/`policy` (use the store if present), `never` (never contact a registry; fail when the image is not stored); default: `policy` |
-| `--build`              | Rebuild build-configured service images before starting containers                                                                |
-| `--no-build`           | Do not build images; fail if a required built image is missing                                                                    |
-| `--builder`            | Preferred builder, binary name or absolute path; empty for auto-detect                                                            |
-| `--no-deps`            | Don't start linked services (depends_on)                                                                                          |
-| `--timeout`            | Stop/start timeout (default: 1m)                                                                                                  |
-| `--dependency-timeout` | Max time to wait for `service_healthy` depends_on (default: 5m; `0` = no limit)                                                   |
-| `--scale`              | Scale service: `web=3` (repeatable)                                                                                               |
-| `--no-healthd`         | Don't create healthd sidecar for healthchecks                                                                                     |
-| `--external-healthd`   | Use an existing (unmanaged) healthd; don't create or look one up                                                                  |
-| `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                         |
-| `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                    |
-| `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP |
-| `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                   |
-| `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose` project, the default) or `project`; loses to a scope the project already carries |
+| `--build`              | Rebuild build-configured service images before starting containers                                                                                                                         |
+| `--no-build`           | Do not build images; fail if a required built image is missing                                                                                                                             |
+| `--builder`            | Preferred builder, binary name or absolute path; empty for auto-detect                                                                                                                     |
+| `--no-deps`            | Don't start linked services (depends_on)                                                                                                                                                   |
+| `--timeout`            | Stop/start timeout (default: 1m)                                                                                                                                                           |
+| `--dependency-timeout` | Max time to wait for `service_healthy` depends_on (default: 5m; `0` = no limit)                                                                                                            |
+| `--scale`              | Scale service: `web=3` (repeatable)                                                                                                                                                        |
+| `--no-healthd`         | Don't create healthd sidecar for healthchecks                                                                                                                                              |
+| `--external-healthd`   | Use an existing (unmanaged) healthd; don't create or look one up                                                                                                                           |
+| `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                                                                                  |
+| `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                                                                             |
+| `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP                                                          |
+| `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                                                                            |
+| `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose` project, the default) or `project`; loses to a scope the project already carries                                                      |
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
@@ -109,9 +109,9 @@ Build or rebuild service images for services that define `build:`.
 incus-compose build [SERVICE...]
 ```
 
-| Option       | Description                                           |
-| ------------ | ----------------------------------------------------- |
-| `--no-cache` | Disable the builder's layer cache, and skip the shared image cache the build would otherwise land in (see [Builds - Image Caching](/builds#image-caching)) |
+| Option       | Description                                                                                                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--no-cache` | Disable the builder's layer cache, and skip the shared image cache the build would otherwise land in (see [Builds - Image Caching](/builds#image-caching))                                      |
 | `--pull`     | Pull policy for the images this build depends on: `always`, `missing`/`policy`, `never`. Base-image freshness is the builder's own concern, set `build.pull: true` in the compose file for that |
 
 When service names are provided, only matching build-configured services are built. Services without `build:` are skipped. Built images are imported into the Incus project and used by `up`.
@@ -140,7 +140,7 @@ incus-compose down [SERVICE...]
 | `--external-healthd` | Use an existing (unmanaged) healthd; don't look one up                   |
 | `--no-healthd`       | Don't stop/remove healthd sidecar                                        |
 
-*Changed in 1.0.0-rc.1*: `--volumes` is now no more an alias for `--project` but deletes volumes.
+_Changed in 1.0.0-rc.1_: `--volumes` is now no more an alias for `--project` but deletes volumes.
 
 ## start
 
@@ -236,6 +236,7 @@ incus-compose config [SERVICE...]
 ## exec
 
 Execute a command in a running instance.
+
 ```
 incus-compose exec [options] SERVICE COMMAND [ARGS...]
 ```
@@ -274,7 +275,7 @@ incus-compose exec web ls -ln /data
 incus-compose exec web sh -c 'echo hello > /data/test.txt'
 ```
 
-*Changed in 1.0.0-beta.22*: exec uses the instances UID/GID by default.
+_Changed in 1.0.0-beta.22_: exec uses the instances UID/GID by default.
 
 ## ps
 
@@ -346,10 +347,15 @@ incus-compose healthd <subcommand>
 
 Each follows the project's scope, so in a `global`-scope project they act on the
 shared daemon in the Incus `incus-compose` project. With no compose file present they
-all act on the shared daemon directly: `healthd up` creates one, the rest fail
-with `no ic-healthd is running` when there is none. `healthd down` asks first
-when other projects rely on that daemon; `--force` skips the question and is
-required without a terminal.
+shared daemon in the Incus `default` project. With no compose file present they
+
+shared daemon in the Incus `incus-compose-healthd` project. With no compose file present they
+
+> > > > > > > v1.2
+> > > > > > > all act on the shared daemon directly: `healthd up` creates one, the rest fail
+> > > > > > > with `no ic-healthd is running` when there is none. `healthd down` asks first
+> > > > > > > when other projects rely on that daemon; `--force` skips the question and is
+> > > > > > > required without a terminal.
 
 `healthd up` also accepts `--image`, `--binary`, `--incus`, `--network`,
 `--scope`, `--pull` and `--timeout`. See
@@ -364,14 +370,14 @@ List project resources.
 incus-compose list [SERVICE...]
 ```
 
-| Option         | Description                                       |
-| -------------- | ------------------------------------------------- |
-| `--format`     | table (default), yaml, json                       |
-| `--no-healthd` | Exclude the ic-healthd sidecar from the output    |
+| Option         | Description                                    |
+| -------------- | ---------------------------------------------- |
+| `--format`     | table (default), yaml, json                    |
+| `--no-healthd` | Exclude the ic-healthd sidecar from the output |
 
 The `IMAGE` column shows the compose image for each service. The ic-healthd sidecar is listed by default; its image is resolved from the instance's stored metadata. Pass `--no-healthd` to omit it.
 
-*Changed in 1.0.0-rc.1*: healthd is listed by default.
+_Changed in 1.0.0-rc.1_: healthd is listed by default.
 
 ## version
 
@@ -389,10 +395,10 @@ Update incus-compose to the latest release from GitHub.
 incus-compose self-update
 ```
 
-| Option         | Description                                          |
-| -------------- | ----------------------------------------------------- |
-| `--draft`     | Also consider draft releases when checking for updates (works only with GITHUB_TOKEN set) |
-| `--pre-release` | Also consider pre-releases when checking for updates |
+| Option          | Description                                                                               |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `--draft`       | Also consider draft releases when checking for updates (works only with GITHUB_TOKEN set) |
+| `--pre-release` | Also consider pre-releases when checking for updates                                      |
 
 This command is only available when both conditions are met:
 
@@ -401,7 +407,7 @@ This command is only available when both conditions are met:
 
 When available, `self-update` checks the [lxc/incus-compose](https://github.com/lxc/incus-compose) GitHub releases for a newer version matching the current OS and architecture. If a newer version is found, the binary is replaced in-place. If you are already on the latest version, no action is taken.
 
-*Changed v1.0.0: the `--drafts` option has been added*
+_Changed v1.0.0: the `--drafts` option has been added_
 
 ## Docker Compose command parity
 
@@ -428,5 +434,3 @@ command scoped to the current project.
 | `run`                        | not implemented                          | Use `up` then `exec`.                         |
 | `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough.    |
 | `port`                       | not implemented                          | Published ports are shown in `config` / `ps`. |
-
-

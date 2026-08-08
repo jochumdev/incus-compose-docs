@@ -1,5 +1,5 @@
 ---
-date: 2026-08-07T09:20:31.000Z
+date: 2026-08-08T01:59:49.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: null
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-07T09:20:31.000000000Z"
+leafwiki_updated_at: "2026-08-08T01:59:49.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -162,10 +162,10 @@ the same thing in the same namespace as the rest of the healthcheck config.
 One ic-healthd watches any number of projects from a single Incus event
 listener, so by default there is exactly one on the server:
 
-| Scope | Where it runs | Watches |
-| --- | --- | --- |
+| Scope              | Where it runs                                              | Watches                                              |
+| ------------------ | ---------------------------------------------------------- | ---------------------------------------------------- |
 | `global` (default) | instance `ic-healthd` in the Incus `incus-compose` project | every project marked `user.healthcheck.scope=global` |
-| `project` | instance `{project}-ic-healthd` in the project | that one project |
+| `project`          | instance `{project}-ic-healthd` in the project             | that one project                                     |
 
 The shared daemon gets a project, a bridge (`ic-healthd`) and a root disk of its
 own, so nothing about how your `default` project is set up can break it. Both
@@ -195,7 +195,7 @@ incus-compose up
 ```
 
 `up` never leaves both daemons on one project: switching to `global` removes the
-project's own sidecar *before* marking the project, and switching to `project`
+project's own sidecar _before_ marking the project, and switching to `project`
 marks it first so the shared daemon lets go before the sidecar appears.
 
 ### Choosing project scope
@@ -383,6 +383,7 @@ config, so pair one with an explicit `incus` below.
   reuse, so set `--healthd-incus` explicitly. It also needs a managed bridge; on
   one Incus does not manage there is no gateway to read and `healthd up` fails
   naming the network rather than guessing an endpoint the sidecar cannot reach.
+
 - **An explicit URL** - used verbatim, e.g. `https://10.0.0.1:8443`. Combine with
   `network` to pin both the bridge and the endpoint.
 
@@ -390,12 +391,12 @@ config, so pair one with an explicit `incus` below.
 
 `empty` below means the fallback, i.e. `core.https_address` names no host.
 
-| `network`                  | `incus` | Behavior                                      |
-| -------------------------- | ------- | --------------------------------------------- |
-| default                    | empty   | Own bridge IP + client port (the default)     |
-| default                    | URL     | Own bridge for the NIC, pinned endpoint       |
-| bridge / `project:network` | empty   | Different bridge, auto-detected IP            |
-| bridge / `project:network` | URL     | Different bridge, pinned endpoint             |
+| `network`                  | `incus` | Behavior                                  |
+| -------------------------- | ------- | ----------------------------------------- |
+| default                    | empty   | Own bridge IP + client port (the default) |
+| default                    | URL     | Own bridge for the NIC, pinned endpoint   |
+| bridge / `project:network` | empty   | Different bridge, auto-detected IP        |
+| bridge / `project:network` | URL     | Different bridge, pinned endpoint         |
 
 ## Security
 
@@ -424,6 +425,11 @@ daemon bounded to itself, at the cost of one container each.
 The `healthd` command group manages the sidecar directly without touching
 services. Each follows the project's scope, so in a `global`-scope project they
 act on the shared daemon in the `incus-compose` project:
+act on the shared daemon in the `default` project:
+
+act on the shared daemon in the `incus-compose-healthd` project:
+
+> > > > > > > v1.2
 
 | Subcommand        | Description                                               |
 | ----------------- | --------------------------------------------------------- |
@@ -453,7 +459,7 @@ incus-compose healthd logs    # watch it
 projects opt in on their own `up`. The others fail with
 `no ic-healthd is running` rather than guessing at a project.
 
-`healthd down` on the shared daemon stops health checking for *every* project
+`healthd down` on the shared daemon stops health checking for _every_ project
 using it, so it lists the other projects and asks first. `--force` skips the
 question, and is required when there is no terminal to ask on (CI, scripts).
 `incus-compose down` never touches the shared daemon at all.
@@ -462,7 +468,7 @@ question, and is required when there is no terminal to ask on (CI, scripts).
 
 Everything the daemon is configured with - debug logging, `workers`,
 `restart-workers`, `x-incus`, `incus` - is injected as environment on the
-container when it is *created*, and a running daemon is never reconfigured in
+container when it is _created_, and a running daemon is never reconfigured in
 place. None of it is compared against what the daemon runs either: `up` replaces
 a sidecar only for a newer image (see
 [Sidecar Image](#sidecar-image)), so changing any of these is a manual recreate:
@@ -540,7 +546,7 @@ instance (`healthd logs`/`restart`/etc.) - `ignore` is a general opt-out any
 instance can carry, so it can't double as the sidecar's own identifying marker.
 
 Both `incus-compose up` and `incus-compose healthd up` upgrade the daemon for
-you: when the image you ask for is a *newer* release than the one it is running,
+you: when the image you ask for is a _newer_ release than the one it is running,
 the sidecar is stopped, removed and recreated from that image. The comparison is
 semver and only ever moves forward, so a machine on an older incus-compose
 cannot downgrade a daemon shared with everybody else. Tags that are not release
@@ -581,7 +587,7 @@ because a restart holds its worker far longer than a check does - see
 shared daemon watching many projects is the case worth raising them for.
 
 > **Quota.** A **project-scoped** sidecar lives in your project, so its
-> `limits.cpu`/`limits.memory` are *added* to what your services use when Incus
+> `limits.cpu`/`limits.memory` are _added_ to what your services use when Incus
 > checks a project-level `limits.*`. Budget for it. The shared daemon lives in
 > its own project and does not count against any compose project, which is one
 > more reason the default scope is `global`.
@@ -647,9 +653,9 @@ incus-compose healthd logs --follow
 
 ### 4. Confirm the sidecar is actually running
 
-The container is named `ic-healthd` in the Incus `incus-compose`
-project, or `{project}-ic-healthd` for a project-scoped one. If it is missing or
-stopped, nothing is being monitored:
+The container is named `ic-healthd` in the Incus `incus-compose` or
+`{project}-ic-healthd` for a project-scoped one. If it is missing or stopped,
+nothing is being monitored:
 
 ```bash
 incus-compose list        # the daemon is listed by default (since 1.0.0-rc.1)

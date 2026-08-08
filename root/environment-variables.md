@@ -1,5 +1,5 @@
 ---
-date: 2026-08-07T08:03:22.000Z
+date: 2026-08-08T01:56:03.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: null
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-07T08:03:22.000000000Z"
+leafwiki_updated_at: "2026-08-08T01:56:03.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
