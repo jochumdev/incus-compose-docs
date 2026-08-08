@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:06:16.000Z
+date: 2026-08-08T02:08:44.000Z
 dateCreated: 2026-07-05T01:03:12.76Z
 description: Install incus-compose and run your existing compose.yaml on Incus without Docker, including the core.https_address setting Incus needs.
 editor: markdown
@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

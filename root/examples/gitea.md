@@ -1,12 +1,14 @@
 ---
-date: 2026-08-08T02:06:16.000Z
+date: 2026-08-08T02:12:01.000Z
 dateCreated: 2026-07-12T02:07:03.964Z
 description: Run Gitea, a lightweight self-hosted Git service, on Incus with a Postgres database - a two-service compose.yaml you can bring up as is.
+editor: markdown
 tags: []
+title: Gitea
 leafwiki_id: rHHAQcLvR
 leafwiki_title: Gitea
 leafwiki_created_at: "2026-07-12T02:07:03.964655254Z"
-leafwiki_updated_at: "2026-08-08T02:06:16.000000000Z"
+leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
