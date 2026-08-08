@@ -1,9 +1,11 @@
 ---
+date: 2026-08-05T15:38:43.000Z
+dateCreated: 2026-07-12T02:07:30.949Z
 tags: []
 leafwiki_id: 7BiJw5Yvg
 leafwiki_title: Immich
 leafwiki_created_at: "2026-07-12T02:07:30.949083077Z"
-leafwiki_updated_at: "2026-07-12T02:46:17.884161633Z"
+leafwiki_updated_at: "2026-08-05T15:38:43.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

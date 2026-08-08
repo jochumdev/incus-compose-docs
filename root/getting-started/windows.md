@@ -1,9 +1,11 @@
 ---
+date: 2026-08-08T01:42:24.000Z
+dateCreated: 2026-07-09T00:49:29.567Z
 tags: []
 leafwiki_id: 6qk9CMLDg
 leafwiki_title: Windows
 leafwiki_created_at: "2026-07-09T00:49:29.56776699Z"
-leafwiki_updated_at: "2026-07-10T19:17:24.032645964Z"
+leafwiki_updated_at: "2026-08-08T01:42:24.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---

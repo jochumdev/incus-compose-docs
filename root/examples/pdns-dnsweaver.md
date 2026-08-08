@@ -1,3 +1,10 @@
+---
+date: 2026-08-07T08:03:36.000Z
+dateCreated: 2026-07-14T08:31:49.000Z
+leafwiki_created_at: "2026-07-14T08:31:49.000000000Z"
+leafwiki_updated_at: "2026-08-07T08:03:36.000000000Z"
+---
+
 # pdns-dnsweaver
 
 [PowerDNS](https://www.powerdns.com/) is a leading provider of secure open-source and commercial DNS software, backed by MariaDB here.

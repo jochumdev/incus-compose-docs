@@ -1,3 +1,10 @@
+---
+date: 2026-08-08T01:42:15.000Z
+dateCreated: 2026-08-05T23:15:07.000Z
+leafwiki_created_at: "2026-08-05T23:15:07.000000000Z"
+leafwiki_updated_at: "2026-08-08T01:42:15.000000000Z"
+---
+
 # ic-healthd Internals
 
 How the daemon is put together. For what it does and how to configure it, see

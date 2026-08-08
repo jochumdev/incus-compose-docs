@@ -1,5 +1,5 @@
 ---
-date: 2026-07-05T01:30:54.034Z
+date: 2026-08-08T01:42:03.000Z
 dateCreated: 2026-07-05T01:03:40.172Z
 description: null
 editor: markdown
@@ -9,7 +9,7 @@ title: Instance Details
 leafwiki_id: 10iXqlfvg
 leafwiki_title: Instance Details
 leafwiki_created_at: "2026-07-05T03:54:01.617008851Z"
-leafwiki_updated_at: "2026-07-05T23:55:54.390783125Z"
+leafwiki_updated_at: "2026-08-08T01:42:03.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
