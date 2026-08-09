@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:41.000Z
 dateCreated: 2026-07-05T01:03:24.052Z
 description: Why run Incus - one daemon and one REST API running OCI application containers, LXC system containers and full virtual machines side by side.
 editor: markdown
@@ -9,10 +9,11 @@ title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Why Incus?
 
 [Incus](https://linuxcontainers.org/incus/) is the best-kept secret in Linux
@@ -97,7 +98,7 @@ flowchart TB
 Real IPs deserve a special mention: every container gets its own network
 address, so two services can both listen on port 80 without a port-mapping
 puzzle. Shell into any container for debugging, snapshot it before a risky
-upgrade, roll back in seconds - this is infrastructure that works *with* you.
+upgrade, roll back in seconds - this is infrastructure that works _with_ you.
 
 And your compose file inherits these powers too: project-wide resource
 limits, static IPs, GPU passthrough, storage-pool placement, and the full

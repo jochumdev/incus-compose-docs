@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:41.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -146,11 +146,11 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 
 ### Incus Connection
 
-| Variable                     | Flag             | Description                                                                                                                                                                                                                                                                    |
-| ---------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `INCUS_REMOTE`               | `--remote`       | Incus remote name from CLI config (e.g., `local`, `myserver`)                                                                                                                                                                                                                  |
+| Variable                     | Flag             | Description                                                                                                                                                                                                         |
+| ---------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INCUS_REMOTE`               | `--remote`       | Incus remote name from CLI config (e.g., `local`, `myserver`)                                                                                                                                                       |
 | `INCUS_COMPOSE_IMAGE_CACHE`  | `--image-cache`  | Incus project used as image cache (`INCUS_COMPOSE_IMAGE_CACHE`, default: `incus-compose-cache`); set `""` to disable caching and pull straight into the project, see [CLI Reference](/cli-reference#global-options) |
-| `INCUS_COMPOSE_STORAGE_POOL` | `--storage-pool` | Default storage pool (default: `detect`)                                                                                                                                                                                                                                       |
+| `INCUS_COMPOSE_STORAGE_POOL` | `--storage-pool` | Default storage pool (default: `detect`)                                                                                                                                                                            |
 
 ### Display and Debugging
 
@@ -294,20 +294,20 @@ These are the `incus-compose healthd <subcommand>` management commands (see
 [CLI Reference](/cli-reference#healthd)), distinct from `up`'s own `--healthd-*`
 flags above.
 
-| Command           | Variable                                | Flag             | Description                   |
-| ----------------- | --------------------------------------- | ---------------- | ----------------------------- |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image             |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_BINARY`          | `--binary`       | Local ic-healthd binary path  |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_INCUS`           | `--incus`        | Incus API URL for the sidecar |
+| Command           | Variable                                | Flag             | Description                             |
+| ----------------- | --------------------------------------- | ---------------- | --------------------------------------- |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image                       |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_BINARY`          | `--binary`       | Local ic-healthd binary path            |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_INCUS`           | `--incus`        | Incus API URL for the sidecar           |
 | `healthd up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`         | `--network`      | Network for the sidecar (project scope) |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_SCOPE`           | `--scope`        | `global` or `project`         |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_PULL`            | `--pull`         | Pull policy                   |
-| `healthd up`      | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping          |
-| `healthd down`    | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image             |
-| `healthd down`    | `INCUS_COMPOSE_HEALTHD_DOWN_FORCE`      | `--force`        | Stop a shared daemon without asking |
-| `healthd down`    | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping          |
-| `healthd logs`    | `INCUS_COMPOSE_HEALTHD_LOGS_FOLLOW`     | `--follow`, `-f` | Follow log output             |
-| `healthd restart` | `INCUS_COMPOSE_HEALTHD_RESTART_TIMEOUT` | `--timeout`      | Timeout for stopping          |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_SCOPE`           | `--scope`        | `global` or `project`                   |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_PULL`            | `--pull`         | Pull policy                             |
+| `healthd up`      | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping                    |
+| `healthd down`    | `INCUS_COMPOSE_HEALTHD_IMAGE`           | `--image`        | Healthd OCI image                       |
+| `healthd down`    | `INCUS_COMPOSE_HEALTHD_DOWN_FORCE`      | `--force`        | Stop a shared daemon without asking     |
+| `healthd down`    | `INCUS_COMPOSE_HEALTHD_TIMEOUT`         | `--timeout`      | Timeout for stopping                    |
+| `healthd logs`    | `INCUS_COMPOSE_HEALTHD_LOGS_FOLLOW`     | `--follow`, `-f` | Follow log output                       |
+| `healthd restart` | `INCUS_COMPOSE_HEALTHD_RESTART_TIMEOUT` | `--timeout`      | Timeout for stopping                    |
 
 ### The ic-healthd daemon
 
@@ -316,18 +316,18 @@ normal flow incus-compose sets them on the sidecar and you never touch them;
 they matter when you run the daemon yourself (see
 [ic-healthd Internals - Running the daemon directly](/architecture/healthd#running-the-daemon-directly)).
 
-| Variable                               | Flag               | Default                    | Description                                       |
-| -------------------------------------- | ------------------ | -------------------------- | ------------------------------------------------- |
-| `INCUS_COMPOSE_HEALTHD_INCUS`          | `--incus`          | -                          | Incus API URL the daemon connects to              |
-| `INCUS_COMPOSE_HEALTHD_TOKEN`          | `--token`          | -                          | One-time trust token used to register its cert    |
-| `INCUS_COMPOSE_HEALTHD_PROJECTS`       | `--project`        | -                          | Projects to watch, comma-separated; see below     |
+| Variable                               | Flag               | Default                         | Description                                                    |
+| -------------------------------------- | ------------------ | ------------------------------- | -------------------------------------------------------------- |
+| `INCUS_COMPOSE_HEALTHD_INCUS`          | `--incus`          | -                               | Incus API URL the daemon connects to                           |
+| `INCUS_COMPOSE_HEALTHD_TOKEN`          | `--token`          | -                               | One-time trust token used to register its cert                 |
+| `INCUS_COMPOSE_HEALTHD_PROJECTS`       | `--project`        | -                               | Projects to watch, comma-separated; see below                  |
 | `INCUS_COMPOSE_HEALTHD_PROJECT_MARKER` | `--project-marker` | `user.healthcheck.scope=global` | Project config `KEY=VALUE` consulted when `_PROJECTS` is unset |
-| `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`    | `--own-project`    | -                          | Project the daemon's own container runs in        |
-| `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | `--own-name`       | -                          | The daemon's own instance name; empty skips itself |
-| `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `--data-dir`       | `/var/lib/ic-healthd`      | Persistent directory for the generated cert/key   |
-| `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `--secrets-dir`    | `/run/secrets`             | Tmpfs directory holding the token file            |
-| `INCUS_COMPOSE_HEALTHD_DEBUG`          | `--debug`          | `false`                    | Verbose logging                                   |
-| `INCUS_COMPOSE_HEALTHD_TRACE`          | `--trace`          | `false`                    | Per-event logging, which implies `--debug`        |
+| `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`    | `--own-project`    | -                               | Project the daemon's own container runs in                     |
+| `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | `--own-name`       | -                               | The daemon's own instance name; empty skips itself             |
+| `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `--data-dir`       | `/var/lib/ic-healthd`           | Persistent directory for the generated cert/key                |
+| `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `--secrets-dir`    | `/run/secrets`                  | Tmpfs directory holding the token file                         |
+| `INCUS_COMPOSE_HEALTHD_DEBUG`          | `--debug`          | `false`                         | Verbose logging                                                |
+| `INCUS_COMPOSE_HEALTHD_TRACE`          | `--trace`          | `false`                         | Per-event logging, which implies `--debug`                     |
 
 `_PROJECTS` may be left unset, in which case the daemon watches every project it
 can see whose config matches `_PROJECT_MARKER` - by default
@@ -337,8 +337,8 @@ projects it hands to the shared daemon. A bare key means `KEY=true`. Set
 daemon's trust token bounds what it can see at all.
 
 Note that `INCUS_COMPOSE_HEALTHD_INCUS` appears twice on this page with two
-different readers: on `up` and `healthd up` it tells *incus-compose* what
-endpoint to configure the sidecar with, and here it is what the *daemon* dials.
+different readers: on `up` and `healthd up` it tells _incus-compose_ what
+endpoint to configure the sidecar with, and here it is what the _daemon_ dials.
 They agree in the normal flow because the former is how the latter gets set.
 
 ## See Also

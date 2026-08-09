@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:41.000Z
 dateCreated: 2026-07-05T01:03:28.732Z
 description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, and the separate cache project tests use.
 editor: markdown
@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -106,11 +106,11 @@ project/
 Tests are not split by directory or build tag. Which tier a test belongs to is
 decided by the skip helper it calls on its first line:
 
-| Tier | Guard | Needs Incus | Runs with |
-| --- | --- | --- | --- |
-| unit | none | no | every command, including `just test-local` |
-| integration | `skipLocal(t)` | yes | `just test` |
-| E2E | `skipE2E(t)` | yes | `just test-e2e` |
+| Tier        | Guard          | Needs Incus | Runs with                                  |
+| ----------- | -------------- | ----------- | ------------------------------------------ |
+| unit        | none           | no          | every command, including `just test-local` |
+| integration | `skipLocal(t)` | yes         | `just test`                                |
+| E2E         | `skipE2E(t)`   | yes         | `just test-e2e`                            |
 
 ```mermaid
 flowchart TD
@@ -130,7 +130,7 @@ flowchart TD
 - **Integration** tests call `skipLocal(t)` and drive a real nested Incus. Most
   resource tests live here: they create a throwaway project, act on it, and let
   `t.Cleanup` tear it down. `INCUS_COMPOSE_TEST_LOCAL=1` (set by `just
-  test-local`) skips them, which is why a green `just test-local` proves much
+test-local`) skips them, which is why a green `just test-local` proves much
   less than a green `just test`.
 - **E2E** tests call `skipE2E(t)` and are the slow, full-CLI ones. They are
   skipped unless `INCUS_COMPOSE_TEST_E2E=1` (set by `just test-e2e`), so they
@@ -178,7 +178,7 @@ just test ./client/ -run TestTheThing -count=1
 
 Two things this catches regularly:
 
-- **Assertions that cannot fail.** A `require.Error` passes on *any* error,
+- **Assertions that cannot fail.** A `require.Error` passes on _any_ error,
   including "builder not found" when you meant to prove "the builder ran". Assert
   on something only the real path produces.
 - **Setups that never reproduce the condition.** A concurrency test whose workers
@@ -201,10 +201,10 @@ regresses silently:
   with a missing image, no source and no cache configured. Each guard is a
   branch, and an untested branch is a branch that stops working.
 - **Assert the error, not just that one happened.** `require.ErrorIs(err,
-  ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
+ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
   URL. Sentinel errors exist so callers can branch on them - test them the way a
   caller would.
-- **Assert what did *not* happen.** Often the real contract is an absence: the
+- **Assert what did _not_ happen.** Often the real contract is an absence: the
   cache was not repopulated, the builder was not invoked, the other lock was not
   released. A pointing-at-nothing build context or a nulled-out source turns
   "it didn't go there" into something you can assert.

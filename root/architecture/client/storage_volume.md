@@ -1,11 +1,11 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-09T08:12:48.000Z
 dateCreated: 2026-08-02T19:32:24.000Z
 description: Storage volumes beyond the usual lifecycle - raw SFTP access to a volume's contents, and the advisory file lock built on top of it.
 editor: markdown
 title: Storage Volume
 leafwiki_created_at: "2026-08-02T19:32:24.000000000Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 ---
 
 # Storage Volume
@@ -16,11 +16,14 @@ SFTP access to the volume's contents and an advisory file lock built on it.
 ## SFTP
 
 ```go
-func (r *StorageVolume) SFTP() (*sftp.Client, error)
+func (r *StorageVolume) SFTP(ctx context.Context) (*sftp.Client, error)
 ```
 
 Returns a new SFTP connection to the volume (`ErrNotEnsured` if the volume
 hasn't been ensured yet). The caller closes it.
+
+It is also how `StorageVolumeConfig.HostPath` seeds a volume on first creation:
+the directory is walked and written file by file over one connection.
 
 **No `ReadFile`/`WriteFile` wrapper.** The full `github.com/pkg/sftp` client is
 exposed - `OpenFile`, `Stat`, `Rename`, `ReadDir`, `PosixRename` - rather than a
@@ -44,10 +47,10 @@ acquire, and when `stale > 0` the background heartbeat keeps using it too.
 
 `stale` selects one of two modes:
 
-| `stale` | Behavior | Fits |
-| --- | --- | --- |
-| `0` | Never taken over; holder never refreshes it | Infrequent, operator-driven locks. A crashed holder leaves a stuck lock - a visible failure naming the file to remove, instead of a silent correctness bug. |
-| `> 0` | A background goroutine refreshes the lock's mtime every `stale/3`; another caller's `Lock` reaps it once its mtime is older than `stale` | Frequent, unattended locks where a crashed holder must not block everyone else forever. |
+| `stale` | Behavior                                                                                                                                 | Fits                                                                                                                                                        |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0`     | Never taken over; holder never refreshes it                                                                                              | Infrequent, operator-driven locks. A crashed holder leaves a stuck lock - a visible failure naming the file to remove, instead of a silent correctness bug. |
+| `> 0`   | A background goroutine refreshes the lock's mtime every `stale/3`; another caller's `Lock` reaps it once its mtime is older than `stale` | Frequent, unattended locks where a crashed holder must not block everyone else forever.                                                                     |
 
 ```mermaid
 flowchart TD
@@ -75,10 +78,10 @@ flowchart TD
 
 ### Why `O_EXCL`, not read-compare-write
 
-`CreateStorageVolumeFile` (the general volume-file API) only supports
-`overwrite`/`append` and has no ETag, so there's no "create only if absent" -
-the naive lock is write timestamp, sleep, re-read, compare, which is a
-timing-based approximation, not a real exclusion.
+Incus' own volume-file endpoint only supports `overwrite`/`append` and has no
+ETag, so there is no "create only if absent" - the naive lock is write
+timestamp, sleep, re-read, compare, which is a timing-based approximation, not
+a real exclusion.
 
 `GetStoragePoolVolumeFileSFTP` gives real POSIX semantics instead:
 

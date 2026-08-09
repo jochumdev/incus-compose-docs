@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:48.000Z
 dateCreated: 2026-07-05T01:03:40.172Z
 description: The instance resource in depth - pre- and post-creation devices, why an instance is written twice, and how UID/GID shifting keeps volume files owned correctly.
 editor: markdown
@@ -9,7 +9,7 @@ title: Instance Details
 leafwiki_id: 10iXqlfvg
 leafwiki_title: Instance Details
 leafwiki_created_at: "2026-07-05T03:54:01.617008851Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -132,7 +132,7 @@ sequenceDiagram
     participant I as Incus
     participant V as StorageVolume
 
-    C->>I: CreateInstanceFromImage<br/>with the nic and proxy devices
+    C->>I: CreateInstance from the project image<br/>with the nic and proxy devices
     I-->>C: instance created
     C->>C: read oci.uid / oci.gid
     C->>V: Ensure with Shifted, UID, GID
@@ -155,7 +155,7 @@ flowchart TD
     DEP -->|yes| PRE["build the pre-device map:<br/>Devices + ExtraDevices,<br/>add a root disk if the profile has none"]
 
     PRE --> IMG[get the image from the resource store]
-    IMG --> CR["CreateInstanceFromImage(cache, imgInfo, req)"]
+    IMG --> CR["CreateInstance(req)<br/>source: the project image"]
     CR --> UID["read oci.uid / oci.gid<br/>off the created instance"]
     UID --> POST["per PostDevice disk:<br/>set Shifted, UID, GID,<br/>then StorageVolume.Ensure()"]
     POST --> UPD["UpdateInstance with the<br/>post-device map"]

@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:48.000Z
 dateCreated: 2026-07-05T01:03:26.331Z
 description: Live progress reporting for image pulls and instance lifecycle - the client emits events, and a renderer turns them into terminal output.
 editor: markdown
@@ -9,7 +9,7 @@ title: Progress
 leafwiki_id: pazuq_fvg
 leafwiki_title: Progress
 leafwiki_created_at: "2026-07-05T03:54:00.685195744Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -25,7 +25,7 @@ into terminal output.
 ```mermaid
 flowchart LR
     subgraph cl["client"]
-        OP[Incus operation] --> AH["operation hook registers<br/>op.AddHandler"]
+        OP[Incus operation] --> AH["operation hook watches<br/>the update channel"]
         AH --> RP["reportProgress reads<br/>Metadata *_progress"]
         RP --> PG["Progress<br/>Percent, Text"]
         WAIT["in-client wait<br/>no Incus operation"] -->|emitProgress| PG
@@ -65,10 +65,11 @@ gc.SetProgressHandler(func(action client.Action, r client.Resource, _ client.Opt
 })
 ```
 
-The handler is wired in through the operation hooks: when an action runs an Incus
-operation, the hook calls `op.AddHandler`, which on each update reads the operation
-Metadata for a key ending in `_progress`, parses a `NN%` out of it, and invokes the
-handler.
+The handler is wired in through the operation hook: an Incus operation reports
+as a channel of updates, and the hook forwards each one past `reportProgress` on
+its way to the wait. That reads the operation Metadata for a key ending in
+`_progress`, parses a `NN%` out of it, and invokes the handler. With no handler
+registered the channel is passed straight through, so nothing is copied.
 
 Not every wait is an Incus operation. In-client waits that block without an
 operation (e.g. an instance blocking on a dependency's health) call

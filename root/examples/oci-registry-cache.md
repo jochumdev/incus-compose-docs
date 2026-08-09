@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-09T08:12:48.000Z
 dateCreated: 2026-07-12T02:09:09.313Z
 description: Run pull-through registry caches on Incus, one per upstream, and point your Incus remotes at them instead of the real registries.
 editor: markdown
@@ -8,7 +8,7 @@ title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -94,7 +94,9 @@ incus-compose up
 
 ### 3. Point Incus remotes at the local caches
 
-Replace the Incus remotes with your new endpoints. Any subsequent `incus image copy` or container launch will hit the local cache first.
+Point the Incus remotes at your new endpoints. Any subsequent `incus image copy` or container launch will hit the local cache first, and so will incus-compose: a configured remote overrides its built-in address for that registry.
+
+Drop the `remote remove` line for any name you have not added before — these three are built into incus-compose but are not in the Incus configuration until you put them there.
 
 ```sh
 incus remote remove docker.io

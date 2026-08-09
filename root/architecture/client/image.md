@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:48.000Z
 dateCreated: 2026-07-05T01:03:37.823Z
 description: How incus-compose pulls and caches OCI images - from a registry remote, into the shared incus-compose-cache project, then copied into your own.
 editor: markdown
@@ -9,10 +9,11 @@ title: Image Resource
 leafwiki_id: yKmu3_fvg
 leafwiki_title: Image Resource
 leafwiki_created_at: "2026-07-05T03:54:01.463522503Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Image Resource
 
 The Image resource handles OCI image pulling and caching in Incus.
@@ -96,19 +97,16 @@ the cache project - which needs the resource machinery a `*Client` carries.
 cache, _ := gc.EnsureProject("my-image-cache", EnsureProjectWithCreate())
 
 img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-    Source:      imageServer,
     CacheClient: cache,
 })
 
 // CLI usage - specify cache project name
 img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-    Source:       imageServer,
     CacheProject: "my-image-cache",
 })
 
 // Override the lock volume name
 img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-    Source:      imageServer,
     CacheClient: cache,
     LockVolume:  "my-locks",
 })
@@ -119,39 +117,28 @@ img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.I
 
 ## Image Reference Parsing
 
-Docker-style references are parsed using `github.com/distribution/reference`:
+The reference is split into the remote, which says where to fetch from, and the
+image, which is what to ask that remote for. A name whose prefix is a remote in
+the Incus configuration is taken as a native `remote:image` reference;
+everything else is parsed as a Docker-style one with
+`github.com/distribution/reference`:
 
-```go
-// Input: "nginx:alpine"
-// Parsed:
-//   Remote: "docker.io"
-//   Image:  "library/nginx:alpine"
+| Reference                       | Remote      | Image                   | Alias                             |
+| ------------------------------- | ----------- | ----------------------- | --------------------------------- |
+| `nginx:alpine`                  | `docker.io` | `library/nginx:alpine`  | `docker.io/library/nginx:alpine`  |
+| `docker.io/library/alpine:3.18` | `docker.io` | `library/alpine:3.18`   | `docker.io/library/alpine:3.18`   |
+| `ghcr.io/myorg/myapp:v1.0`      | `ghcr.io`   | `myorg/myapp:v1.0`      | `ghcr.io/myorg/myapp:v1.0`        |
+| `alpine`                        | `docker.io` | `library/alpine:latest` | `docker.io/library/alpine:latest` |
+| `localhost/myapp:dev`           | `local`     | `myapp:dev`             | `local/myapp:dev`                 |
+| `images:alpine/edge`            | `images`    | `alpine/edge`           | `images:alpine/edge`              |
 
-// Input: "docker.io/library/alpine:3.18"
-// Parsed:
-//   Remote: "docker.io"
-//   Image:  "library/alpine:3.18"
+The alias is `Image.IncusName()`, and it is what the resource store
+deduplicates on - which is why `nginx:alpine` and
+`docker.io/library/nginx:alpine` are one resource rather than two. A native
+reference keeps its `remote:image` form, since that is already unique.
 
-// Input: "ghcr.io/myorg/myapp:v1.0"
-// Parsed:
-//   Remote: "ghcr.io"
-//   Image:  "myorg/myapp:v1.0"
-
-// Input: "alpine" (no tag)
-// Parsed:
-//   Remote: "docker.io"
-//   Image:  "library/alpine:latest"
-```
-
-Config can override parsing:
-
-```go
-img, _ := project.Resource(client.KindImage, "custom-name", &client.ImageConfig{
-    Source: imageServer,
-    Remote: "custom.registry.io",
-    Image:  "myimage:v2",
-})
-```
+None of the three can be set by hand: they come from the reference, so the
+alias cannot disagree with what was asked for.
 
 ## Ensure Flow
 
@@ -164,16 +151,16 @@ store = cache ?? project
 ```
 
 With caching on, the store is the shared cache project. With caching off
-(`--image-cache ""`), the store *is* the compose project. Everything else is
+(`--image-cache ""`), the store _is_ the compose project. Everything else is
 expressed against `store`, which is why caching off needs no special-casing -
 it collapses one hop rather than taking a different path.
 
 Ensure is then **two hops, each skipped when the image is already there**:
 
-| Hop | From | To | Skipped when |
-| --- | --- | --- | --- |
-| A | source | store | the alias is already in the store |
-| B | store | project | `store == project`, or the project already holds that fingerprint |
+| Hop | From   | To      | Skipped when                                                      |
+| --- | ------ | ------- | ----------------------------------------------------------------- |
+| A   | source | store   | the alias is already in the store                                 |
+| B   | store  | project | `store == project`, or the project already holds that fingerprint |
 
 ```mermaid
 flowchart LR
@@ -248,11 +235,11 @@ compare, which is the round trip you opt into by passing the flag.
 
 ### Pull policy
 
-| Policy | Behavior |
-| --- | --- |
-| `missing` (default) | Store hit wins. Source is contacted only on a store miss. |
-| `always` | Ask the source for its fingerprint; if it differs from the store's, delete and re-materialize. |
-| `never` | Store hit wins; a store miss is a hard failure. Never contacts the source, for air-gapped use. |
+| Policy              | Behavior                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| `missing` (default) | Store hit wins. Source is contacted only on a store miss.                                      |
+| `always`            | Ask the source for its fingerprint; if it differs from the store's, delete and re-materialize. |
+| `never`             | Store hit wins; a store miss is a hard failure. Never contacts the source, for air-gapped use. |
 
 `--build` is the equivalent force for build sources, and is independent of
 `--pull`.
@@ -341,41 +328,42 @@ or a hand-run `incus image copy`.
 
 ## Source Configuration
 
-The Source field requires an ImageServer from Incus CLI config:
+The source is resolved from the image reference itself, against the Incus CLI
+configuration the client loaded at startup:
 
 ```go
-conf, _ := cliconfig.LoadConfig("")
-imageServer, _ := conf.GetImageServer("docker.io")
-
-img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-    Source: imageServer,
-})
+img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{})
 ```
 
-Registries must be configured as Incus remotes:
+A registry is somewhere the **server** is pointed at, never something
+incus-compose connects to: the copy request carries the remote's address and
+protocol, and incusd does the pull. Only a native `incus:` remote is dialed, to
+resolve an alias to a fingerprint before the request is built.
+
+The registries in `client.WellKnownRegistries` - `docker.io`, `ghcr.io`,
+`quay.io`, `mcr.microsoft.com`, `registry.gitlab.com`, `codeberg.org` - resolve
+without any setup. Anything else must be an Incus remote, and a configured
+remote overrides a well-known one:
 
 ```bash
-incus remote add --protocol oci docker.io https://docker.io
-incus remote add --protocol oci ghcr.io https://ghcr.io
+incus remote add --protocol oci registry.example.com https://registry.example.com
 ```
 
-Calling Ensure with `OptionCreate()` but no Source returns an error:
+A reference whose domain is neither returns an error from Ensure:
 
 ```go
-img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-    // No Source!
-})
-err := client.RunAction(img, client.ActionEnsure, client.OptionCreate())
+img, _ := project.Resource(client.KindImage, "registry.example.com/app:latest", &client.ImageConfig{})
+err := client.RunAction(ctx, img, client.ActionEnsure, client.OptionCreate())
 // err: "image source not configured"
 ```
 
 ## Delete
 
 Delete removes the **per-project copy** of the image from the active project (the
-copy left behind by `CreateInstanceFromImage`). It is idempotent: if no copy
+copy hop B left behind). It is idempotent: if no copy
 exists, it is a no-op. The cache lives in a separate project and is never touched
 by Delete, so cached images persist across `down`/`up` cycles. Cache cleanup is a
-separate concern (e.g. a future `prune` command). With caching off the store *is*
+separate concern (e.g. a future `prune` command). With caching off the store _is_
 the project, so Delete removes the only copy and the next `up` re-materializes it.
 
 ```go
@@ -392,12 +380,17 @@ that only changes manifest metadata would be invisible to `RefreshImage`
 ("already up to date") even though the tag points to a newer image. Without
 `--pull`, an already-cached image is reused as-is.
 
+For a registry source the stale entry is always dropped: telling whether the
+tag still points at the cached digest would mean resolving it here, and
+resolving an OCI reference is the server's job. A native `incus:` remote is
+asked, so an unchanged image there is not re-copied.
+
 ## Built Images
 
 A build source differs from a registry source only inside hop A: instead of
-`CopyImage` from a remote, the builder runs and its rootfs/metadata tarball is
-imported into the store. Everything around it - the store-hit check, the lock,
-the OCI extraction, hop B - is the same code.
+pointing the server at a remote, the builder runs and its rootfs/metadata
+tarballs are uploaded into the store. Everything around it - the store-hit
+check, the lock, the OCI extraction, hop B - is the same code.
 
 That is what makes "build once, use many" work with `build:` left in the
 compose file. The first `up` anywhere misses the store and builds; every

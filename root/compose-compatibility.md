@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T07:22:10.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T07:22:10.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -850,16 +850,20 @@ endpoint must be set explicitly. See
 
 ### Images
 
-**Registries must be Incus remotes:**
+**Registries:**
 
 Image names work just like Docker — a bare `nginx:alpine` resolves to
 `docker.io/library/nginx:alpine`, and an explicit registry prefix
-(`ghcr.io/...`) is honored as-is. The difference is that the registry must be
-configured as an Incus remote first:
+(`ghcr.io/...`) is honored as-is.
+
+`docker.io`, `ghcr.io`, `quay.io`, `mcr.microsoft.com`, `registry.gitlab.com`
+and `codeberg.org` need no setup. Any other registry has to be an Incus remote,
+and adding one of the six above overrides its built-in address — which is how
+you point at a pull-through cache:
 
 ```bash
-incus remote add --protocol oci docker.io https://docker.io
-incus remote add --protocol oci ghcr.io https://ghcr.io
+incus remote add --protocol oci registry.example.com https://registry.example.com
+incus remote add --protocol oci docker.io https://docker-mirror.example.com
 ```
 
 ```yaml

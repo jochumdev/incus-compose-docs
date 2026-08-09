@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-09T07:21:04.000Z
 dateCreated: 2026-07-05T03:54:00.505Z
 description: How incus-compose fits together - a resource-first design splitting the CLI, the Incus client, and the compose project layer.
 editor: markdown
@@ -8,10 +8,11 @@ title: Architecture
 leafwiki_id: QtkuqlBDR
 leafwiki_title: Architecture
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-09T07:21:04.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Architecture
 
 High-level architecture of incus-compose and how components fit together, a **resource-first design**:
@@ -154,19 +155,27 @@ See [Errors](/architecture/client/errors) for sentinel errors and context enrich
 
 ## Connection Modes
 
-**Direct URL (testing/CI):**
+The CLI dials a remote of the Incus CLI configuration: `--remote`, else
+`INCUS_REMOTE`, else the configured default.
 
 ```bash
-export INCUS_COMPOSE_URL="https://192.168.1.100:8443"
-export INCUS_COMPOSE_CERT="./certs/client.crt"
-export INCUS_COMPOSE_KEY="./certs/client.key"
+incus remote add ci https://192.168.1.100:8443
+incus-compose --remote ci up
 ```
 
-**Provided connection (for testing):**
+A library user builds the connection and hands it over. `DialRemote` is the
+same path the CLI takes; anything reachable through `shared/iclient` works,
+which is how the tests point at a project of their own.
 
 ```go
-client.New(ctx, client.ClientProvideConnection(instanceServer))
+conn, err := client.DialRemote("", "ci")
+gc := client.New(ctx, client.ClientProvideConnection(conn))
 ```
+
+The connection is a `*iclient.Connection`, our fork of the Incus client. The
+upstream one shares event-listener state between everything holding it, so a
+single connection cannot be driven from several goroutines - which is exactly
+what the [WorkerPool](/architecture/client) does.
 
 ## Environment Variables
 

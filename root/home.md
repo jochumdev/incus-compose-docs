@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-09T08:12:41.000Z
 dateCreated: 2026-07-05T01:20:36.522Z
 description: Bring the familiar Docker Compose workflow to Incus. incus-compose implements the Compose specification for the Incus ecosystem, allowing you to define and run multi-container applications using the compose.yaml files you already know.
 editor: markdown
@@ -9,10 +9,11 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # incus-compose
 
 Bring the familiar Docker Compose workflow to [Incus](https://linuxcontainers.org/incus/). incus-compose implements the Compose specification for the Incus ecosystem, allowing you to define and run multi-container applications using the compose.yaml files you already know.
