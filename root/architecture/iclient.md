@@ -1,0 +1,229 @@
+---
+date: 2026-08-09T08:57:50.000Z
+dateCreated: 2026-08-09T11:00:00.000Z
+description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
+editor: markdown
+title: iclient
+leafwiki_created_at: "2026-08-09T11:00:00.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:57:50.000000000Z"
+---
+
+# iclient
+
+`iclient` is our fork of `github.com/lxc/incus/v7/client` (Apache-2.0).
+Everything in incus-compose reaches Incus through it - `client/`, `project/`,
+`cmd/incus-compose` and the `ic-healthd` sidecar. Nothing imports the upstream
+client any more.
+
+## Why it exists
+
+The upstream client shares state between a connection, its event listeners and
+the operations running on it, so **one `InstanceServer` cannot be driven from
+several goroutines**:
+
+- A second `GetEvents`/`GetEventsByType` on the same `*ProtocolIncus` does not
+  open a socket. It joins the first caller's listener and inherits its type
+  filter. So a long-lived `type=lifecycle` listener starves every later
+  operation on that connection: `queryOperation` waits for a `type=operation`
+  event that never arrives behind the lifecycle filter, and
+  `RemoteOperation.Wait()` hangs forever.
+- `skipEvents` has one guarded write against four unguarded reads. Any genuinely
+  shared connection races on it.
+
+incus-compose runs a [WorkerPool](/architecture/client), so this is not a corner
+case for us - it is the normal shape of a run. The old workaround was to hand
+every resource its own `UseProject(...)` copy. An `iclient.Connection` holds
+nothing mutable and every `ListenEvents` is a socket of its own, so a single
+connection is safe to share and the workaround is gone.
+
+## Connecting
+
+Three steps, each of which can be done once and reused:
+
+```go
+config, err := iclient.ReadConfig("")        // the Incus CLI configuration
+info, err := config.RemoteInfos("my-remote") // everything needed to dial it
+conn, err := iclient.NewConnection(info)     // the connection
+```
+
+`client.DialRemote(path, remote)` is those three lines, and is what the CLI and
+the tests use. An empty remote means the configuration's default.
+
+`ReadConfig` is the only thing that touches disk. Nothing mutates a `*Config`
+afterwards, so it is safe to share - a well-known registry is resolved against
+it, never written into it.
+
+| Method                         | Returns                                                               |
+| ------------------------------ | --------------------------------------------------------------------- |
+| `WithProject(name)`            | A copy scoped to another project, **sharing** the transport and pool. |
+| `WithMaxIdleConns(n, perHost)` | A copy with a pool of its own - resizing a live pool is a race.       |
+| `Disconnect(ctx)`              | Ends this copy's listeners; closes the pool when the last one goes.   |
+
+Copies made by `WithProject` share a refcount, so `Disconnect` on one of them
+does not pull the transport out from under the others.
+
+### Transport
+
+The tuning is not incidental, and each part has a reason:
+
+- **No `http.Client.Timeout`.** It bounds the whole request including the body,
+  which would cut off the event stream, an operation long-poll, and every
+  console or SFTP transfer. The per-call bound is the context.
+- **Keep-alives on, 128 idle connections / 32 per host.** Upstream sets
+  `DisableKeepAlives`, paying a TCP and TLS handshake per request; Go's default
+  of 2 idle per host makes a worker pool reconnect constantly.
+- **`MaxConnsPerHost: 0`.** Bounding it here blocks, and the event listener
+  holds a connection for the life of the process. The worker pool is where
+  concurrency is meant to be bounded.
+- **`ForceAttemptHTTP2: false`.** Events, exec and console need an HTTP/1.1
+  upgrade, which h2 does not do.
+- **`ResponseHeaderTimeout: 1h`.** An operation wait sends no header until it
+  finishes.
+
+## Operations are channels
+
+An asynchronous call hands back `<-chan api.Operation`: the operation as the
+server accepted it, then every update, closing on a terminal state.
+
+```go
+updates, err := conn.UpdateInstanceState(ctx, name, put, "")
+op, err := iclient.WaitOperation(ctx, updates)
+```
+
+The listener opens **before** the request goes out. That ordering is the whole
+point: an operation that finishes immediately would otherwise complete in the
+gap between the response and the subscription, and never be reported.
+
+Waiting is ranging to the close, and the last value is the outcome - which is
+what `WaitOperation` does. Consuming the updates yourself is how progress is
+reported; see [Progress](/architecture/progress).
+
+> **Trap: token operations.** An image secret (`CreateImageSecret`) and a trust
+> token (`CreateCertificateToken`) are created and then wait to be _used_, so
+> they never reach a terminal state. Read the first value, which carries the
+> token, and cancel the context. Ranging to the close waits for the token to
+> expire, and `WaitOperation` never returns.
+
+## Arguments, not method names
+
+Upstream spells each axis of a call as its own method, up to
+`GetInstancesFullAllProjectsWithFilter` - a set that doubles every time an axis
+is added. Here the axes are a struct, and a `nil` one is the zero value:
+
+```go
+all, err := conn.GetInstances(ctx, &iclient.GetInstancesArgs{Full: true, AllProjects: true})
+one, _, err := conn.GetInstance(ctx, "web-1", nil)
+```
+
+The same shape covers `GetImageArgs`, `GetImageAliasArgs`,
+`GetStoragePoolVolumeArgs`, `GetInstanceArgs`, `ImageCopyArgs`,
+`ImageCreateArgs`, `InstanceExecArgs`, `InstanceConsoleArgs` and
+`DeleteProjectArgs`.
+
+## Errors
+
+Sentinels, matched with `errors.Is`:
+
+| Sentinel                    | Means                                                  |
+| --------------------------- | ------------------------------------------------------ |
+| `ErrConfigRemoteNotFound`   | The configuration does not name that remote.           |
+| `ErrConnectionNoAddress`    | The remote has nothing to dial.                        |
+| `ErrConnectionDisconnected` | The connection was used after `Disconnect`.            |
+| `ErrConnectionUnsupported`  | The remote cannot serve that call.                     |
+| `ErrInstanceBusy`           | Another operation holds the instance's operation lock. |
+
+Everything else arrives as an `api.StatusError`, so `api.StatusErrorCheck(err, 404)`
+works as it does upstream.
+
+### The instance lock
+
+Incus takes the instance's operation lock **in the driver, inside the
+operation**, so a write issued while it is held is accepted and then fails from
+the operation. `ErrInstanceBusy` therefore usually surfaces from
+`WaitOperation`, not from the call that started it - a retry has to wrap the
+wait, not just the request.
+
+`WaitInstanceBusy(ctx, name)` blocks until no queryable operation holds the
+lock, which turns a retry from a blind sleep into one that starts when the
+instance is actually free. It cannot see everything: the lock is a map inside
+incusd and this infers it from the operations list, so a holder with no API
+operation behind it - autostart, shutdown, an exec - is invisible. That is why
+callers keep a short delay as well.
+
+## Images: the server fetches
+
+A registry or a simplestreams remote is **somewhere to point the server at**,
+never something this dials. Resolving an OCI tag needs skopeo, which is the
+server's business:
+
+```go
+conn.CreateImage(ctx, api.ImagesPost{
+    Aliases: []api.ImageAlias{{Name: alias}},
+    Source: &api.ImagesPostSource{
+        ImageSource: api.ImageSource{Server: "https://docker.io", Protocol: "oci"},
+        Type: "image", Mode: "pull", Fingerprint: "library/alpine:latest",
+    },
+}, nil)
+```
+
+`CopyImage(ctx, source, fingerprint, args)` is the same idea between two
+connections, and it owns the secret a non-public image needs.
+
+Passing `ImageCreateArgs` uploads the tarballs instead, which is how the compose
+`build:` path imports a locally built image. The body is then the tarballs, so
+the aliases, properties and public flag travel as `X-Incus-*` **headers** -
+leaving them out imports the image and silently drops its alias.
+
+## Streams
+
+| Call                                     | Shape                                                      |
+| ---------------------------------------- | ---------------------------------------------------------- |
+| `ListenEvents(ctx, types, allProjects)`  | `<-chan api.Event`; the socket is this connection's own.   |
+| `ExecInstance(ctx, name, post, args)`    | Output to writers; the channel closes once it has drained. |
+| `ConsoleInstance(ctx, name, post, args)` | Console to a writer; cancel the context to detach.         |
+| `GetInstanceFileSFTP(ctx, name)`         | A `*sftp.Client`; the caller closes it.                    |
+| `GetStoragePoolVolumeFileSFTP(ctx, ...)` | The same, for a custom volume.                             |
+
+An event socket that says nothing for 30s counts as dead. The server pings every
+10s, so silence is not something a healthy connection does - without the check a
+half-open socket sits in `ReadMessage` until TCP keepalive gives up minutes
+later, and nothing above learns the stream stopped.
+
+`allProjects` does not send the connection's project at all: the server takes a
+different path and answers with every project the certificate may see, which is
+how one listener serves projects that did not exist when it opened. ic-healthd
+is built on that; see [ic-healthd Internals](/architecture/healthd).
+
+## Not implemented
+
+Deliberate, and each one returns `ErrConnectionUnsupported` or an error rather
+than half-working:
+
+- **Simplestreams and OCI connections.** Only the Incus REST API is spoken. A
+  registry is pointed at, not dialed.
+- **Interactive exec.** No PTY, no stdin, no resize control.
+- **Console input.** `ConsoleInstance` attaches to watch a console, not to drive
+  one.
+- **Push and relay image copy.** Pull only.
+- **Cluster targeting.** `PatchInstanceConfig` sends no target: instance config
+  is cluster-wide state, so pinning the write to whichever member the caller
+  reached would be arbitrary.
+
+## Testing
+
+Two tiers, following [Testing](/architecture/testing):
+
+- **Unit** tests use an `httptest` recording server and assert **what goes on
+  the wire** - the path, the query, the headers. A real Incus answers happily
+  without a `project` or `recursion` parameter, so those tests cannot catch a
+  dropped one.
+- **Integration and E2E** tests (`skipLocal` / `skipE2E`) drive a real Incus:
+  the operation and event paths, exec, console, the busy lock, and an image
+  pull from a registry.
+
+## See Also
+
+- [Architecture](/architecture) - where this sits
+- [Client Package](/architecture/client) - the resource layer built on it
+- [ic-healthd Internals](/architecture/healthd) - the all-projects listener
+- [Progress](/architecture/progress) - consuming an operation's updates

@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T07:21:04.000Z
+date: 2026-08-09T08:57:50.000Z
 dateCreated: 2026-07-05T03:54:00.505Z
 description: How incus-compose fits together - a resource-first design splitting the CLI, the Incus client, and the compose project layer.
 editor: markdown
@@ -8,7 +8,7 @@ title: Architecture
 leafwiki_id: QtkuqlBDR
 leafwiki_title: Architecture
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-08-09T07:21:04.000000000Z"
+leafwiki_updated_at: "2026-08-09T08:57:50.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -164,7 +164,7 @@ incus-compose --remote ci up
 ```
 
 A library user builds the connection and hands it over. `DialRemote` is the
-same path the CLI takes; anything reachable through `shared/iclient` works,
+same path the CLI takes; anything reachable through `iclient` works,
 which is how the tests point at a project of their own.
 
 ```go
@@ -175,7 +175,8 @@ gc := client.New(ctx, client.ClientProvideConnection(conn))
 The connection is a `*iclient.Connection`, our fork of the Incus client. The
 upstream one shares event-listener state between everything holding it, so a
 single connection cannot be driven from several goroutines - which is exactly
-what the [WorkerPool](/architecture/client) does.
+what the [WorkerPool](/architecture/client) does. See
+[iclient](/architecture/iclient).
 
 ## Environment Variables
 
@@ -291,6 +292,7 @@ services:
 See the [docs index](/architecture) for all user and contributor docs. Closely related:
 
 - [Client Package](/architecture/client) - Resources, Stack, WorkerPool
+- [iclient](/architecture/iclient) - the Incus client everything talks through
 - [Testing](/architecture/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
 - [ic-healthd Internals](/architecture/healthd) - the listener, the router, and the per-project schedulers
