@@ -15,7 +15,7 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # LeafWiki
 
-[LeafWiki](https://leafwiki.com/) — a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
+[LeafWiki](https://leafwiki.com/) - a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
 
 The page you see is a LeafWiki with a Git backup to [jochumdev/incus-compose-docs](https://github.com/jochumdev/incus-compose-docs).
 

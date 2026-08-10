@@ -15,7 +15,7 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Caddy
 
-[Caddy](https://caddyserver.com) as a reverse-proxy front door — automatic HTTPS, one `Caddyfile`, no separate cert management.
+[Caddy](https://caddyserver.com) as a reverse-proxy front door: automatic HTTPS, one `Caddyfile`, no separate cert management.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/caddy).
 

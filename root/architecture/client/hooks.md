@@ -250,7 +250,7 @@ client.AddHookConnected(func(err error) error {
 ```
 
 If any connected hook returns an error, the remaining connected hooks are skipped
-and `Open()` returns that error — mirroring how a before hook aborts an action.
+and `Open()` returns that error, mirroring how a before hook aborts an action.
 
 ### Done Hooks
 
@@ -383,7 +383,7 @@ GlobalClient and must be registered on the project Client directly (see
 
 ## Concurrency
 
-Before and After hooks run inside the WorkerPool — multiple hooks may fire
+Before and After hooks run inside the WorkerPool: multiple hooks may fire
 concurrently for different resources. Any state shared between hook invocations
 must be protected:
 

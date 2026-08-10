@@ -15,7 +15,7 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # hugo
 
-[Hugo](https://gohugo.io/) is one of the most popular open-source static site generators — fast builds, no runtime dependencies.
+[Hugo](https://gohugo.io/) is one of the most popular open-source static site generators: fast builds, no runtime dependencies.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/hugo).
 

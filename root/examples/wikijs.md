@@ -33,4 +33,4 @@ Open http://10.133.32.17:3000/
 
 ## Notes
 
-- `init: true` on `wiki` isn't implemented by incus-compose yet — left in `compose.yaml` as documentation of intent.
+- `init: true` on `wiki` isn't implemented by incus-compose yet; left in `compose.yaml` as documentation of intent.

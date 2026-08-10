@@ -232,7 +232,7 @@ _Since: v1.1.0_
 
 Built images must match an architecture supported by the target Incus server.
 
-incus-compose asks Incus for its supported server architectures and uses the first one as the default build target. This is not a compose key — it is the list Incus reports. For example, if the server reports:
+incus-compose asks Incus for its supported server architectures and uses the first one as the default build target. This is not a compose key: it is the list Incus reports. For example, if the server reports:
 
 ```text
 x86_64, i686

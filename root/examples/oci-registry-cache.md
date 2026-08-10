@@ -12,6 +12,7 @@ leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # OCI Registry Cache
 
 This example runs three [distribution](https://github.com/distribution/distribution) registry instances as pull-through caches, one per upstream registry. Incus remotes are then reconfigured to point at these local caches instead of the real upstream endpoints, so container images are fetched once and served locally on subsequent pulls.
@@ -49,7 +50,7 @@ The registry image itself lives on `docker.io`, which creates a bootstrapping pr
 incus remote add --protocol oci direct-docker.io https://docker.io
 ```
 
-This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry:3`) and can be left in place permanently — it is only contacted during `incus-compose up` to pull or update the registry image.
+This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry:3`) and can be left in place permanently: it is only contacted during `incus-compose up` to pull or update the registry image.
 
 ## Setup
 
@@ -57,7 +58,7 @@ This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry
 
 The registry instances listen on their static IPs inside the Incus network. A TLS-terminating reverse proxy is required to expose them as proper HTTPS endpoints (Incus remotes require HTTPS).
 
-**Caddy example** — the IPs must match those in `compose.incus.yaml`:
+**Caddy example** - the IPs must match those in `compose.incus.yaml`:
 
 ```Caddyfile
 docker-registry.example.com {

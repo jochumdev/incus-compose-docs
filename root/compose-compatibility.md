@@ -69,8 +69,8 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `volumes` - Named volumes and bind mounts
 - `deploy.replicas` - Service scaling (instances named `{service}-{index}`)
 - `restart` - Restart policies (`no`, `always`, `on-failure`, `unless-stopped`)
-- `x-incus` extension — pass any Incus project, network and instance option directly (see below)
-- Top-level `x-incus-compose.healthd` — configure the ic-healthd sidecar's network and Incus endpoint (see below)
+- `x-incus` extension - pass any Incus project, network and instance option directly (see below)
+- Top-level `x-incus-compose.healthd` - configure the ic-healthd sidecar's network and Incus endpoint (see below)
 
 #### Labels
 
@@ -112,13 +112,13 @@ Read them back with the `incus` passthrough:
 incus-compose incus config get app-1 user.label.caddy
 ```
 
-**Service discovery** — the `user.label.` prefix keeps compose labels out of the
+**Service discovery** - the `user.label.` prefix keeps compose labels out of the
 `user.*` namespace incus-compose uses for its own keys, and mirrors the label
 conventions of reverse proxies and DNS managers:
 
-- [Traefik](https://doc.traefik.io/traefik/) — `traefik.enable`, `traefik.http.routers.<name>.rule`, ...
-- [caddy-docker-proxy](https://github.com/lucaslorentz/caddy-docker-proxy) — `caddy`, `caddy.reverse_proxy`
-- [dnsweaver](https://maxfield-allison.github.io/dnsweaver/) — reads the Traefik router labels above
+- [Traefik](https://doc.traefik.io/traefik/) - `traefik.enable`, `traefik.http.routers.<name>.rule`, ...
+- [caddy-docker-proxy](https://github.com/lucaslorentz/caddy-docker-proxy) - `caddy`, `caddy.reverse_proxy`
+- [dnsweaver](https://maxfield-allison.github.io/dnsweaver/) - reads the Traefik router labels above
 
 > None of these tools support incus-compose yet: they discover services over the
 > Docker socket, not the Incus API. incus-compose only exposes the labels as
@@ -340,7 +340,7 @@ When this option is set, incus-compose does not create compose-managed Incus net
 - DNS resolution by service name and by instance name
 - Extra DNS names per service via `aliases` (see below)
 - External networks (pre-existing Incus networks)
-- `x-incus` extension — pass any Incus network config key directly (see below)
+- `x-incus` extension - pass any Incus network config key directly (see below)
 - Automatic DHCP range configuration on creation (see below)
 - Static IP assignment per service via `ipv4_address` / `ipv6_address` (see below)
 
@@ -380,17 +380,6 @@ manage yourself:
 
 ```yaml
 networks:
-  frontend:
-    external: true
-    name: incusbr0
-```
-
-Write it as **`<project>:<network>`** to borrow a network another compose project
-owns, naming it the way that project does rather than working out the Incus name
-by hand:
-
-```yaml
-networks:
   shared:
     external: true
     name: alpha:dns # the "dns" network of the "alpha" compose project
@@ -412,19 +401,21 @@ the first one that exists in Incus:
 
 If none of the candidates match an existing network, `up` fails with a not-found error.
 
+_Since: v1.2.0_
+
 #### Automatic DHCP Ranges
 
 When a managed bridge network is created, incus-compose automatically configures DHCP ranges if they are not already set:
 
-**IPv4** — The first quarter of the address block is reserved for static assignment. The DHCP range starts at that boundary:
+**IPv4** - The first quarter of the address block is reserved for static assignment. The DHCP range starts at that boundary:
 
 | Subnet | Static range   | DHCP range       |
 | ------ | -------------- | ---------------- |
-| /24    | `.1–.63`       | `.64–.254`       |
-| /16    | `.0.0–.63.255` | `.64.0–.255.254` |
-| /28    | `.1–.3`        | `.4–.14`         |
+| /24    | `.1-.63`       | `.64-.254`       |
+| /16    | `.0.0-.63.255` | `.64.0-.255.254` |
+| /28    | `.1-.3`        | `.4-.14`         |
 
-**IPv6** — The first 256 addresses (`::0–::ff`) are reserved for static; DHCP runs from `::100` to `::ffff`. Stateful DHCPv6 (`ipv6.dhcp.stateful`) is enabled automatically.
+**IPv6** - The first 256 addresses (`::0-::ff`) are reserved for static; DHCP runs from `::100` to `::ffff`. Stateful DHCPv6 (`ipv6.dhcp.stateful`) is enabled automatically.
 
 Setting `ipv4.dhcp.ranges` or `ipv6.dhcp.ranges` in `x-incus` disables auto-calculation for that protocol. Existing networks (already present in Incus when `up` runs) are never modified.
 
@@ -494,7 +485,7 @@ services:
 ```
 
 Each alias becomes a `cname=<alias>,<instance>` record in the network's
-`raw.dnsmasq`, resolving straight to the instance — no DHCP lease to wait for,
+`raw.dnsmasq`, resolving straight to the instance, with no DHCP lease to wait for,
 unlike the IP-based service-name records described in
 [DNS Resolution](#dns-resolution). Aliases on networks shared by multiple
 projects (`external: true` / `name:`) coexist without
@@ -505,7 +496,7 @@ Because a CNAME alias can only point at one target, `aliases` is for
 single-instance services. Declaring it on a service with more than one
 replica registers the same alias against every replica's instance name,
 which dnsmasq does not support (an alias must be unique) and produces
-undefined DNS behavior. Use the service name — which does round-robin — for
+undefined DNS behavior. Use the service name, which does round-robin, for
 scaled services instead.
 :::
 
@@ -514,14 +505,14 @@ _Since: v1.1.0_
 ### Volumes
 
 - Named volumes (Incus custom storage volumes)
-- Bind mounts — pass-through when incusd runs on your machine, or copied in with
+- Bind mounts - pass-through when incusd runs on your machine, or copied in with
   `x-incus-compose.seed` against any server (see below)
 - Read-only volumes
 - Automatic UID/GID shifting
 - tmpfs mounts (with optional size limit)
-- `x-incus` extension — pass any Incus volume config key directly (see below)
-- `x-incus-compose.pool` — select the storage pool for a named volume (see below)
-- `x-incus-compose.seed` — copy a bind mount's source into the instance (see below)
+- `x-incus` extension - pass any Incus volume config key directly (see below)
+- `x-incus-compose.pool` - select the storage pool for a named volume (see below)
+- `x-incus-compose.seed` - copy a bind mount's source into the instance (see below)
 
 Not supported:
 
@@ -617,7 +608,7 @@ exist there. What happens next depends on what it is:
 
 - **A directory** becomes a custom storage volume, filled from the directory
   when the volume is **created**. Later changes on your machine do not
-  propagate — the volume goes its own way from there, and `up` will not re-seed
+  propagate: the volume goes its own way from there, and `up` will not re-seed
   it. Delete the volume to start over.
 - **A single file** is pushed into the instance on **every start**, while it is
   still stopped, overwriting what is there. Handy for a config or a key you want
@@ -626,7 +617,7 @@ exist there. What happens next depends on what it is:
 Seeding is a copy, in one direction. Nothing written inside the container comes
 back out, so it does not replace a named volume for data you mean to keep.
 
-Seeding is off by default — bind mounts are plain pass-through unless you ask.
+Seeding is off by default: bind mounts are plain pass-through unless you ask.
 
 _Since: v1.0.0_
 
@@ -689,7 +680,7 @@ services:
 ```
 
 Restart enforcement is handled by the ic-healthd sidecar, including
-`restart` without a healthcheck — see [Health Checking](/healthd#restart-without-a-test).
+`restart` without a healthcheck - see [Health Checking](/healthd#restart-without-a-test).
 
 ### Secrets
 
@@ -761,14 +752,14 @@ left untouched, which silently ignored the config or secret.
 
 `secrets[].external` and `configs[].external` are not supported.
 
-In Docker Swarm, `external: true` means "this secret/config already exists —
+In Docker Swarm, `external: true` means "this secret/config already exists:
 don't create it, just reference it by name." You'd pre-create it once (e.g.
 `docker secret create db_password ./password.txt`), and any number of
 stacks/services could then point at that same object, so rotating it means
 updating the one external secret rather than every compose file that uses it.
 
 incus-compose has no equivalent standalone "secret" or "config" resource in
-Incus to reference — it only knows how to read a `file`, inline `content`, or
+Incus to reference: it only knows how to read a `file`, inline `content`, or
 an `environment` variable and push the result into a container as a file.
 There's nothing in Incus for `external` to point _at_, so it's not a missing
 mapping to fill in later, it's a concept without a target. Use `file`,
@@ -776,7 +767,7 @@ mapping to fill in later, it's a concept without a target. Use `file`,
 
 ### Dockerfile HEALTHCHECK
 
-The `HEALTHCHECK` instruction embedded in Docker images is not read — declare
+The `HEALTHCHECK` instruction embedded in Docker images is not read, so declare
 `healthcheck.test` explicitly in the compose file.
 See [healthd.md](/healthd#dockerfile-healthcheck-not-supported) for the background.
 
@@ -791,7 +782,7 @@ Not supported:
 
 ## Local vs Remote Incus
 
-> **The Incus server must have `core.https_address` set in all cases** — even for
+> **The Incus server must have `core.https_address` set in all cases**, even for
 > a local Unix-socket client. Image caching copies images between Incus projects
 > using pull mode, which requires the server to be reachable over the network.
 > Without it, `up` fails with `The source server isn't listening on the network`.
@@ -826,7 +817,7 @@ flowchart LR
 The line for bind mounts is not the transport, it is which machine holds the
 files. A pass-through bind is a disk device whose source **incusd** opens on its
 own filesystem, so the path has to be on the server. Over HTTPS to the machine
-you are sitting at — a `local-https` remote, say — that is still true and bind
+you are sitting at (a `local-https` remote, say), that is still true and bind
 mounts work normally.
 
 Talking to a server somewhere else, incus-compose refuses a pass-through bind
@@ -837,12 +828,12 @@ though incusd could have resolved it.
 
 Copy the files across with
 [`x-incus-compose.seed`](#x-incus-compose-volume-seeding) and none of this
-applies — that is what the option is for.
+applies: that is what the option is for.
 
 For health checks, ic-healthd reaches Incus over HTTPS. When
 `core.https_address` names a host (`10.0.0.5:8443`) that address is used, however
 you connected. Only a bare `:8443` falls back to the bridge IP plus the port
-incus-compose connected on — which a Unix socket does not have, so there the
+incus-compose connected on, which a Unix socket does not have, so there the
 endpoint must be set explicitly. See
 [Network Configuration](/healthd#network-configuration).
 
@@ -852,7 +843,7 @@ endpoint must be set explicitly. See
 
 **Registries:**
 
-Image names work just like Docker — a bare `nginx:alpine` resolves to
+Image names work just like Docker: a bare `nginx:alpine` resolves to
 `docker.io/library/nginx:alpine`, and an explicit registry prefix
 (`ghcr.io/...`) is honored as-is.
 
@@ -1008,19 +999,19 @@ For a bind mount this must be set inline on the volume entry (see
 
 ### External Volumes
 
-**Docker Compose:** an external volume must already exist — Compose will
+**Docker Compose:** an external volume must already exist. Compose will
 never create it, and never removes it (not even with `down --volumes` /
 equivalent), since it doesn't own the volume's lifecycle.
 
 **incus-compose:** every named volume, external or not, goes through the same
-get-or-create path — reuse the Incus storage volume if it already exists,
+get-or-create path: reuse the Incus storage volume if it already exists,
 create it if it doesn't. There's no tracking of "this one was pre-existing."
 Concretely, that means:
 
 - A typo'd or renamed volume that would fail fast under Docker (volume not
   found) instead silently creates a new, empty volume here.
 - `incus-compose down --volumes` deletes every storage volume tracked for the
-  project, including ones marked `external: true` — there's no protection
+  project, including ones marked `external: true`, and there's no protection
   against removing a volume you intended to be pre-existing and shared with
   something else.
 
@@ -1062,11 +1053,11 @@ database    → round-robins across all database instances (A/AAAA records)
 database-1  → specific instance (registered by Incus dnsmasq)
 ```
 
-This matches Docker Compose behavior. No configuration is required — records are
+This matches Docker Compose behavior. No configuration is required: records are
 written automatically to the project bridge network's `raw.dnsmasq` and updated
 whenever the scale changes.
 
-A service can also register extra DNS names for itself via `aliases` — see
+A service can also register extra DNS names for itself via `aliases`; see
 [Network Aliases](#network-aliases).
 
 **Note:** Setting `raw.dnsmasq` on the bridge disables AppArmor for the dnsmasq

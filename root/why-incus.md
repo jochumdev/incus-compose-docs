@@ -16,41 +16,36 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Why Incus?
 
-[Incus](https://linuxcontainers.org/incus/) is the best-kept secret in Linux
-infrastructure: one daemon, one clean REST API, and it runs **OCI application
-containers, LXC system containers, and full virtual machines** side by side.
-It is developed in the open under the [Linux Containers](https://linuxcontainers.org/)
-project by the team that has been building container technology for Linux since
-LXC in 2008 - no vendor lock-in, no license surprises, just Apache-2.0 software
-maintained by the people who know this space best.
+[Incus](https://linuxcontainers.org/incus/) is a single daemon with a REST API
+that runs **OCI application containers, LXC system containers, and full virtual
+machines** side by side. It is Apache-2.0, developed in the open under the
+[Linux Containers](https://linuxcontainers.org/) project by the team that
+started LXC in 2008.
 
-There's one gap: most compose tooling assumes a Docker-style OCI engine.
-`incus-compose` closes it. Your existing `compose.yaml`, running natively on
-Incus.
+Most compose tooling assumes a Docker-style OCI engine. `incus-compose` runs
+your existing `compose.yaml` against Incus instead.
 
 ## One Package, One Daemon
 
-Think about what a typical container-plus-VM setup accumulates: an engine
-daemon, a container runtime under it, a hypervisor manager beside it, network
-plugins, storage drivers, and a different CLI for each. Incus replaces the
-whole stack with **a single package and a single daemon** that already does
-everything:
+A typical container-plus-VM setup accumulates an engine daemon, a container
+runtime under it, a hypervisor manager beside it, network plugins, storage
+drivers, and a different CLI for each. Incus ships all of it as one package and
+one daemon:
 
-- **Containers and VMs** - application containers, system containers, and
-  KVM virtual machines from the same command
-- **Networking built in** - managed bridges with DHCP and DNS, no SDN add-on
-- **Storage built in** - Ceph, ZFS, Btrfs, LVM, or plain directory pools, with
-  snapshots and clones as first-class operations
+- **Containers and VMs** - application containers, system containers, and KVM
+  virtual machines from the same command
+- **Networking** - managed bridges with DHCP and DNS, no SDN add-on
+- **Storage** - Ceph, ZFS, Btrfs, LVM, or plain directory pools, with snapshots
+  and clones as first-class operations
 - **Images, projects, and clustering** - image cache, multi-tenancy, and
-  multi-host scaling, all in the same daemon
+  multi-host scaling, in the same daemon
 
-Install one package, and there is nothing else to run, patch, or babysit.
-That lightness is a feature you feel every day.
+There is no second daemon to patch and no separate CLI per subsystem.
 
-## The Problem: Engines Inside Containers
+## Running an OCI Engine Inside a Container
 
-Running an OCI engine inside an Incus container is a common workaround, but
-you pay for it:
+Running an OCI engine inside an Incus container is a common workaround, and it
+costs something:
 
 ```mermaid
 flowchart TB
@@ -61,15 +56,15 @@ flowchart TB
     end
 ```
 
-- Double overhead - two container runtimes doing one job
-- Nested namespaces add complexity and failure modes
-- Privileged nested containers weaken your security posture
+- Two container runtimes doing one job
+- Nested namespaces add failure modes
+- Privileged nested containers weaken isolation
 - Layered filesystems inside layered filesystems waste storage
 
-## The Solution: Run Images Natively
+## Running OCI Images Natively
 
-Incus can run OCI images directly - the app is PID 1, no init system and no
-second engine in between. `incus-compose` drives exactly that mode:
+Incus runs OCI images directly: the app is PID 1, with no init system and no
+second engine in between. `incus-compose` drives that mode.
 
 ```mermaid
 flowchart TB
@@ -79,12 +74,19 @@ flowchart TB
 ```
 
 - One layer of containerization instead of two
-- Native Incus security: unprivileged by default, AppArmor and seccomp confined
+- Unprivileged by default, AppArmor and seccomp confined
 - The same compose files you already use
-- And when an app genuinely needs a full OS environment, a system container
-  with real init is one config line away
 
-## What You Gain
+When an app needs a full OS environment instead, point `image:` at a system
+container image and Incus boots it with a real init:
+
+```yaml
+services:
+  app:
+    image: images:debian/trixie
+```
+
+## Compared to an OCI Engine
 
 | Feature        | OCI Engines                 | Incus                                             |
 | -------------- | --------------------------- | ------------------------------------------------- |
@@ -98,21 +100,26 @@ flowchart TB
 Real IPs deserve a special mention: every container gets its own network
 address, so two services can both listen on port 80 without a port-mapping
 puzzle. Shell into any container for debugging, snapshot it before a risky
-upgrade, roll back in seconds - this is infrastructure that works _with_ you.
+upgrade, roll back in seconds.
 
-And your compose file inherits these powers too: project-wide resource
-limits, static IPs, GPU passthrough, storage-pool placement, and the full
-Incus API via `x-incus`. See the feature overview on the
-[home page](/home) and the complete matrix in
+Every container gets its own network address, so two services can both listen
+on port 80 without a port-mapping puzzle. You can shell into any container,
+snapshot it before a risky upgrade, and roll back in seconds.
+
+> > > > > > > v1.2
+
+Compose files reach the rest of Incus through `x-incus`: project-wide resource
+limits, static IPs, GPU passthrough, and storage-pool placement. See the
+feature overview on the [home page](/home) and the complete matrix in
 [Compose Compatibility](/compose-compatibility).
 
-## Your Laptop Is Just a Thin Client
+## Client and Server Are Separate
 
 Incus is client/server. The daemon is Linux-only, but the `incus` client (and
 `incus-compose`) is a cross-platform Go binary. From a Windows or macOS desktop
 you connect to a remote Linux host over HTTPS and manage OCI app containers,
-system containers, and full VMs - all without Docker Desktop, WSL, or a local
-Linux VM.
+system containers, and full VMs, without Docker Desktop, WSL, or a local Linux
+VM.
 
 ```mermaid
 flowchart LR
@@ -130,21 +137,21 @@ flowchart LR
     CLI -->|HTTPS| INCUSD
 ```
 
-Docker Desktop cannot do this: on Windows and macOS it runs a hidden Linux VM
-to host the engine. With Incus the workload lives on real Linux infrastructure
-and your laptop stays light.
+Docker Desktop works differently: on Windows and macOS it runs a hidden Linux
+VM to host the engine, so the workload runs on your laptop rather than on the
+server.
 
 See [Installing on Windows](/getting-started/windows) for the client setup.
 
-## Grows With You: Laptop to Cluster
+## Scaling Out
 
-The same API that runs your dev stack scales to a data center - no rewrite, no
-new orchestration layer to learn.
+The API is the same on one host and on many, so there is no second
+orchestration layer to learn.
 
 **[Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/):**
 
-- Scale from 1 to 100+ bare metal hosts
-- Single API endpoint for the entire cluster
+- 1 to 100+ bare metal hosts
+- A single API endpoint for the entire cluster
 - Automatic instance placement and load balancing
 - Live migration between hosts
 
@@ -153,36 +160,34 @@ new orchestration layer to learn.
 - Immutable OS purpose-built for Incus
 - Safe, predictable updates
 - Minimal attack surface
-- Production-ready out of the box
 
-## Is Incus Right for You?
+Those numbers are Incus's. `incus-compose` runs on single hosts and small
+clusters today and has not been exercised across a hundred-node deployment.
 
-**Choose Incus when:**
+## Choose Incus When
 
 - You need to shell into containers for debugging
 - You want true RW volumes (not Kubernetes volume limitations)
 - You need real network addresses (no port conflicts)
 - You want unprivileged-by-default containers without full VM overhead
 - You need ZFS/Btrfs snapshots and clones
-- You're running apps that expect a full OS environment
+- You are running apps that expect a full OS environment
 - Security and multi-tenancy are priorities
-- You're already using Incus for infrastructure
+- You are already using Incus for infrastructure
 - You want one workflow from dev laptop to production cluster
 
-**Stick with OCI engines when:**
+## Stick With OCI Engines When
 
-- You're targeting Kubernetes deployment
+- You are targeting Kubernetes deployment
 - You need the absolute broadest ecosystem compatibility - base images, CI
   templates, and marketplace integrations mostly assume Docker/OCI
 - You want a managed cloud container service (ECS, Cloud Run, GKE Autopilot)
   instead of operating your own hosts
-- You're relying on the depth of existing tutorials, Stack Overflow answers,
+- You are relying on the depth of existing tutorials, Stack Overflow answers,
   and community troubleshooting that comes with Docker's larger install base
-- Incus's OCI/application-container support is newer than its system-container
-  support and has seen less production mileage
 
-We list these honestly because Incus doesn't need overselling - if your
-workload fits, the experience speaks for itself.
+One caveat either way: Incus's OCI application-container support is newer than
+its system-container support and has seen less production mileage.
 
 ## See Also
 

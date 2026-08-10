@@ -55,4 +55,4 @@ Open http://10.131.32.17:2283/
 
 ## Notes
 
-- `library`'s storage pool comes from `UPLOAD_POOL` in `.env` via `x-incus-compose.pool` — set it before first run if you need another pool than the default.
+- `library`'s storage pool comes from `UPLOAD_POOL` in `.env` via `x-incus-compose.pool`; set it before first run if you need another pool than the default.

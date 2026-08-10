@@ -183,7 +183,7 @@ This ensures files in the volume are owned by the correct user inside the contai
 
 ## Bind Mount Restriction
 
-The client layer has no opinion on bind mounts — a disk device with no
+The client layer has no opinion on bind mounts: a disk device with no
 `StorageVolumeConfig` is passed to Incus as-is. The restriction lives one level
 up, in `instanceVolumeDevices()` (`project/instance.go`), because it is a
 question about the compose file rather than about the device:
@@ -196,7 +196,7 @@ err := c.Global().SameHost()
 `GlobalClient.SameHost()` returns nil for a Unix socket, and otherwise compares
 the remote's resolved addresses against the local interfaces. So a pass-through
 bind is allowed whenever incusd is this machine, HTTPS included, and refused
-with `not on the same host` when it is not — incusd resolves the source path on
+with `not on the same host` when it is not, because incusd resolves the source path on
 its own filesystem, so a path from elsewhere would not be there.
 
 A volume carrying `x-incus-compose.seed` skips the check entirely: a directory
