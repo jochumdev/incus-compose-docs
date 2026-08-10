@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-12T02:09:09.313Z
 description: Run pull-through registry caches on Incus, one per upstream, and point your Incus remotes at them instead of the real registries.
 editor: markdown
@@ -8,7 +8,7 @@ title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -49,7 +49,7 @@ The registry image itself lives on `docker.io`, which creates a bootstrapping pr
 incus remote add --protocol oci direct-docker.io https://docker.io
 ```
 
-This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry:3`) and can be left in place permanently — it is only contacted during `incus-compose up` to pull or update the registry image.
+This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry:3`) and can be left in place permanently: it is only contacted during `incus-compose up` to pull or update the registry image.
 
 ## Setup
 
@@ -57,7 +57,7 @@ This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry
 
 The registry instances listen on their static IPs inside the Incus network. A TLS-terminating reverse proxy is required to expose them as proper HTTPS endpoints (Incus remotes require HTTPS).
 
-**Caddy example** — the IPs must match those in `compose.incus.yaml`:
+**Caddy example** - the IPs must match those in `compose.incus.yaml`:
 
 ```Caddyfile
 docker-registry.example.com {

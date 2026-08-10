@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:21:01.000Z
 dateCreated: 2026-07-05T01:03:14.978Z
 description: Set up a self-hosted GitHub Actions runner for incus-compose inside a privileged Incus container running its own nested Incus daemon.
 editor: markdown
@@ -9,7 +9,7 @@ title: GitHub Actions runner
 leafwiki_id: mlRXqlfDR
 leafwiki_title: GitHub Actions runner
 leafwiki_created_at: "2026-07-05T03:53:59.874373509Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:21:01.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -22,9 +22,9 @@ the test suite can create instances, networks and volumes.
 
 The steps move between three shells. Each section says which one it runs in:
 
-- **Host** — your workstation/server running Incus.
-- **Container (root)** — a root shell inside the `runner-local` container.
-- **Runner user** — an unprivileged `runner` login shell inside the container.
+- **Host** - your workstation/server running Incus.
+- **Container (root)** - a root shell inside the `runner-local` container.
+- **Runner user** - an unprivileged `runner` login shell inside the container.
 
 Placeholders to replace as you go: `example.com` (your OCI registry mirror
 domain), `<ip-from-above>` (the container's bridge IP), and the `--token`
@@ -47,14 +47,14 @@ flowchart TD
     RU -->|"OCI mirror remotes"| MIR["docker.io, ghcr.io and registry.gitlab.com<br/>mirrors on your own domain"]
 ```
 
-## 1. Load the `openvswitch` module for ovn support — _host (user)_
+## 1. Load the `openvswitch` module for ovn support - _host (user)_
 
 ```bash
 sudo bash -c "echo 'openvswitch' > /etc/modules-load.d/50-openvswitch.conf"
 sudo modprobe openvswitch
 ```
 
-## 2. Create the runner container — _host (user)_
+## 2. Create the runner container - _host (user)_
 
 Sadly `security.privileged` is needed for podman builds to work.
 
@@ -70,7 +70,7 @@ incus --project=ic-runner exec runner /bin/bash
 The `exec` drops you into a root shell inside the container; the next steps run
 there.
 
-## 3. Install base packages — _container (root)_
+## 3. Install base packages - _container (root)_
 
 ```bash
 apt-get install -qy sudo sudo-rs vim golang git shellcheck podman jq
@@ -78,7 +78,7 @@ ln -s /usr/sbin/sudo-rs /usr/local/sbin/sudo
 ln -s /usr/share/zoneinfo/Europe/Vienna /etc/timezone
 ```
 
-## 4. Install Incus from the Zabbly repository — _container (root)_
+## 4. Install Incus from the Zabbly repository - _container (root)_
 
 ```bash
 curl -fsSL https://pkgs.zabbly.com/key.asc -o /etc/apt/keyrings/zabbly.asc
@@ -96,13 +96,13 @@ EOF'
 apt-get -q update; apt-get -qy install incus-client
 ```
 
-## 5. Create the `runner` user — _container (root)_
+## 5. Create the `runner` user - _container (root)_
 
 ```bash
 adduser --disabled-password --shell /usr/bin/bash runner
 ```
 
-## 6. Install golangci-lint — _runner user_
+## 6. Install golangci-lint - _runner user_
 
 The install script drops the binary in `~/.local/bin`. Create that directory _before_
 logging in: Debian's `~/.profile` only adds `~/.local/bin` to `PATH` if it exists at
@@ -137,7 +137,7 @@ loginctl enable-linger runner
 
 restart the container/vm.
 
-## 8. Add OCI registry remotes — _runner user_
+## 8. Add OCI registry remotes - _runner user_
 
 These point at your registry mirrors so images are additional cached.
 
@@ -148,7 +148,7 @@ incus remote add --protocol=oci ghcr.io https://ghcr-registry.$DOMAIN
 incus remote add --protocol=oci registry.gitlab.com https://gitlab-registry.$DOMAIN
 ```
 
-## 9. Enable HTTPS access to the local daemon — _runner user_
+## 9. Enable HTTPS access to the local daemon - _runner user_
 
 Generate a client certificate, trust it, find the bridge IP, expose the daemon
 over HTTPS, and add a remote pointing at it.
@@ -157,7 +157,7 @@ over HTTPS, and add a remote pointing at it.
 incus remote generate-certificate
 ```
 
-## 10. Install the nested incus containers — _host (user)_
+## 10. Install the nested incus containers - _host (user)_
 
 Copy the runners client.crt first
 
@@ -174,7 +174,7 @@ export INCUS_PROJECT=ic-runner
 ./setup-nested-incus.sh -c runner-client.crt -n ict-daily -r daily -o -f
 ```
 
-## 11. Register the remotes on the runner — _runner user_
+## 11. Register the remotes on the runner - _runner user_
 
 ```bash
 for remote in "ict-stable" "ict-lts" "ict-custom" "ict-daily"; do
@@ -184,7 +184,7 @@ done
 incus remote list
 ```
 
-## 12. Download the GitHub Actions runner — _runner user_
+## 12. Download the GitHub Actions runner - _runner user_
 
 ```bash
 mkdir actions-runner; cd actions-runner
@@ -193,7 +193,7 @@ tar xf actions-runner.tar.gz; rm -f actions-runner.tar.gz
 exit
 ```
 
-## 13. Install runner dependencies — _container (root)_
+## 13. Install runner dependencies - _container (root)_
 
 The dependency installer needs root, so run it after the `exit` above.
 
@@ -201,7 +201,7 @@ The dependency installer needs root, so run it after the `exit` above.
 /home/runner/actions-runner/bin/installdependencies.sh
 ```
 
-## 14. Register the runner — _runner user_
+## 14. Register the runner - _runner user_
 
 Get a registration token from the repository's **Settings → Actions → Runners →
 New self-hosted runner**, then register:
@@ -260,7 +260,7 @@ Enter name of work folder: [press Enter for _work]
 √ Settings Saved.
 ```
 
-## 15. Run the runner as a service — _container (root)_
+## 15. Run the runner as a service - _container (root)_
 
 ```bash
 exit

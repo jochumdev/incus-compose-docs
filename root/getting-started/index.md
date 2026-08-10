@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-05T01:03:12.76Z
 description: Install incus-compose and run your existing compose.yaml on Incus without Docker, including the core.https_address setting Incus needs.
 editor: markdown
@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -36,7 +36,7 @@ incus config set core.https_address=:8443
 This is **not optional**, even for a local Incus reached over the Unix socket.
 incus-compose caches images in a separate Incus project and copies each one into
 your project on `up`. That cross-project copy uses Incus pull mode, which needs
-the server to be reachable over the network — the same daemon pulls the image
+the server to be reachable over the network: the same daemon pulls the image
 from itself. Without `core.https_address` set, `up` fails with
 `The source server isn't listening on the network`, and health checks are
 silently skipped.
@@ -49,7 +49,7 @@ handful of behaviours that do depend on how you connect.
 ### HTTPS Remote (for remote servers and health checks)
 
 Connect the client over HTTPS when Incus runs on another host, or when you use
-health checks — the `ic-healthd` sidecar reaches Incus over HTTPS. By default
+health checks: the `ic-healthd` sidecar reaches Incus over HTTPS. By default
 healthd uses the project's own network and reaches Incus over that bridge; use
 `--healthd-network` / `--healthd-incus` if your setup differs, see
 [Network Configuration](/healthd#network-configuration).
@@ -81,7 +81,7 @@ incus list --all-projects
 
 If you don't want to listen on all interfaces, set the
 `INCUS_COMPOSE_HEALTHD_INCUS` environment variable or call up with
-`--healthd-incus` — see [Network Configuration](/healthd#network-configuration).
+`--healthd-incus`; see [Network Configuration](/healthd#network-configuration).
 
 ## Installation
 
@@ -333,7 +333,7 @@ volumes:
 ```
 
 A bind mount is passed through to incusd, which opens the path on its own
-filesystem — so it works when the server is this machine, over the Unix socket
+filesystem, so it works when the server is this machine, over the Unix socket
 or over HTTPS. Against a server elsewhere, either use a named volume or set
 [`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
 to copy the files across.

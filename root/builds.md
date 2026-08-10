@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-05T01:03:03.24Z
 description: Building service images from a Compose build block - incus-compose shells out to podman, docker or buildah, then imports the result into your Incus project.
 editor: markdown
@@ -9,7 +9,7 @@ title: Builds
 leafwiki_id: wkgXq_fDR
 leafwiki_title: Builds
 leafwiki_created_at: "2026-07-05T03:53:59.09728476Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -232,7 +232,7 @@ _Since: v1.1.0_
 
 Built images must match an architecture supported by the target Incus server.
 
-incus-compose asks Incus for its supported server architectures and uses the first one as the default build target. This is not a compose key — it is the list Incus reports. For example, if the server reports:
+incus-compose asks Incus for its supported server architectures and uses the first one as the default build target. This is not a compose key: it is the list Incus reports. For example, if the server reports:
 
 ```text
 x86_64, i686

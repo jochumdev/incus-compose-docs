@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-05T01:03:40.172Z
 description: The instance resource in depth - pre- and post-creation devices, why an instance is written twice, and how UID/GID shifting keeps volume files owned correctly.
 editor: markdown
@@ -9,7 +9,7 @@ title: Instance Details
 leafwiki_id: 10iXqlfvg
 leafwiki_title: Instance Details
 leafwiki_created_at: "2026-07-05T03:54:01.617008851Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -183,7 +183,7 @@ This ensures files in the volume are owned by the correct user inside the contai
 
 ## Bind Mount Restriction
 
-The client layer has no opinion on bind mounts — a disk device with no
+The client layer has no opinion on bind mounts: a disk device with no
 `StorageVolumeConfig` is passed to Incus as-is. The restriction lives one level
 up, in `instanceVolumeDevices()` (`project/instance.go`), because it is a
 question about the compose file rather than about the device:
@@ -196,7 +196,7 @@ err := c.Global().SameHost()
 `GlobalClient.SameHost()` returns nil for a Unix socket, and otherwise compares
 the remote's resolved addresses against the local interfaces. So a pass-through
 bind is allowed whenever incusd is this machine, HTTPS included, and refused
-with `not on the same host` when it is not — incusd resolves the source path on
+with `not on the same host` when it is not, because incusd resolves the source path on
 its own filesystem, so a path from elsewhere would not be there.
 
 A volume carrying `x-incus-compose.seed` skips the check entirely: a directory

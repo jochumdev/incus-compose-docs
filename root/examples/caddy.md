@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-12T02:05:37.588Z
 description: Run Caddy on Incus as a reverse-proxy front door - automatic HTTPS, one Caddyfile, and no separate certificate management.
 editor: markdown
@@ -8,14 +8,14 @@ title: Caddy
 leafwiki_id: fC-tQcYDg
 leafwiki_title: Caddy
 leafwiki_created_at: "2026-07-12T02:05:37.588008658Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
 
 # Caddy
 
-[Caddy](https://caddyserver.com) as a reverse-proxy front door — automatic HTTPS, one `Caddyfile`, no separate cert management.
+[Caddy](https://caddyserver.com) as a reverse-proxy front door: automatic HTTPS, one `Caddyfile`, no separate cert management.
 
 The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/caddy).
 

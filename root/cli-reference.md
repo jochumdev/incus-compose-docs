@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:22:22.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: icZYCpLDg
 ---
@@ -153,7 +153,7 @@ incus-compose start [SERVICE...]
 | Option         | Description                                                       |
 | -------------- | ----------------------------------------------------------------- |
 | `--timeout`    | Start timeout (default: 1m)                                       |
-| `--with-deps`  | Also start linked services (depends_on) — incus-compose extension |
+| `--with-deps`  | Also start linked services (depends_on) - incus-compose extension |
 | `--no-healthd` | Don't start healthd sidecar                                       |
 
 ## stop
@@ -167,7 +167,7 @@ incus-compose stop [SERVICE...]
 | Option         | Description                                                      |
 | -------------- | ---------------------------------------------------------------- |
 | `--timeout`    | Stop timeout (default: 10s)                                      |
-| `--with-deps`  | Also stop linked services (depends_on) — incus-compose extension |
+| `--with-deps`  | Also stop linked services (depends_on) - incus-compose extension |
 | `--no-healthd` | Don't stop healthd sidecar                                       |
 
 ## restart
@@ -181,7 +181,7 @@ incus-compose restart [SERVICE...]
 | Option         | Description                                                         |
 | -------------- | ------------------------------------------------------------------- |
 | `--timeout`    | Stop/start timeout (default: 1m)                                    |
-| `--with-deps`  | Also restart linked services (depends_on) — incus-compose extension |
+| `--with-deps`  | Also restart linked services (depends_on) - incus-compose extension |
 | `--no-healthd` | Don't stop/start healthd sidecar                                    |
 
 ### Linked services
@@ -208,7 +208,7 @@ incus-compose logs [SERVICE...]
 | Option           | Description                                                                |
 | ---------------- | -------------------------------------------------------------------------- |
 | `-f`, `--follow` | Follow output                                                              |
-| `--with-deps`    | Also show logs from linked services (depends_on) — incus-compose extension |
+| `--with-deps`    | Also show logs from linked services (depends_on) - incus-compose extension |
 
 Missing instances are skipped with a warning; logs from available instances are still shown.
 
@@ -258,7 +258,7 @@ incus-compose exec [options] SERVICE COMMAND [ARGS...]
 not incus-compose's own connection settings.
 
 Like `docker compose exec`, the command runs as the instance's user and group by
-default — the image's `oci.uid` / `oci.gid`, or the numeric IDs from the service
+default: the image's `oci.uid` / `oci.gid`, or the numeric IDs from the service
 [`user:`](/compose-compatibility#user) override. Pass `--user` / `--group` to run
 as someone else:
 
@@ -291,7 +291,7 @@ incus-compose ps [SERVICE...]
 | `-q`, `--quiet` | Only display Incus instance names                                |
 | `--services`    | Display compose service names instead of instances               |
 | `--format`      | table (default) or json                                          |
-| `--with-deps`   | Also list linked services (depends_on) — incus-compose extension |
+| `--with-deps`   | Also list linked services (depends_on) - incus-compose extension |
 
 ## pull
 

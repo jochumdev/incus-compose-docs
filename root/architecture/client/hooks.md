@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-10T22:22:45.000Z
 dateCreated: 2026-07-05T01:03:35.484Z
 description: Intercept any incus-compose resource action before or after it runs - add logging, rewrite errors, or abort the action entirely.
 editor: markdown
@@ -9,10 +9,11 @@ title: Hooks
 leafwiki_id: r4mXqlBDR
 leafwiki_title: Hooks
 leafwiki_created_at: "2026-07-05T03:54:01.308369447Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:22:45.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
+
 # Hooks
 
 Hooks intercept resource actions before and after they execute.
@@ -249,7 +250,7 @@ client.AddHookConnected(func(err error) error {
 ```
 
 If any connected hook returns an error, the remaining connected hooks are skipped
-and `Open()` returns that error — mirroring how a before hook aborts an action.
+and `Open()` returns that error, mirroring how a before hook aborts an action.
 
 ### Done Hooks
 
@@ -382,7 +383,7 @@ GlobalClient and must be registered on the project Client directly (see
 
 ## Concurrency
 
-Before and After hooks run inside the WorkerPool — multiple hooks may fire
+Before and After hooks run inside the WorkerPool: multiple hooks may fire
 concurrently for different resources. Any state shared between hook invocations
 must be protected:
 

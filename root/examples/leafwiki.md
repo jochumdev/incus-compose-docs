@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-10T22:21:01.000Z
 dateCreated: 2026-07-12T02:08:27.812Z
 description: Run LeafWiki on Incus - a self-hosted wiki as a single Go binary, Markdown and SQLite on disk, with optional Git backup.
 editor: markdown
@@ -8,14 +8,14 @@ title: LeafWiki
 leafwiki_id: Mn_bwcYvg
 leafwiki_title: LeafWiki
 leafwiki_created_at: "2026-07-12T02:08:27.812762163Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-10T22:21:01.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
 
 # LeafWiki
 
-[LeafWiki](https://leafwiki.com/) — a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
+[LeafWiki](https://leafwiki.com/) - a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
 
 The page you see is a LeafWiki with a Git backup to [jochumdev/incus-compose-docs](https://github.com/jochumdev/incus-compose-docs).
 
