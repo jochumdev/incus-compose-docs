@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-12T08:01:10.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-12T08:01:10.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: icZYCpLDg
 ---
@@ -82,7 +82,7 @@ incus-compose up [SERVICE...]
 | `--recreate`           | Recreate containers even if they exist                                                                                                                                                     |
 | `--no-start`           | Don't start containers after creating                                                                                                                                                      |
 | `--pull`               | Pull policy: `always` (refresh from the registry), `missing`/`policy` (use the store if present), `never` (never contact a registry; fail when the image is not stored); default: `policy` |
-| `--build`              | Rebuild build-configured service images before starting containers                                                                                                                         |
+| `--build`              | Rebuild build-configured service images before starting containers, recreating the instances that use them                                                                                 |
 | `--no-build`           | Do not build images; fail if a required built image is missing                                                                                                                             |
 | `--builder`            | Preferred builder, binary name or absolute path; empty for auto-detect                                                                                                                     |
 | `--no-deps`            | Don't start linked services (depends_on)                                                                                                                                                   |
@@ -99,7 +99,7 @@ incus-compose up [SERVICE...]
 
 Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started.
 
-For services with `build:`, `up` builds missing images by default. Use `--build` to force a rebuild or `--no-build` to require the image to already exist. See [Builds](/builds) for details.
+For services with `build:`, `up` builds missing images by default. Use `--build` to force a rebuild or `--no-build` to require the image to already exist. `--build` also recreates the instances of the services whose image it rebuilt - a rebuilt image only reaches an instance created from it again. Every other service is left alone; `--recreate` is how you recreate the whole project. See [Builds](/builds) for details.
 
 ## build
 

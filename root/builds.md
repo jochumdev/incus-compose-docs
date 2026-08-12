@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:08:44.000Z
+date: 2026-08-12T08:01:45.000Z
 dateCreated: 2026-07-05T01:03:03.24Z
 description: Building service images from a Compose build block - incus-compose shells out to podman, docker or buildah, then imports the result into your Incus project.
 editor: markdown
@@ -9,7 +9,7 @@ title: Builds
 leafwiki_id: wkgXq_fDR
 leafwiki_title: Builds
 leafwiki_created_at: "2026-07-05T03:53:59.09728476Z"
-leafwiki_updated_at: "2026-08-08T02:08:44.000000000Z"
+leafwiki_updated_at: "2026-08-12T08:01:45.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -306,15 +306,43 @@ flowchart TD
     COPY --> USE
 ```
 
-| Command                       | Behavior                                                                         |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| `incus-compose up`            | Build only on a cache miss. Copy from the cache when the alias is already there. |
-| `incus-compose up --build`    | Force rebuild, replacing the cached image.                                       |
-| `incus-compose up --no-build` | Never build. Fail if a required built image is missing.                          |
+| Command                       | Behavior                                                                           |
+| ----------------------------- | ---------------------------------------------------------------------------------- |
+| `incus-compose up`            | Build only on a cache miss. Copy from the cache when the alias is already there.   |
+| `incus-compose up --build`    | Force rebuild, replacing the cached image, and recreate the instances that use it. |
+| `incus-compose up --no-build` | Never build. Fail if a required built image is missing.                            |
 
 In practice: the first `up` anywhere builds, and every `up` after that - in the
 same project or a different one - copies from the cache. `--build` is how you
 pick up changes to your Dockerfile or context.
+
+## What --build recreates
+
+An instance is created from an image, so replacing the image leaves the running
+instance on the old one. `--build` therefore deletes and recreates the instances
+of every service whose image it rebuilt - including a service that only
+_consumes_ an image another service builds, since the rebuild replaces its image
+just the same:
+
+```yaml
+services:
+  app:
+    image: localhost/app:latest
+    build:
+      context: .
+  worker:
+    image: localhost/app:latest # recreated as well
+  db:
+    image: docker.io/postgres:16-alpine # left alone
+```
+
+Nothing else is touched: services without a built image keep running, and so do
+volumes, networks and the ic-healthd sidecar. Naming services (`up --build app`)
+narrows it further, to the built services in that scope. `--recreate` is the
+bigger hammer, recreating the whole project whether it was built or not.
+
+_Changed in v1.2.0_: `--build` used to rebuild the image and leave the instances
+on the old one until `--recreate` was passed too.
 
 ## Unsupported build options
 
