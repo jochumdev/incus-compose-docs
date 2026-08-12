@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
-"""Sync the frontmatter date fields under root/ with the filesystem.
+"""Sync the frontmatter date fields under root/ with what actually changed.
 
     ./scripts/sync-frontmatter-dates.py            # dry run, prints what would change
     ./scripts/sync-frontmatter-dates.py --apply
 
-The filesystem is the source for the *updated* fields (`date`,
-`leafwiki_updated_at`), which come from each file's mtime.
+**Git decides which files are stamped, not mtime.** A file is restamped only
+when its content differs from HEAD, ignoring the date keys themselves. mtime
+cannot answer that question: a checkout, a clone, a `git checkout --` restore or
+an editor rewrite all bump it without the content changing, so taking it as the
+source meant editing two files restamped every file in the tree.
 
-Created fields are deliberately not taken from the filesystem. Birth time only
-records when a checkout or an editor last rewrote the file - on a fresh clone
-every file is "created" at clone time - so an existing `dateCreated` /
+For a file that did change, the *updated* fields (`date`,
+`leafwiki_updated_at`) come from its mtime - the edit is happening now, so the
+filesystem is right about when. A clean file is left alone entirely, unless it
+is missing one of the four keys, which is backfilled from its last commit.
+
+Created fields are never taken from the filesystem: birth time only records when
+a checkout last rewrote the file, so an existing `dateCreated` /
 `leafwiki_created_at` is left byte-for-byte alone. A missing one is filled from
 its counterpart, or from the first commit that added the file.
 
 Files are rewritten with their mtime restored, so the values stay true and a
-second run is a no-op. Only the four date keys are touched; nothing else in the
-frontmatter is reformatted or reordered.
+second run is a no-op - including before the stamp itself is committed. Only the
+four date keys are touched; nothing else in the frontmatter is reformatted or
+reordered.
 """
 
 import argparse
@@ -32,6 +40,7 @@ CREATED = ("dateCreated", "leafwiki_created_at")
 QUOTED = ("leafwiki_created_at", "leafwiki_updated_at")
 # Insertion order for keys a file is missing entirely.
 ORDER = ("date", "dateCreated", "leafwiki_created_at", "leafwiki_updated_at")
+DATE_LINE = re.compile(r"^[+-](%s):" % "|".join(ORDER))
 
 
 def fmt(dt, key):
@@ -56,12 +65,42 @@ def parse(value):
         return None
 
 
-def first_commit(path):
-    out = subprocess.run(
-        ["git", "log", "--diff-filter=A", "--follow", "--format=%aI", "-1", "--", str(path)],
-        cwd=DOCS, capture_output=True, text=True,
+def git(*args):
+    return subprocess.run(
+        ["git", *args], cwd=DOCS, capture_output=True, text=True,
     ).stdout.strip()
+
+
+def first_commit(path):
+    out = git("log", "--diff-filter=A", "--follow", "--format=%aI", "-1", "--", str(path))
     return datetime.fromisoformat(out) if out else None
+
+
+def last_commit(path):
+    out = git("log", "--format=%aI", "-1", "--", str(path))
+    return datetime.fromisoformat(out) if out else None
+
+
+def changed_paths():
+    """Paths under root/ whose content differs from HEAD, or None if unknown.
+
+    A diff confined to the date keys does not count, so re-running before the
+    stamp is committed does not stamp it again with a later time.
+    """
+    if subprocess.run(["git", "rev-parse", "--verify", "HEAD"],
+                      cwd=DOCS, capture_output=True).returncode != 0:
+        return None
+
+    paths = {DOCS / p for p in git(
+        "ls-files", "--others", "--exclude-standard", "--", "root").splitlines()}
+
+    for rel in git("diff", "HEAD", "--name-only", "--", "root").splitlines():
+        lines = [line for line in git("diff", "HEAD", "-U0", "--", rel).splitlines()
+                 if line[:1] in "+-" and not line.startswith(("+++", "---"))]
+        if any(not DATE_LINE.match(line) for line in lines):
+            paths.add(DOCS / rel)
+
+    return paths
 
 
 def split_frontmatter(text):
@@ -74,7 +113,7 @@ def split_frontmatter(text):
     return text[4:end + 1].splitlines(), text[end + 5:]
 
 
-def sync(path, apply):
+def sync(path, apply, changed):
     st = path.stat()
     mtime = datetime.fromtimestamp(st.st_mtime_ns // 1000000000, timezone.utc)
 
@@ -89,7 +128,16 @@ def sync(path, apply):
         if m and m.group(1) in ORDER:
             present[m.group(1)] = (i, m.group(2))
 
-    edits = {k: fmt(mtime, k) for k in UPDATED}
+    if not changed and all(k in present for k in ORDER):
+        return is_new, []
+
+    if changed:
+        edits = {k: fmt(mtime, k) for k in UPDATED}
+    else:
+        # Backfill only: mtime says nothing about a file nobody edited.
+        stamp = last_commit(path) or mtime
+        edits = {k: fmt(stamp, k) for k in UPDATED if k not in present}
+
     if not all(k in present for k in CREATED):
         known = [parse(v) for k, (_, v) in present.items() if k in CREATED]
         known = [d for d in known if d]
@@ -132,9 +180,11 @@ def main():
     ap.add_argument("--apply", action="store_true", help="write the files (default: dry run)")
     args = ap.parse_args()
 
+    changed = changed_paths()
+
     count = 0
     for path in sorted((DOCS / "root").rglob("*.md")):
-        is_new, touched = sync(path, args.apply)
+        is_new, touched = sync(path, args.apply, changed is None or path in changed)
         if not touched:
             continue
         count += 1
