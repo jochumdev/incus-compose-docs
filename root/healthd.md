@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-13T08:45:16.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-13T08:45:16.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -167,7 +167,7 @@ listener, so by default there is exactly one on the server:
 | `global` (default) | instance `ic-healthd` in the Incus `incus-compose` project | every project marked `user.healthcheck.scope=global` |
 | `project`          | instance `{project}-ic-healthd` in the project             | that one project                                     |
 
-The shared daemon gets a project, a bridge (`ic-healthd`) and a root disk of its
+The shared daemon gets a project, a bridge (`icompose0`) and a root disk of its
 own, so nothing about how your `default` project is set up can break it. Both
 are created on the first `healthd up` and neither is removed by
 `healthd down`.
@@ -355,7 +355,7 @@ x-incus-compose:
 ### `network`
 
 - **Empty (default)** - a bridge of the project the daemon runs in, created if
-  needed: `ic-healthd` for the shared daemon, the project's own `default`
+  needed: `icompose0` for the shared daemon, the project's own `default`
   network for a project-scoped one. Either way healthd can come up before the
   rest of the project.
 - **`<project>:<network>`** - a managed Incus network, optionally in another
