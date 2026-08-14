@@ -61,6 +61,7 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `working_dir` - Set working directory
 - `user` - Run the container process as a specific UID/GID (numeric only, see below)
 - `dns` / `dns_search` / `domainname` - DNS resolver configuration (see below)
+- `sysctls` - Kernel parameters, set as `linux.sysctl.*` config (see below)
 - `environment` - Environment variables
 - `labels` - Metadata (stored as `user.label.*` config, see below)
 - `depends_on` - Service dependency order
@@ -222,6 +223,40 @@ Each key is only set when the corresponding compose field is non-empty. `dns_opt
 has no Incus equivalent and is not mapped.
 
 _Since: v1.1.0_
+
+#### Sysctls
+
+`sysctls` sets kernel parameters on the instance, mapping each key to
+`linux.sysctl.<key>`. Both the map and list forms work:
+
+```yaml
+services:
+  vpn:
+    image: docker.io/nginx:alpine
+    sysctls:
+      net.ipv4.conf.all.src_valid_mark: 1
+      net.ipv6.conf.all.disable_ipv6: 0
+  web:
+    image: docker.io/nginx:alpine
+    sysctls:
+      - net.core.somaxconn=1024
+```
+
+becomes:
+
+```yaml
+config:
+  linux.sysctl.net.ipv4.conf.all.src_valid_mark: "1"
+  linux.sysctl.net.ipv6.conf.all.disable_ipv6: "0"
+  linux.sysctl.net.core.somaxconn: "1024"
+```
+
+The value applies when the instance starts and survives a restart, on both
+privileged and unprivileged containers. Which parameters are writable from
+inside an unprivileged container is Incus's business, not ours: a key the
+kernel refuses in that namespace fails at start rather than being ignored.
+
+_Since: v1.2.0_
 
 #### x-incus Instance Extensions
 
