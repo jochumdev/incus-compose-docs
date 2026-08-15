@@ -1,5 +1,5 @@
 ---
-date: 2026-08-12T08:14:11.000Z
+date: 2026-08-15T22:04:53.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-12T08:14:11.000000000Z"
+leafwiki_updated_at: "2026-08-15T22:04:53.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: icZYCpLDg
 ---
@@ -342,6 +342,7 @@ incus-compose healthd <subcommand>
 | `logs [--follow]` | Stream the ic-healthd container log                       |
 | `reload`          | Send SIGHUP to the ic-healthd process                     |
 | `restart`         | Restart the ic-healthd container                          |
+| `status`          | Print the shared daemon's health status key               |
 | `up`              | Create the sidecar, or replace one running an older image |
 | `down [--force]`  | Stop and remove the sidecar                               |
 
@@ -351,6 +352,8 @@ all act on the shared daemon directly: `healthd up` creates one, the rest fail
 with `no ic-healthd is running` when there is none. `healthd down` asks first
 when other projects rely on that daemon; `--force` skips the question and is
 required without a terminal.
+
+_Since: v1.3.0_: `healthd status`.
 
 `healthd up` also accepts `--image`, `--binary`, `--incus`, `--network`,
 `--scope`, `--pull` and `--timeout`. See

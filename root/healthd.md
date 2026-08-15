@@ -1,5 +1,5 @@
 ---
-date: 2026-08-13T08:45:16.000Z
+date: 2026-08-15T22:05:09.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-13T08:45:16.000000000Z"
+leafwiki_updated_at: "2026-08-15T22:05:09.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -431,6 +431,7 @@ act on the shared daemon in the `incus-compose` project:
 | `logs [--follow]` | Stream the ic-healthd container log                       |
 | `reload`          | Send SIGHUP to force a full manual resync (rarely needed) |
 | `restart`         | Restart the ic-healthd container                          |
+| `status`          | Print the shared daemon's health status key               |
 | `up`              | Create the sidecar, or replace one running an older image |
 | `down [--force]`  | Stop and remove the sidecar                               |
 
@@ -438,6 +439,8 @@ act on the shared daemon in the `incus-compose` project:
 `--pull` and `--timeout`. Inside a project it refuses with an error when no
 service there requires healthd (no healthcheck, no restart policy, no
 `service_healthy` dependency).
+
+_Since: v1.3.0_: `healthd status`.
 
 ### Outside a project
 
