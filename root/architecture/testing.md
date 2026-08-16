@@ -1,7 +1,7 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-15T23:52:27.000Z
 dateCreated: 2026-07-05T01:03:28.732Z
-description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, and the separate cache project tests use.
+description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, driving the CLI as a subprocess, and how coverage is measured.
 editor: markdown
 published: true
 tags: []
@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-15T23:52:27.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -48,43 +48,108 @@ The nested Incus environment is configured via `.env` file:
 - `TEST_PROCS` (default 2) - number of tests to run in parallel.
 - `INCUS_COMPOSE_WORKERS` (default 4) - number of resources to create in parallel per test.
 
+A few more are read by the test helpers themselves rather than by the CLI, and
+are meant for a single run rather than `.env`:
+
+| Variable                      | Effect                                                            |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `INCUS_COMPOSE_TEST_DEBUG`    | Log every command a test shells out to, with its cwd and env      |
+| `INCUS_COMPOSE_TEST_TRACE`    | The same, plus the command's own stdout and stderr as it runs     |
+| `INCUS_COMPOSE_TEST_KEEP`     | Read by `testlib.KeepTestData`, for a test that cleans up its own |
+| `INCUS_COMPOSE_TEST_COVERDIR` | Where the instrumented CLI writes counters; `just test` sets it   |
+
 There's also `just test-e2e` which includes slow (long-running) tests.
 
 ### Test Commands
 
-| Command                                         | Description                                                    |
-| ----------------------------------------------- | -------------------------------------------------------------- |
-| `just test`                                     | Run all tests against nested Incus (preferred also runs in CI) |
-| `just test ./client/...`                        | Run tests for specific package                                 |
-| `just test -v -run TestName`                    | Run specific test with verbose output                          |
-| `just test-local`                               | Run unit tests only (no Incus connection required)             |
-| `just test-e2e`                                 | Run E2E tests that take long to run                            |
-| `just update-snapshots`                         | Update all snapshot test files                                 |
-| `just update-snapshots ./cmd/incus-compose/...` | Update snapshots for specific package                          |
-| `just update-e2e-snapshots`                     | Update snapshot for E2E test files                             |
+Every one of these takes the package pattern **first** and `go test` flags
+after it. That order is load-bearing: `just test-local -count=1` reads
+`-count=1` as the pattern and fails with `no Go files`, which does not look like
+an argument mistake. Write `just test-local ./... -count=1`.
+
+| Command                                    | Description                                               |
+| ------------------------------------------ | --------------------------------------------------------- |
+| `just test [pattern] [flags]`              | Unit + integration against nested Incus. What CI runs     |
+| `just test ./client/... -run TestName -v`  | The same, narrowed                                        |
+| `just test-local [pattern] [flags]`        | Unit only, no Incus needed                                |
+| `just test-e2e [pattern] [flags]`          | Adds the slow full-CLI tests                              |
+| `just test-examples [flags]`               | Brings up every project under `examples/`                 |
+| `just test-all [flags]`                    | Everything, in every module, without gotestsum            |
+| `just test-race [pattern] [flags]`         | The race detector without coverage                        |
+| `just test-log [-p REGEX] [-t NAME] [-f]`  | Plain text of the newest run's log; see below             |
+| `just cover [profile or covdata dir]`      | Per-package and total coverage; see [Coverage](#coverage) |
+| `just update-snapshots [pattern]`          | Rewrite snapshots from what the code produces now         |
+| `just update-e2e-snapshots [pattern]`      | The same, for the E2E tier                                |
+| `just update-examples-snapshots [pattern]` | The same, for `examples/`                                 |
+
+Each run writes `work/logs/<date>.json` (the gotestsum log),
+`work/logs/<date>-cover.out` (the profile) and `work/covdata/<date>/` (the raw
+counters). Nothing prunes them.
+
+### Reading a run
+
+`just test-log` renders the newest `work/logs/*.json` as plain text. It follows
+on a terminal until Ctrl-C, and reads once when piped, so
+`just test-log -p FAIL | head` answers instead of hanging:
+
+```bash
+just test-log                        # everything the run printed
+just test-log -p 'FAIL|Error:'       # only matching lines, extended regex
+just test-log -t TestE2EDownNoDeps   # only one test's output, matched by prefix
+just test-log -f | tee run.log       # follow even though piped
+```
+
+The newest log is picked at startup, so a run launched after this is not the one
+being followed.
 
 ### Development Commands
 
-| Command                 | Description                                  |
-| ----------------------- | -------------------------------------------- |
-| `just build`            | Build the binary                             |
-| `just run <args>`       | Run incus-compose via `go run` (uses `.env`) |
-| `just run-local <args>` | Run against local Incus (ignores `.env`)     |
-| `just incus <args>`     | Run commands in the nested Incus container   |
+| Command                          | Description                                                           |
+| -------------------------------- | --------------------------------------------------------------------- |
+| `just build`                     | Install a dev binary, stamped with the healthd image's version        |
+| `just run <args>`                | `go run ./cmd/incus-compose`, against the `.env` remote               |
+| `just incus <args>`              | Run `incus` against the nested dev environment                        |
+| `just build-healthd`             | Build `bin/ic-healthd` only                                           |
+| `just build-healthd-image [tag]` | Build the sidecar image and point `.env` at the new tag               |
+| `just update-healthd [args]`     | The above, then replace the shared daemon with it                     |
+| `just run-healthd [compose]`     | Bring a project up against a locally built daemon binary, and tail it |
+| `just release-healthd-image`     | Build and push the sidecar image to ghcr.io                           |
+
+`just build` depends on `update-healthd`, so it rebuilds the sidecar image and
+recreates the shared daemon. A change under `cmd/ic-healthd/**`, `shared/` or
+`iclient/` reaches the sidecar no other way.
 
 ### Code Quality
 
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `just lint`       | Lint all files with golangci-lint        |
-| `just fix`        | Fix lint issues with golangci-lint       |
-| `just pre-commit` | Run before committing (tidy, lint, test) |
+| Command            | Description                                                   |
+| ------------------ | ------------------------------------------------------------- |
+| `just lint [path]` | golangci-lint, over everything or one package                 |
+| `just fix [path]`  | The same with `--fix`                                         |
+| `just boundary`    | Check that the library packages import nothing that uses them |
+| `just tidy`        | `go mod tidy` in every module                                 |
+| `just pre-commit`  | Run before committing: `tidy`, `boundary`, `lint`             |
+| `just push`        | `pre-commit`, then push                                       |
+| `just modules`     | Every module directory, one per line                          |
+
+The path argument on `lint` and `fix` is worth using: golangci-lint caches per
+invocation scope, and a whole-tree run from one worktree can hand a stale answer
+to the next.
 
 ### Setup & Maintenance
 
-| Command            | Description                         |
-| ------------------ | ----------------------------------- |
-| `just dev-install` | Create nested Incus dev environment |
+| Command                          | Description                                                 |
+| -------------------------------- | ----------------------------------------------------------- |
+| `just dev-install`               | Create the nested Incus dev environment                     |
+| `just cleanup`                   | Purge projects and networks, then restart the Incus service |
+| `just purge-projects`            | Delete every project but `default` and the caches           |
+| `just purge-networks`            | Delete every managed network with no users                  |
+| `just purge-images`              | Delete every image                                          |
+| `just purge-certs`               | Delete every trusted certificate but your own               |
+| `just purge-tokens`              | Delete every outstanding trust token                        |
+| `just fleet <topology> <action>` | Build or tear down a standing stress fleet                  |
+
+After a run that failed partway, purge and then `just update-healthd` - the
+purge deletes the project the shared daemon lives in.
 
 ## Test Organization
 
@@ -99,7 +164,33 @@ client/
 project/
   ├── project.go
   └── project_test.go     # Tests for project.go
+internal/
+  └── testlib/            # what every package's tests share
 ```
+
+`internal/testlib` holds the tier guards, the paths, the CLI runner and the
+snapshot normalizers. It is under `internal/` because it has no stability
+promise - a signature there changes whenever a test needs it to, with no
+changelog entry - and the compiler is what keeps that off a library user.
+
+It may import the standard library and external modules, and nothing of ours
+except `shared`. `client`, `iclient` and `project` test in-package, so a helper
+there that reached for one of them would be an import cycle for exactly the
+tests that need it most. A helper that does need our own types belongs in the
+package it serves.
+
+### TestMain
+
+Every test package that wants the shared logger uses one line:
+
+```go
+func TestMain(m *testing.M) {
+	os.Exit(testlib.Main(m))
+}
+```
+
+`Main` sets the logger up, runs the tests, and removes whatever the CLI runner
+below built.
 
 ## Unit, integration and E2E
 
@@ -163,6 +254,89 @@ func newMockResource(name string, kind Kind, priority int, ensured bool) *mockRe
 Use it rather than writing another; anything needing more than a name, kind and
 priority belongs in the integration tier against real Incus.
 
+## Driving the CLI
+
+A test that wants the CLI runs `testlib.RunCompose`, which runs it as a real
+subprocess. There is one of these; do not write a second.
+
+```go
+stdout, err := testlib.RunCompose(ctx, t, t.Name(), "", nil,
+    "-f", testlib.Fixture(t, "simple", "compose.yaml"), "up", "--detach")
+```
+
+| Argument  | Means                                                                   |
+| --------- | ----------------------------------------------------------------------- |
+| `project` | Passed through `ProjectName`, so `t.Name()` works                       |
+| `dir`     | `--project-directory`; empty leaves the flag off, for a caller using -f |
+| `env`     | Extra environment for the child. Non-empty also implies `--os-env`      |
+| `args...` | Everything after the global flags                                       |
+
+Stdout comes back as a string. Stderr is carried on the error, so a command that
+failed says why wherever its error is reported and one that worked says nothing.
+
+**It is a subprocess on purpose.** In-process the CLI's package globals are
+shared by every parallel test in `cmd/incus-compose`, and `main`, `os.Args`
+parsing and the `os.Exit` paths are never exercised at all. The binary is built
+once per test process, under a `sync.Once`, into a directory `testlib.Main`
+removes at the end - so it is one build and then an `exec` per call, not a link
+per call.
+
+The build inherits the run's own settings: `-race` when the test binary has it
+(with `GORACE=halt_on_error=1` on the child, because a race report leaves the
+exit code at 0 on its own), and `-cover` when `INCUS_COMPOSE_TEST_COVERDIR` is
+set.
+
+### Paths
+
+Nothing addresses a fixture relatively. `RunCompose` runs from the checkout
+root, not from the package directory, so `../../test/fixtures/...` would resolve
+somewhere else:
+
+| Helper                         | Returns                             |
+| ------------------------------ | ----------------------------------- |
+| `testlib.RepoRoot(t)`          | The checkout, asked of `go list -m` |
+| `testlib.FixtureRoot(t)`       | `test/fixtures`                     |
+| `testlib.Fixture(t, parts...)` | A path inside it                    |
+
+## Coverage
+
+`just test` produces a profile at `work/logs/<date>-cover.out` and prints the
+report at the end of the run, pass or fail. `just cover` prints it again:
+
+```bash
+just cover                          # the newest run
+just cover work/logs/X-cover.out    # a profile you name
+just cover work/covdata/X           # a covdata directory, converted first
+```
+
+```
+PACKAGE                                          STMTS   COVERED   PERCENT
+github.com/lxc/incus-compose/client               3024      2368     78.3%
+github.com/lxc/incus-compose/iclient               931       779     83.7%
+...
+TESTED                                            7931      5892     74.3%
+TOTAL                                             7932      5893     74.3%
+```
+
+Statement counts are in the table because a percentage alone does not say where
+the gap is - `client` is 3024 statements against `shared`'s 66.
+
+`TOTAL` is every package in the profile; `TESTED` drops the ones with no test
+files of their own, which is the set a plain `-coverprofile` run measures. They
+differ by a statement or two here, so `TOTAL` is comparable to an older
+baseline.
+
+**Why covdata and not `-coverprofile`.** The CLI is a subprocess, so its work
+lands in no test binary's profile. Instead it is built `-cover -coverpkg ./...`
+and points `GOCOVERDIR` at the same directory `go test` writes to (via
+`-args -test.gocoverdir`), and one `go tool covdata textfmt` merges both into
+the profile. `-coverpkg` is the load-bearing half: without it the binary counts
+`package main` and nothing it drives through `client/` and `project/`.
+
+That is also why a run measures more than it used to. A plain `go test` without
+`-coverpkg` only instruments the package under test, so a `cmd/incus-compose`
+test driving `client/` code counted for nothing.
+
 ## Prove the test red before you trust it green
 
 A test written against a fix you just made passes for two possible reasons: the
@@ -211,16 +385,16 @@ ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
 
 ## Test Fixtures
 
-Located in `test/fixtures/`. Each fixture is a minimal compose scenario.
+Located in `test/fixtures/`. Each fixture is a minimal compose scenario, named
+for the one thing it exercises - `simple`, `wordpress`, `with-secrets`,
+`with-restart`, `with-bind-mounts`, and forty-odd others. `ls test/fixtures/` is
+the list, and the name is the description.
 
-### Available Fixtures
+Address one with `testlib.Fixture`, never a relative path:
 
-- `simple/` - Simplest case
-- `wordpress/` - Multi-service with volumes
-- `with_profiles/` - Profile testing
-- `with_env/` - Environment variable testing
-- `with-secrets/` - Secrets management testing
-- `with-restart/` - Restart policies testing
+```go
+compose := testlib.Fixture(t, "wordpress", "compose.yaml")
+```
 
 ### Fixture Guidelines
 
