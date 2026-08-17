@@ -1,11 +1,11 @@
 ---
-date: 2026-08-09T08:57:50.000Z
+date: 2026-08-17T14:30:47.000Z
 dateCreated: 2026-08-09T11:00:00.000Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
 title: iclient
 leafwiki_created_at: "2026-08-09T11:00:00.000000000Z"
-leafwiki_updated_at: "2026-08-09T08:57:50.000000000Z"
+leafwiki_updated_at: "2026-08-17T14:30:47.000000000Z"
 ---
 
 # iclient
@@ -47,7 +47,9 @@ conn, err := iclient.NewConnection(info)     // the connection
 ```
 
 `client.DialRemote(path, remote)` is those three lines, and is what the CLI and
-the tests use. An empty remote means the configuration's default.
+the tests use. An empty remote means the configuration's default. An `oci`
+remote has no daemon to dial; its `info` goes to
+[`NewRepository`](#reading-an-images-config) instead.
 
 `ReadConfig` is the only thing that touches disk. Nothing mutates a `*Config`
 afterwards, so it is safe to share - a well-known registry is resolved against
@@ -131,6 +133,7 @@ Sentinels, matched with `errors.Is`:
 | `ErrConnectionDisconnected` | The connection was used after `Disconnect`.            |
 | `ErrConnectionUnsupported`  | The remote cannot serve that call.                     |
 | `ErrInstanceBusy`           | Another operation holds the instance's operation lock. |
+| `ErrRegistryProtocol`       | `NewRepository` got a remote that is not a registry.   |
 
 Everything else arrives as an `api.StatusError`, so `api.StatusErrorCheck(err, 404)`
 works as it does upstream.
@@ -152,9 +155,9 @@ callers keep a short delay as well.
 
 ## Images: the server fetches
 
-A registry or a simplestreams remote is **somewhere to point the server at**,
-never something this dials. Resolving an OCI tag needs skopeo, which is the
-server's business:
+A registry or a simplestreams remote is **somewhere to point the server at** for
+the image itself. Resolving an OCI tag needs skopeo, which is the server's
+business:
 
 ```go
 conn.CreateImage(ctx, api.ImagesPost{
@@ -173,6 +176,35 @@ Passing `ImageCreateArgs` uploads the tarballs instead, which is how the compose
 `build:` path imports a locally built image. The body is then the tarballs, so
 the aliases, properties and public flag travel as `X-Incus-*` **headers** -
 leaving them out imports the image and silently drops its alias.
+
+### Reading an image's config
+
+What the server pulls does not carry the OCI image config. Incus flattens
+ENTRYPOINT and CMD into one `oci.entrypoint` and keeps no `Volumes` at all, and
+`incus image export` hands back the same runtime spec rather than the image
+config. `NewRepository` reads that config from the registry instead:
+
+```go
+info, err := config.RemoteInfos("docker.io")
+repo, err := iclient.NewRepository(info, "library/redis:alpine")
+
+desc, rc, err := repo.FetchReference(ctx, repo.Reference.Reference)
+```
+
+It is [oras-go](https://oras.land)'s `*remote.Repository`, so the OCI
+Distribution API is the whole surface. Manifests and the config blob are what
+this is for; layers stay the server's to fetch.
+
+| From the remote     | Becomes                                                  |
+| ------------------- | -------------------------------------------------------- |
+| `Addrs[0]` host     | The registry, so a mirror stands in for what it mirrors. |
+| `Addrs[0]` scheme   | `PlainHTTP`, for `http://`.                              |
+| `Addrs[0]` userinfo | The registry credential.                                 |
+| `ServerCert`        | The registry certificate to pin.                         |
+| `UserAgent`         | The `User-Agent` header.                                 |
+
+`HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` apply as they do to a `Connection`. A
+remote whose protocol is not `oci` returns `ErrRegistryProtocol`.
 
 ## Streams
 
@@ -199,8 +231,11 @@ is built on that; see [ic-healthd Internals](/architecture/healthd).
 Deliberate, and each one returns `ErrConnectionUnsupported` or an error rather
 than half-working:
 
-- **Simplestreams and OCI connections.** Only the Incus REST API is spoken. A
-  registry is pointed at, not dialed.
+- **Simplestreams connections.** Only the Incus REST API is spoken.
+- **Pulling from a registry.** `NewRepository` reads an image's metadata; the
+  image itself is still pulled by the server.
+- **Credentials helpers.** A remote's `credentials_helper` is not run, so a
+  registry is reached with whatever credentials its address already carries.
 - **Interactive exec.** No PTY, no stdin, no resize control.
 - **Console input.** `ConsoleInstance` attaches to watch a console, not to drive
   one.
@@ -216,7 +251,8 @@ Two tiers, following [Testing](/architecture/testing):
 - **Unit** tests use an `httptest` recording server and assert **what goes on
   the wire** - the path, the query, the headers. A real Incus answers happily
   without a `project` or `recursion` parameter, so those tests cannot catch a
-  dropped one.
+  dropped one. `NewRepository` is tested the same way, against an `httptest`
+  server speaking enough of the Distribution API to serve one manifest.
 - **Integration and E2E** tests (`skipLocal` / `skipE2E`) drive a real Incus:
   the operation and event paths, exec, console, the busy lock, and an image
   pull from a registry.
