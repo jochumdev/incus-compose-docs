@@ -1,5 +1,5 @@
 ---
-date: 2026-08-15T23:52:27.000Z
+date: 2026-08-17T18:16:04.000Z
 dateCreated: 2026-07-05T01:03:28.732Z
 description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, driving the CLI as a subprocess, and how coverage is measured.
 editor: markdown
@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-08-15T23:52:27.000000000Z"
+leafwiki_updated_at: "2026-08-17T18:16:04.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -195,12 +195,14 @@ below built.
 ## Unit, integration and E2E
 
 Tests are not split by directory or build tag. Which tier a test belongs to is
-decided by the skip helper it calls on its first line:
+decided by the skip helper it calls on its first line. Every test therefore
+compiles in every run, so a change that breaks one fails the build instead of
+going unnoticed behind a tag:
 
 | Tier        | Guard          | Needs Incus | Runs with                                  |
 | ----------- | -------------- | ----------- | ------------------------------------------ |
 | unit        | none           | no          | every command, including `just test-local` |
-| integration | `skipLocal(t)` | yes         | `just test`                                |
+| integration | `skipLocal(t)` | yes         | `just test`, `just test-e2e`               |
 | E2E         | `skipE2E(t)`   | yes         | `just test-e2e`                            |
 
 ```mermaid
@@ -227,8 +229,11 @@ test-local`) skips them, which is why a green `just test-local` proves much
   skipped unless `INCUS_COMPOSE_TEST_E2E=1` (set by `just test-e2e`), so they
   stay out of the normal loop.
 
-There is no mocking of `incus.InstanceServer`. Anything that needs Incus talks
-to the real nested one; that is the point of the integration tier.
+There is no mocking of `incus.InstanceServer`. A fake encodes a guess about what
+Incus returns - which `StatusCode` is populated, whether a stopped instance's
+`State` is nil or empty, whether `lo` is present - and a test that passes against
+the guess proves nothing about the daemon. Anything that needs Incus talks to the
+real nested one; that is the point of the integration tier.
 
 **Examples**: `client/resource_image_test.go` mixes all three - parsing tests
 with no guard, ensure/lock tests behind `skipLocal`.
@@ -252,7 +257,16 @@ func newMockResource(name string, kind Kind, priority int, ensured bool) *mockRe
 ```
 
 Use it rather than writing another; anything needing more than a name, kind and
-priority belongs in the integration tier against real Incus.
+priority belongs in the integration tier against real Incus. A second mock is a
+maintainer's call - ask first.
+
+`internal/testlib` is not an exception either. It builds Incus API _values_ for
+tests whose question is "did my map end up right" - the model, the queue, the
+patches. It is not for testing distillation against how the daemon actually
+behaves; that stays in the tier that has one.
+
+Test the production function, not a copy of it in the test file. A test that
+reimplements the logic it checks proves nothing either.
 
 ## Driving the CLI
 
@@ -383,6 +397,18 @@ ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
   released. A pointing-at-nothing build context or a nulled-out source turns
   "it didn't go there" into something you can assert.
 
+## Style
+
+- Table-driven with `t.Run` subtests is the house style, not flat top-level
+  functions.
+- `testify` - `require` for what the rest of the test depends on, `assert` for
+  the claims themselves.
+- Name the case, not the mechanism: "a stopped instance loses its addresses"
+  beats "case 3".
+- Do not reach into another goroutine's state from the test goroutine. If a
+  plugin's state belongs to its `Run`, stop it first and assert afterwards -
+  `-race` will find you otherwise, which is how it should be.
+
 ## Test Fixtures
 
 Located in `test/fixtures/`. Each fixture is a minimal compose scenario, named
@@ -454,9 +480,8 @@ just run -f test/fixtures/simple/compose.yaml config
 1. **Test isolation** - Each test gets fresh resources via `SetupTest()`
 2. **Error aggregation** - Use `errors.Join()` for batch operation errors
 3. **Priority testing** - Verify creation/deletion order respects priorities
-4. **Mock consistency** - Mocks should behave like real resources
-5. **Fixture reuse** - Share fixtures across tests but keep them minimal
-6. **Snapshot hygiene** - Review snapshot diffs carefully during updates
+4. **Fixture reuse** - Share fixtures across tests but keep them minimal
+5. **Snapshot hygiene** - Review snapshot diffs carefully during updates
 
 ## See Also
 
