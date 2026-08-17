@@ -1,11 +1,11 @@
 ---
-date: 2026-08-17T14:57:08.000Z
+date: 2026-08-17T17:07:23.000Z
 dateCreated: 2026-08-09T11:00:00.000Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
 title: iclient
 leafwiki_created_at: "2026-08-09T11:00:00.000000000Z"
-leafwiki_updated_at: "2026-08-17T14:57:08.000000000Z"
+leafwiki_updated_at: "2026-08-17T17:07:23.000000000Z"
 ---
 
 # iclient
@@ -101,11 +101,14 @@ Waiting is ranging to the close, and the last value is the outcome - which is
 what `WaitOperation` does. Consuming the updates yourself is how progress is
 reported; see [Progress](/architecture/progress).
 
-> **Trap: token operations.** An image secret (`CreateImageSecret`) and a trust
-> token (`CreateCertificateToken`) are created and then wait to be _used_, so
-> they never reach a terminal state. Read the first value, which carries the
-> token, and cancel the context. Ranging to the close waits for the token to
-> expire, and `WaitOperation` never returns.
+> **Trap: token operations.** A trust token (`CreateCertificateToken`) is
+> created and then waits to be _used_, so it never reaches a terminal state.
+> Read the first value, which carries the token, and cancel the context.
+> Ranging to the close waits for the token to expire, and `WaitOperation` never
+> returns.
+>
+> An image secret is a token operation too, which is why `CopyImage` reads it
+> from the response to the request rather than following it at all.
 
 ## Arguments, not method names
 
