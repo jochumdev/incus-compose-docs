@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:48.000Z
+date: 2026-08-17T22:39:01.000Z
 dateCreated: 2026-07-05T01:03:40.172Z
 description: The instance resource in depth - pre- and post-creation devices, why an instance is written twice, and how UID/GID shifting keeps volume files owned correctly.
 editor: markdown
@@ -9,7 +9,7 @@ title: Instance Details
 leafwiki_id: 10iXqlfvg
 leafwiki_title: Instance Details
 leafwiki_created_at: "2026-07-05T03:54:01.617008851Z"
-leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
+leafwiki_updated_at: "2026-08-17T22:39:01.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -161,6 +161,33 @@ flowchart TD
     POST --> UPD["UpdateInstance with the<br/>post-device map"]
     UPD --> DONE
 ```
+
+## Image Volumes
+
+An image's declared `VOLUME` paths arrive in `ImageState.Volumes`, and on
+creation the instance gives each one a volume of its own, unless a device
+already covers that path. So the compose file wins wherever it says anything,
+and `NoAutoVolumes` turns the whole thing off.
+
+```
+for each path the image declares
+  a device at, above or below it?   -> leave it alone
+  otherwise                         -> volume auto-<service>-<path>, mounted at it
+```
+
+The volume is created with `Prefetch` set to that path, so it starts from what
+the image ships there; see
+[Storage Volume](/architecture/client/storage_volume#prefetch). Its Incus name
+is a hash, so it cannot collide with a declared volume's.
+
+Nothing is nested: a declared path below an existing device, or above one, is
+skipped rather than mounted inside it. Docker mounts it anyway.
+
+The device is named `imgvol-<path>`, which is what finds these volumes again on
+an instance this process never created - `Ensure` registers them from the
+instance's own devices, and `Delete` with `OptionVolumes` takes them down with
+it. Replicas of a service share one volume, so every delete but the last reports
+it still in use, which is ignored.
 
 ## UID/GID Shifting
 

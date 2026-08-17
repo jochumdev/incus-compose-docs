@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T15:23:53.000Z
+date: 2026-08-17T22:38:35.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-17T15:23:53.000000000Z"
+leafwiki_updated_at: "2026-08-17T22:38:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -549,10 +549,95 @@ _Since: v1.1.0_
 - `x-incus` extension - pass any Incus volume config key directly (see below)
 - `x-incus-compose.pool` - select the storage pool for a named volume (see below)
 - `x-incus-compose.seed` - copy a bind mount's source into the instance (see below)
+- Image volumes - a path the image declares as `VOLUME` gets one of its own (see below)
+- Prefetching - a volume starts from what the image ships at its target (see below)
 
 Not supported:
 
 - Volume driver options
+
+#### Image Volumes
+
+A path an image declares as `VOLUME` gets a storage volume of its own, named
+after the service and mounted there:
+
+```yaml
+services:
+  store:
+    image: ghcr.io/isso-comments/isso:latest
+```
+
+isso declares `/config` and `/db`, so `store` comes up with a volume at each.
+Without them Incus mounts a tmpfs over those paths, and isso's database is gone
+on the next restart.
+
+Declaring anything at the same target takes it over, which is how you choose the
+pool, the size, or that the path should not persist at all:
+
+```yaml
+services:
+  store:
+    image: ghcr.io/isso-comments/isso:latest
+    volumes:
+      - db:/db # a volume of your own, with your own x-incus keys
+      - type: tmpfs
+        target: /config # deliberately empty on every start
+```
+
+One volume per service, shared by its replicas. Turn the whole thing off for a
+project with:
+
+```yaml
+x-incus-compose:
+  auto-volumes: false
+```
+
+The volume's Incus name is a hash, so it cannot collide with a name you chose;
+its description names the service and the path. An instance brings its volumes
+up and takes them down again, so `down --volumes` removes them - after a plain
+`down` there is no instance left to ask, and `down --project` is what clears
+them. The next `up` recreates the instance and adopts the same volumes.
+
+_Since: v1.3.0_
+
+#### Prefetching
+
+A volume created empty starts from whatever the image holds at the path it is
+mounted over, as docker fills an empty volume from the image. This matters for
+a config directory the image ships:
+
+```yaml
+services:
+  web:
+    image: docker.io/nginx:alpine
+    volumes:
+      - conf:/etc/nginx/conf.d
+
+volumes:
+  conf:
+```
+
+`conf` arrives holding the image's `default.conf` instead of being empty. Only
+volumes are filled, never bind mounts, and only on first creation - a volume
+that already exists is left alone, whatever the image says.
+
+`nocopy` keeps it empty:
+
+```yaml
+volumes:
+  - type: volume
+    source: conf
+    target: /etc/nginx/conf.d
+    volume:
+      nocopy: true
+```
+
+Plain files and directories are copied, with their mode and owner. Symlinks,
+devices, sockets and fifos are skipped and named in a warning; docker copies
+them. A path the image does not have, or that holds nothing, leaves an empty
+volume and is not an error.
+
+_Since: v1.3.0_
 
 #### x-incus Volume Extensions
 
@@ -778,6 +863,29 @@ Docker achieves the same by mounting over the path, so the image file is only
 hidden for the container's lifetime. incus-compose writes into the instance's
 root filesystem instead, so the replacement is permanent for that instance -
 the original is gone until the instance is recreated.
+
+A target inside a volume is written into that volume instead, since a mount
+would otherwise hide it. So a config lands on top of what
+[prefetching](#prefetching) put there, which is the order docker mounts them in:
+
+```yaml
+services:
+  web:
+    image: docker.io/nginx:alpine
+    volumes:
+      - conf:/etc/nginx/conf.d
+    configs:
+      - source: site
+        target: /etc/nginx/conf.d/site.conf
+```
+
+The volume gets the image's `default.conf` and your `site.conf` beside it, and
+`site.conf` is rewritten on every start. A target under a tmpfs or a
+pass-through bind has nowhere to be written before the instance starts, so it is
+warned about and skipped.
+
+_Changed in 1.3.0_: such a file used to be written into the instance's
+filesystem, where the mount hid it.
 
 _Changed in 1.2.0_: a target that already existed in the image was previously
 left untouched, which silently ignored the config or secret.

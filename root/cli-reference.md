@@ -1,5 +1,5 @@
 ---
-date: 2026-08-15T22:04:53.000Z
+date: 2026-08-17T22:39:13.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-15T22:04:53.000000000Z"
+leafwiki_updated_at: "2026-08-17T22:39:13.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: icZYCpLDg
 ---
@@ -139,6 +139,11 @@ incus-compose down [SERVICE...]
 | `--no-networks`      | Don't touch networks                                                     |
 | `--external-healthd` | Use an existing (unmanaged) healthd; don't look one up                   |
 | `--no-healthd`       | Don't stop/remove healthd sidecar                                        |
+
+An instance takes its own volumes down with it, so `--volumes` reaches the ones
+[an image declared](/compose-compatibility#image-volumes) as well. After a plain
+`down` the instance is gone and there is nothing left to ask: those volumes stay
+until `--project`, or until the next `up` recreates the instance that owns them.
 
 _Changed in 1.0.0-rc.1_: `--volumes` is now no more an alias for `--project` but deletes volumes.
 
