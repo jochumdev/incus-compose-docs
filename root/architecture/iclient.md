@@ -1,11 +1,11 @@
 ---
-date: 2026-08-17T14:30:47.000Z
+date: 2026-08-17T14:57:08.000Z
 dateCreated: 2026-08-09T11:00:00.000Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
 title: iclient
 leafwiki_created_at: "2026-08-09T11:00:00.000000000Z"
-leafwiki_updated_at: "2026-08-17T14:30:47.000000000Z"
+leafwiki_updated_at: "2026-08-17T14:57:08.000000000Z"
 ---
 
 # iclient
@@ -53,7 +53,8 @@ remote has no daemon to dial; its `info` goes to
 
 `ReadConfig` is the only thing that touches disk. Nothing mutates a `*Config`
 afterwards, so it is safe to share - a well-known registry is resolved against
-it, never written into it.
+it, never written into it, and the
+[credentials memo](#registry-credentials) is filled in before it is shared.
 
 | Method                         | Returns                                                               |
 | ------------------------------ | --------------------------------------------------------------------- |
@@ -126,14 +127,16 @@ The same shape covers `GetImageArgs`, `GetImageAliasArgs`,
 
 Sentinels, matched with `errors.Is`:
 
-| Sentinel                    | Means                                                  |
-| --------------------------- | ------------------------------------------------------ |
-| `ErrConfigRemoteNotFound`   | The configuration does not name that remote.           |
-| `ErrConnectionNoAddress`    | The remote has nothing to dial.                        |
-| `ErrConnectionDisconnected` | The connection was used after `Disconnect`.            |
-| `ErrConnectionUnsupported`  | The remote cannot serve that call.                     |
-| `ErrInstanceBusy`           | Another operation holds the instance's operation lock. |
-| `ErrRegistryProtocol`       | `NewRepository` got a remote that is not a registry.   |
+| Sentinel                     | Means                                                  |
+| ---------------------------- | ------------------------------------------------------ |
+| `ErrConfigRemoteNotFound`    | The configuration does not name that remote.           |
+| `ErrConnectionNoAddress`     | The remote has nothing to dial.                        |
+| `ErrConnectionDisconnected`  | The connection was used after `Disconnect`.            |
+| `ErrConnectionUnsupported`   | The remote cannot serve that call.                     |
+| `ErrInstanceBusy`            | Another operation holds the instance's operation lock. |
+| `ErrRegistryProtocol`        | `NewRepository` got a remote that is not a registry.   |
+| `ErrRegistryAddrCredentials` | An address still carries a login; the fields take it.  |
+| `ErrCredHelper`              | A remote's credentials helper failed.                  |
 
 Everything else arrives as an `api.StatusError`, so `api.StatusErrorCheck(err, 404)`
 works as it does upstream.
@@ -195,16 +198,41 @@ It is [oras-go](https://oras.land)'s `*remote.Repository`, so the OCI
 Distribution API is the whole surface. Manifests and the config blob are what
 this is for; layers stay the server's to fetch.
 
-| From the remote     | Becomes                                                  |
-| ------------------- | -------------------------------------------------------- |
-| `Addrs[0]` host     | The registry, so a mirror stands in for what it mirrors. |
-| `Addrs[0]` scheme   | `PlainHTTP`, for `http://`.                              |
-| `Addrs[0]` userinfo | The registry credential.                                 |
-| `ServerCert`        | The registry certificate to pin.                         |
-| `UserAgent`         | The `User-Agent` header.                                 |
+| From the remote         | Becomes                                                  |
+| ----------------------- | -------------------------------------------------------- |
+| `Addrs[0]` host         | The registry, so a mirror stands in for what it mirrors. |
+| `Addrs[0]` scheme       | `PlainHTTP`, for `http://`.                              |
+| `Username` / `Password` | The registry credential.                                 |
+| `ServerCert`            | The registry certificate to pin.                         |
+| `UserAgent`             | The `User-Agent` header.                                 |
 
 `HTTP_PROXY`/`HTTPS_PROXY`/`NO_PROXY` apply as they do to a `Connection`. A
 remote whose protocol is not `oci` returns `ErrRegistryProtocol`.
+
+### Registry credentials
+
+`RemoteInfos` resolves an `oci` remote's login into `Username` and `Password`,
+from its `credentials_helper` if it has one, else from a login its address
+carries. The helper is the
+[docker credentials helper](https://github.com/docker/docker-credential-helpers)
+protocol, called exactly as the incus CLI calls it - the registry host on
+stdin, `{"Username","Secret"}` back - so one helper serves both tools.
+
+**The login never stays in `Addrs`.** It is lifted out into the two fields, and
+an address that still carries one is refused by `NewRepository` with
+`ErrRegistryAddrCredentials` rather than reached anonymously. Addresses end up
+in logs and error strings; these two fields do not.
+
+Each remote is resolved at most once per `Config`: `ReadConfig` gives every
+remote a memo entry up front, so a run pulling a dozen images from one registry
+asks the helper once, and two registries still resolve at the same time.
+
+The one place a login becomes a URL again is the pull, where
+`ImagesPost.Source.Server` is the only channel incusd offers - `ImageSource`
+has no field for it. incusd logs that URL when it connects, which is inherent
+to the API rather than something this can avoid.
+
+_Since: v1.3.0_
 
 ## Streams
 
@@ -234,8 +262,6 @@ than half-working:
 - **Simplestreams connections.** Only the Incus REST API is spoken.
 - **Pulling from a registry.** `NewRepository` reads an image's metadata; the
   image itself is still pulled by the server.
-- **Credentials helpers.** A remote's `credentials_helper` is not run, so a
-  registry is reached with whatever credentials its address already carries.
 - **Interactive exec.** No PTY, no stdin, no resize control.
 - **Console input.** `ConsoleInstance` attaches to watch a console, not to drive
   one.

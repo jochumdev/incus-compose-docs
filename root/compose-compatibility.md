@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T07:22:10.000Z
+date: 2026-08-17T14:56:22.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-09T07:22:10.000000000Z"
+leafwiki_updated_at: "2026-08-17T14:56:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -904,13 +904,33 @@ Like Docker, images are cached globally. An image pulled for one project is avai
 
 **Registry authentication:**
 
-Docker uses `~/.docker/config.json`. Incus uses remote configuration:
+Docker reads `~/.docker/config.json`. incus-compose asks the remote's
+credentials helper, which speaks the same protocol, so a
+`docker-credential-pass` or `docker-credential-secretservice` that already holds
+your logins is reused as-is:
 
 ```bash
-incus remote add --protocol oci docker.io https://docker.io --auth-type bearer
+incus remote add --protocol oci registry.example.com https://registry.example.com \
+  --credentials-helper docker-credential-pass
 ```
 
-See [Incus documentation](https://linuxcontainers.org/incus/docs/main/howto/images_remote/) for details.
+The helper is asked once per registry per command, and the answer covers both
+reading the image's config and the pull incusd performs.
+
+A login can sit in the remote's address instead
+(`https://user:token@registry.example.com`). That is simpler, but it keeps the
+password in `~/.config/incus/config.yml` as plaintext. Either way the pull
+itself carries the login to incusd inside the source URL, which incusd logs at
+debug level - the Incus image API has no field to put it anywhere else.
+
+A registry served by a built-in default has nowhere to hang a helper, so add it
+as a remote first, even when the address does not change:
+
+```bash
+incus remote add --protocol oci ghcr.io https://ghcr.io --credentials-helper docker-credential-pass
+```
+
+_Since: v1.3.0_
 
 **Platform selection:**
 
