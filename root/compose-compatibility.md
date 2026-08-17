@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T14:56:22.000Z
+date: 2026-08-17T15:23:53.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-17T14:56:22.000000000Z"
+leafwiki_updated_at: "2026-08-17T15:23:53.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -56,7 +56,7 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 ### Services
 
 - `image` - OCI images from any registry
-- `command` - Override container command (appends, see below)
+- `command` - Override container command (replaces the image's, see below)
 - `entrypoint` - Override the container entrypoint (see below)
 - `working_dir` - Set working directory
 - `user` - Run the container process as a specific UID/GID (numeric only, see below)
@@ -174,24 +174,25 @@ services:
 | `[]`          | unset      | rejected - nothing to run    |
 | unset         | set        | image entrypoint + `command` |
 
-**`command:` on its own is appended, not substituted.** That last row is the one
-place incus-compose deviates from Docker, and it is a limitation of the Incus
-API rather than a choice: Incus derives an OCI container's entrypoint from the
-runtime bundle's resolved arguments, which already have the image's `ENTRYPOINT`
-and `CMD` concatenated, and never exposes the two separately. Without that split
-there is no way to replace `CMD` while keeping `ENTRYPOINT`.
+`command:` on its own **replaces the image's `CMD` and keeps its
+`ENTRYPOINT`**, as Docker does. An image with `ENTRYPOINT ["caddy"]` and
+`CMD ["run"]` plus `command: ["version"]` runs `caddy version`.
 
-So an image with `ENTRYPOINT ["caddy"]` and `CMD ["run"]` plus
-`command: ["version"]` runs `caddy run version`, where Docker would run
-`caddy version`. **Set `entrypoint:` when you need the command to be exactly
-what you wrote** - it takes the image out of the equation entirely.
+Incus cannot answer which part of an image's argv was the `ENTRYPOINT`: it
+reports the two already concatenated. incus-compose reads the split from the
+image's own config in the registry instead, before the image is pulled, and
+keeps it in the image's `oci.entrypoint` and `oci.cmd` properties. A locally
+built image gets the same from the builder.
 
-[lxc/incus#3765](https://github.com/lxc/incus/pull/3765) is the upstream
-proposal to expose the split. If it lands, `command:` on its own will substitute
-like Docker does, which will be a breaking change for anyone relying on today's
-append.
+Reading that config is the one thing incus-compose asks of a registry directly
+rather than pointing the server at it, so a client that cannot reach the
+registry its server pulls from logs a warning and stores no split. `command:`
+then runs on its own, without the image's entrypoint in front of it - set
+`entrypoint:` to say exactly what should run, which needs nothing from the
+image.
 
-_Since: v1.2.0_
+_Since: v1.3.0_ - until v1.2.0 `command:` appended to the image's whole argv,
+so the example above ran `caddy run version`.
 
 #### DNS
 
