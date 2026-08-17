@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T22:38:35.000Z
+date: 2026-08-17T22:47:26.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-17T22:38:35.000000000Z"
+leafwiki_updated_at: "2026-08-17T22:47:26.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -592,8 +592,8 @@ x-incus-compose:
   auto-volumes: false
 ```
 
-The volume's Incus name is a hash, so it cannot collide with a name you chose;
-its description names the service and the path. An instance brings its volumes
+The volume is named after the service and the path, `vol-auto-store-db`, so it
+cannot collide with a name you chose. An instance brings its volumes
 up and takes them down again, so `down --volumes` removes them - after a plain
 `down` there is no instance left to ask, and `down --project` is what clears
 them. The next `up` recreates the instance and adopts the same volumes.
