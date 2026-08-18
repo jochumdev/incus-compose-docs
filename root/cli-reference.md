@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T00:07:28.000Z
+date: 2026-08-18T00:07:28Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,9 +9,9 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-18T00:07:28.000000000Z"
+leafwiki_updated_at: "2026-08-18T14:10:05.606368676Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: icZYCpLDg
+leafwiki_last_author_id: public-editor
 ---
 
 # CLI Reference
@@ -308,6 +308,8 @@ Unlike `docker compose port`, a stopped instance answers too: the binding is a
 device on the instance, not something the running process holds. A port that is
 not published is an error naming the ports the instance does have.
 
+_Since: v1.3.0_
+
 ## port-forward
 
 Forward a local TCP port into an instance, published or not.
@@ -335,6 +337,8 @@ incus-compose port-forward db 5432 0.0.0.0:15432
 
 Like `exec`, it shells out to your local `incus` client and targets the instance
 via `INCUS_PROJECT`. It needs Incus 7.3, or 7.0.1 LTS.
+
+_Since: v1.3.0_
 
 ## ps
 
@@ -604,4 +608,4 @@ command scoped to the current project.
 | `run`                        | not implemented                          | Use `up` then `exec`.                                          |
 | `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough.                     |
 | `port`                       | `port`                                   | A stopped instance answers too.                                |
-| -                            | `port-forward`                           | No docker equivalent: reaches a port that was never published. |
+|

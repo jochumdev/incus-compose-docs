@@ -1,11 +1,15 @@
 ---
-date: 2026-08-17T17:07:23.000Z
-dateCreated: 2026-08-09T11:00:00.000Z
+date: 2026-08-17T17:07:23Z
+dateCreated: 2026-08-09T11:00:00Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
 title: iclient
-leafwiki_created_at: "2026-08-09T11:00:00.000000000Z"
-leafwiki_updated_at: "2026-08-17T17:07:23.000000000Z"
+leafwiki_id: vwIoKtUvRz
+leafwiki_title: iclient
+leafwiki_created_at: "2026-08-09T11:00:00Z"
+leafwiki_updated_at: "2026-08-17T17:07:23Z"
+leafwiki_creator_id: system
+leafwiki_last_author_id: system
 ---
 
 # iclient
