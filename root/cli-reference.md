@@ -589,23 +589,23 @@ Most `docker compose` verbs map directly. Anything without a dedicated command i
 reachable through the `incus-compose incus` passthrough, which runs any `incus`
 command scoped to the current project.
 
-| `docker compose`             | incus-compose                            | Notes                                                          |
-| ---------------------------- | ---------------------------------------- | -------------------------------------------------------------- |
-| `up`                         | `up`                                     |                                                                |
-| `down`                       | `down`                                   |                                                                |
-| `start` / `stop` / `restart` | `start` / `stop` / `restart`             |                                                                |
-| `ps`                         | `ps`                                     |                                                                |
-| `logs`                       | `logs`                                   |                                                                |
-| `exec`                       | `exec`                                   |                                                                |
-| `build`                      | `build`                                  |                                                                |
-| `config`                     | `config`                                 |                                                                |
-| `pull`                       | `pull`                                   |                                                                |
-| `images`                     | `config --images`                        | Or `incus-compose incus image list`.                           |
-| `cp`                         | `incus-compose incus file push` / `pull` |                                                                |
-| `top`                        | `incus-compose incus top`                |                                                                |
-| `events`                     | `incus-compose incus monitor`            |                                                                |
-| `kill`                       | `stop --timeout 0`                       | Forces an immediate stop.                                      |
-| `run`                        | not implemented                          | Use `up` then `exec`.                                          |
-| `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough.                     |
-| `port`                       | `port`                                   | A stopped instance answers too.                                |
-|
+| `docker compose`             | incus-compose                            | Notes                                      |
+| ---------------------------- | ---------------------------------------- | ------------------------------------------ |
+| `up`                         | `up`                                     |                                            |
+| `down`                       | `down`                                   |                                            |
+| `start` / `stop` / `restart` | `start` / `stop` / `restart`             |                                            |
+| `ps`                         | `ps`                                     |                                            |
+| `logs`                       | `logs`                                   |                                            |
+| `exec`                       | `exec`                                   |                                            |
+| `build`                      | `build`                                  |                                            |
+| `config`                     | `config`                                 |                                            |
+| `pull`                       | `pull`                                   |                                            |
+| `images`                     | `config --images`                        | Or `incus-compose incus image list`.       |
+| `cp`                         | `incus-compose incus file push` / `pull` |                                            |
+| `top`                        | `incus-compose incus top`                |                                            |
+| `events`                     | `incus-compose incus monitor`            |                                            |
+| `kill`                       | `stop --timeout 0`                       | Forces an immediate stop.                  |
+| `run`                        | not implemented                          | Use `up` then `exec`.                      |
+| `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough. |
+| `port`                       | `port`                                   | A stopped instance answers too.            |
+|                              |
