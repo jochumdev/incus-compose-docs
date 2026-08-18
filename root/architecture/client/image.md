@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:48.000Z
+date: 2026-08-18T02:55:21.000Z
 dateCreated: 2026-07-05T01:03:37.823Z
 description: How incus-compose pulls and caches OCI images - from a registry remote, into the shared incus-compose-cache project, then copied into your own.
 editor: markdown
@@ -9,7 +9,7 @@ title: Image Resource
 leafwiki_id: yKmu3_fvg
 leafwiki_title: Image Resource
 leafwiki_created_at: "2026-07-05T03:54:01.463522503Z"
-leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
+leafwiki_updated_at: "2026-08-18T02:55:21.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -246,10 +246,45 @@ compare, which is the round trip you opt into by passing the flag.
 
 ### OCI config extraction
 
-`extractAndStoreOCIConfig` runs **once**, on the way out of hop A, and writes
-its result into the image's properties. Hop B copies the image with those
-properties attached, so a project copy never spins up a temporary instance to
-re-derive what is already known.
+`ociStoreConfig` runs **once**, on the way out of hop A, and writes its result
+into the image's properties. Hop B copies the image with those properties
+attached, so a project copy never re-derives what is already known.
+
+A `USER` naming a user rather than numbering one is the exception: `oci.uid`
+takes nothing but a number, and only the image's own `/etc/passwd` resolves the
+name. Hop A stores the value verbatim in `user.incus-compose.oci.user` and
+leaves the resolution to the project, where `ResolveUser` does it alongside the
+compose `user:` override.
+
+## Reading the image
+
+An image has no file API, so anything needing its bytes goes through
+`Image.SFTP`: a stopped instance created from the image, read over SFTP. A
+stopped instance mounts no disk devices, so what it shows is the image's own
+rootfs.
+
+The instance is created on first use and then kept - `SFTP` hands every caller
+the same connection, and `Client.Done` removes it when the command ends. It is
+named `ic-seed-*`, carries `user.incus-compose.temp=true` so a hard kill leaves
+something reapable, and gets an explicit root disk because a profile-less create
+fails without one.
+
+Two callers: `StorageVolume` filling a volume from a path in the image, and
+`ResolveUser`.
+
+### ResolveUser
+
+`ResolveUser` maps a `user[:group]` value - the compose override or the image's
+own `USER` - to the numbers `oci.uid` / `oci.gid` take.
+
+It reads the image only when it must: both sides numeric returns straight away,
+which is what keeps the common case free of an instance. A name is looked up in
+`/etc/passwd` or `/etc/group`, and one the image does not define is
+`ErrNoSuchUser` rather than a silent 0.
+
+A named user with no group takes that user's own group, as `login` would. A
+numeric uid with no group keeps GID 0, since reading the image for it would cost
+an instance per service that sets `user:`.
 
 ## Locking
 

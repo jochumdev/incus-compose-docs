@@ -1,11 +1,11 @@
 ---
-date: 2026-08-17T22:38:47.000Z
+date: 2026-08-18T02:55:49.000Z
 dateCreated: 2026-08-02T19:32:24.000Z
 description: Storage volumes beyond the usual lifecycle - raw SFTP access to a volume's contents, and the advisory file lock built on top of it.
 editor: markdown
 title: Storage Volume
 leafwiki_created_at: "2026-08-02T19:32:24.000000000Z"
-leafwiki_updated_at: "2026-08-17T22:38:47.000000000Z"
+leafwiki_updated_at: "2026-08-18T02:55:49.000000000Z"
 ---
 
 # Storage Volume
@@ -42,16 +42,14 @@ An image has no file API, so the bytes come from an instance:
 
 ```
 create the volume
-  temp instance from the image, stopped, deleted on the way out
   copy that path's tree in over two SFTP connections
 ```
 
-The source is the **stopped** instance's SFTP endpoint, which is the image's own
-filesystem: a stopped instance mounts no disk devices, so nothing has to be
-attached or detached and the temp instance never touches the volume it fills.
-The instance is named `ic-seed-*`, carries `user.incus-compose.temp=true` so a
-hard kill leaves something reapable, and gets an explicit root disk because a
-profile-less create fails without one.
+The source is `Image.SFTP` - a stopped instance of the image, which mounts no
+disk devices, so nothing has to be attached or detached and it never touches the
+volume it fills. It belongs to the image, not to this copy: several volumes off
+one image share it, and `Client.Done` removes it. See
+[Image - Reading the image](/architecture/client/image#reading-the-image).
 
 Ownership is replayed as the endpoint reports it: container-native ids, which a
 `security.shifted` volume then shows unchanged inside the instance. The volume's
@@ -61,11 +59,9 @@ Plain files and directories are copied. Symlinks, devices, sockets and fifos are
 skipped and named in a warning. Nothing is deduplicated, so hardlinks arrive as
 copies - SFTP reports no link count to notice them by.
 
-A failure deletes the temp instance first and the volume second, then fails the
-ensure. That order is forced: Incus refuses to delete a volume an instance
-device references, stopped or running. Failing hard is deliberate, since an
-empty volume where data was expected starts an application that looks fine and
-is not.
+A failure drops the volume and fails the ensure. Failing hard is deliberate,
+since a half filled volume where data was expected starts an application that
+looks fine and is not.
 
 There is no total to report progress against - the size of a path inside an
 image is only knowable by walking it, which is the copy itself - so the copy

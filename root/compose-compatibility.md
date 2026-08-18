@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T00:07:28.000Z
+date: 2026-08-18T02:54:50.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-18T00:07:28.000000000Z"
+leafwiki_updated_at: "2026-08-18T02:54:50.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -142,16 +142,38 @@ services:
     user: "1000:1001" # UID:GID; the GID is optional
 ```
 
-incus-compose accepts only **numeric** values in `UID` or `UID:GID` form. Usernames
-and group names (e.g. `nginx` or `nginx:www-data`) are not resolved and will fail.
+Either side may be a number or a name the image's own `/etc/passwd` and
+`/etc/group` define, so `1000`, `1000:root`, `nobody` and `netbox:root` all work:
+
+```yaml
+services:
+  netbox:
+    image: docker.io/netboxcommunity/netbox:v4.6-5.0.2
+    user: "netbox:root"
+```
+
+A name the image does not define is an error, not a fall back to root. The same
+resolution applies to the image's own `USER`, so an image built with
+`USER nginx` runs as `nginx` without a `user:` of its own.
+
+A **name** with no group takes that user's own group, as `login` would - busybox
+runs `nobody` as `65534:65534`. A **number** with no group keeps GID 0, because
+resolving it would mean reading the image for every service that sets `user:`.
+
+An image has no file API, so resolving a name starts a stopped instance from the
+image and reads it over SFTP. That is one instance per image per command, shared
+by every service using that image and removed when the command ends. A `user:`
+that is numeric on both sides never reads the image at all.
 
 > The [Compose Specification](https://github.com/compose-spec/compose-spec/blob/main/05-services.md#user)
 > only says `user` "overrides the user used to run the container process" and does
-> not document a value format. The `UID:GID` form is Docker's convention; we follow
-> it but restrict it to numeric IDs because there is no image passwd/group lookup at
-> translation time.
+> not document a value format. The `UID:GID` form is Docker's convention, which we
+> follow.
 
 _Since: 1.0.0-beta.22_
+
+_Changed in 1.3.0_: user and group names resolve against the image; only numbers
+were accepted before.
 
 #### Entrypoint and Command
 
