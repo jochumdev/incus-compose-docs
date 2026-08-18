@@ -1,5 +1,5 @@
 ---
-date: 2026-08-15T22:05:09.000Z
+date: 2026-08-18T15:15:34.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-15T22:05:09.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:15:34.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -115,6 +115,10 @@ report: those instances are created with `unknown` and keep it.
 `incus-compose stop` sets it to say a stop was deliberate; the daemon reads it
 and leaves `unless-stopped` instances alone, and writes the `stopped` status
 itself from the event it sees anyway.
+
+`incus-compose pause` sets the same marker, because a frozen instance answers
+no healthcheck and would otherwise read as one that needs restarting. See
+[Pausing a watched service](#pausing-a-watched-service).
 
 ## Health Checking Is Opt-In
 
@@ -308,6 +312,27 @@ when stopped, without running an exec-based test command.
 
 With `unless-stopped`, instances stopped intentionally (`user.healthcheck.stopped=true`,
 set by `incus-compose stop`) are not restarted.
+
+## Pausing a watched service
+
+`incus-compose pause` freezes an instance, which stops it answering any
+healthcheck. To the daemon that is indistinguishable from a service that fell
+over, so without help it would restart out of the pause on the next interval.
+
+`pause` therefore sets `user.healthcheck.stopped`, the marker `stop` already
+uses, and `unpause` clears it. The daemon sees a stopped instance it was told
+about, parks it, and touches nothing until it starts again.
+
+Two consequences worth knowing:
+
+- While paused, `user.healthcheck.status` reads `stopped`. The daemon reports
+  what it can observe, and it cannot probe a frozen instance.
+- Only a resume takes the instance off that shelf. Daemons before v1.3.0 do not
+  treat Incus's `instance-resumed` as a start, so after `unpause` they leave the
+  instance unwatched until the next resync. Update the daemon
+  (`incus-compose healthd up`), or force one with `incus-compose healthd reload`.
+
+_Since: v1.3.0_
 
 ## Network Configuration
 

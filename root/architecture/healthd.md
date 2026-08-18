@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-18T15:16:03.000Z
 dateCreated: 2026-08-06T07:11:18.000Z
 description: Inside ic-healthd - the listener, the router and the per-project schedulers, why every send blocks, and how state survives an event-listener reconnect.
 editor: markdown
@@ -7,7 +7,7 @@ title: ic-healthd Internals
 leafwiki_id: AAf9EpsDRI
 leafwiki_title: ic-healthd Internals
 leafwiki_created_at: "2026-08-06T07:11:18.244006266Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:16:03.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -131,6 +131,13 @@ flowchart TD
     LK -->|yes| SEND[blocking send into<br/>that project's channel]
 ```
 
+`instance-resumed` is routed as a start. A pause parks the instance, via the
+`user.healthcheck.stopped` marker `incus-compose pause` writes, and a start
+event is the only thing that un-parks one - the `instance-updated` that
+clearing the marker emits refreshes an instance's config and status but leaves
+its state alone. Without the resume the instance would run unwatched until the
+next resync.
+
 The registry is a plain map with no mutex, because only this goroutine touches
 it. `start` and `stop` are closures over it for the same reason.
 
@@ -248,7 +255,7 @@ stateDiagram-v2
     restarting --> idle: result, or watchdog
     restarting --> parked: ErrIntentionallyStopped
 
-    parked --> idle: started event
+    parked --> idle: started or resumed event
 
     idle --> idle: started event:<br/>due now, action = check
     idle --> [*]: deleted, stopped<br/>without a policy,<br/>or pruned by a roster
@@ -260,9 +267,9 @@ carries `action`, which says what fires when `due` arrives; a check and a
 restart are mutually exclusive, since an instance awaiting a restart is stopped
 and checking a stopped instance is pointless.
 
-A **started event** puts an idle or parked instance back into the shape a fresh
-start leaves it in (`instanceStarted`): due for a check at once, failure run
-cleared, start period re-armed. That is also what discards a restart the stop
+A **started event**, which a resume counts as, puts an idle or parked instance
+back into the shape a fresh start leaves it in (`instanceStarted`): due for a
+check at once, failure run cleared, start period re-armed. That is also what discards a restart the stop
 before it had queued - an instance somebody else already started has nothing
 left to restart, and firing it anyway would force-stop a running instance one
 backoff later. An instance with an action in flight is left alone; its result

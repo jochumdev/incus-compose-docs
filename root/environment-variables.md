@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T14:58:52.000Z
+date: 2026-08-18T15:21:16.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-18T14:58:52.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:21:16.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -122,7 +122,7 @@ setting one never leaks into another command. See [Command Flags](#command-flags
 for the full list, or run `incus-compose <command> --help` - every flag's
 env var is shown inline as `[$VAR_NAME]`.
 
-Eight flags are the deliberate exception and have **no** environment variable,
+Nine flags are the deliberate exception and have **no** environment variable,
 because a forgotten shell variable would silently make every future
 invocation destructive or a no-op instead of just changing cosmetic output:
 
@@ -134,6 +134,7 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 | `--dry-run`  | `exec`           | Would silently no-op every `exec`, breaking scripts           |
 | `--dry-run`  | `cp`             | Would silently no-op every copy                               |
 | `--dry-run`  | `port-forward`   | Would silently no-op every forward                            |
+| `--signal`   | `stop`           | Would silently turn every `stop` into a kill                  |
 | `--yes`      | `backup restore` | Would silently skip the confirmation on a destructive restore |
 | `--dry-run`  | `backup restore` | Would silently no-op every restore                            |
 
@@ -229,6 +230,8 @@ are abbreviated; run `incus-compose <command> --help` for the full text and defa
 | `stop`    | `INCUS_COMPOSE_STOP_WITH_DEPS`        | `--with-deps`          | Also stop linked services                 |
 | `kill`    | `INCUS_COMPOSE_KILL_SIGNAL`           | `--signal`, `-s`       | Signal to send; only `SIGKILL` works      |
 | `kill`    | `INCUS_COMPOSE_KILL_WITH_DEPS`        | `--with-deps`          | Also kill linked services                 |
+| `pause`   | `INCUS_COMPOSE_PAUSE_WITH_DEPS`       | `--with-deps`          | Also pause linked services                |
+| `unpause` | `INCUS_COMPOSE_UNPAUSE_WITH_DEPS`     | `--with-deps`          | Also unpause linked services              |
 | `restart` | `INCUS_COMPOSE_RESTART_TIMEOUT`       | `--timeout`            | Timeout for stopping and starting         |
 | `restart` | `INCUS_COMPOSE_RESTART_WITH_DEPS`     | `--with-deps`          | Also restart linked services              |
 

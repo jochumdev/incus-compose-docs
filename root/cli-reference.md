@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T14:59:51.000Z
+date: 2026-08-18T15:21:09.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-18T14:59:51.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:21:09.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: public-editor
 ---
@@ -29,7 +29,10 @@ stateDiagram-v2
     absent --> stopped: up --no-start
     stopped --> running: start
     running --> stopped: stop
+    running --> stopped: kill
     running --> running: restart
+    running --> paused: pause
+    paused --> running: unpause
     running --> absent: down
     stopped --> absent: down
 ```
@@ -205,6 +208,11 @@ the entrypoint is not PID 1 and a signal aimed at it would reach the wrong
 process. `kill` therefore accepts `SIGKILL` only and rejects anything else
 rather than pretending.
 
+`stop` takes the same `-s`, undocumented in its own `--help`, so a
+`docker compose stop -s SIGKILL` habit does what it says instead of failing.
+It has no environment variable, unlike every other `stop` flag: a forgotten
+`INCUS_COMPOSE_STOP_SIGNAL` would silently make every later `stop` a kill.
+
 _Since: v1.3.0_
 
 ## restart
@@ -220,6 +228,43 @@ incus-compose restart [SERVICE...]
 | `--timeout`    | Stop/start timeout (default: 1m)                                    |
 | `--with-deps`  | Also restart linked services (depends_on) - incus-compose extension |
 | `--no-healthd` | Don't stop/start healthd sidecar                                    |
+
+## pause / unpause
+
+Freeze running services, and thaw them again.
+
+```
+incus-compose pause [SERVICE...]
+incus-compose unpause [SERVICE...]
+```
+
+| Option        | Description                                                       |
+| ------------- | ----------------------------------------------------------------- |
+| `--with-deps` | Also pause linked services (depends_on) - incus-compose extension |
+
+A paused service keeps its memory, its address and its open files; nothing
+inside it runs. This is Incus's freeze/unfreeze, so it takes no timeout - the
+instance is frozen at once - and `incus-compose ps` reports it as `Frozen`
+without needing `--all`, as docker lists paused containers.
+
+`pause` goes through the dependents first and `unpause` the other way round, so
+a service is never running while something it depends on is frozen.
+
+### Pausing and health checks
+
+A frozen instance answers no healthcheck, and ic-healthd would read that as a
+service that stopped and needs restarting. So `pause` also sets
+`user.healthcheck.stopped`, the same marker `stop` uses, which tells the daemon
+the stop was deliberate; `unpause` clears it again.
+
+Two things follow. While paused, `user.healthcheck.status` reads `stopped`
+rather than a status of its own. And a daemon older than v1.3.0 does not know
+that a resume ends the pause, so after `unpause` it keeps treating the instance
+as deliberately stopped until it next resyncs - run
+`incus-compose healthd reload`, or update the daemon with
+`incus-compose healthd up`.
+
+_Since: v1.3.0_
 
 ### Linked services
 
@@ -730,6 +775,6 @@ command scoped to the current project.
 | `events`                     | `events`                     | Lifecycle events by default. No service filter.                |
 | `kill`                       | `kill`                       | `SIGKILL` only; Incus delivers no other signal.                |
 | `run`                        | not implemented              | Use `up` then `exec`.                                          |
-| `pause` / `unpause`          | not implemented              | Use the `incus-compose incus` passthrough.                     |
+| `pause` / `unpause`          | `pause` / `unpause`          | Incus freeze/unfreeze; no timeout to give.                     |
 | `port`                       | `port`                       | A stopped instance answers too.                                |
 | -                            | `port-forward`               | No docker equivalent: reaches a port that was never published. |

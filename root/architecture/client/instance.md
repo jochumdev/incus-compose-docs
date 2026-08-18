@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T22:47:32.000Z
+date: 2026-08-18T15:16:17.000Z
 dateCreated: 2026-07-05T01:03:40.172Z
 description: The instance resource in depth - pre- and post-creation devices, why an instance is written twice, and how UID/GID shifting keeps volume files owned correctly.
 editor: markdown
@@ -9,7 +9,7 @@ title: Instance Details
 leafwiki_id: 10iXqlfvg
 leafwiki_title: Instance Details
 leafwiki_created_at: "2026-07-05T03:54:01.617008851Z"
-leafwiki_updated_at: "2026-08-17T22:47:32.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:16:17.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -256,6 +256,29 @@ err := instance.Stop(client.OptionForce())
 ```
 
 Calls `UpdateInstanceState` with action "stop". Force bypasses graceful shutdown.
+
+Without `OptionForce`, Incus is asked to shut down within `OptionTimeout` and
+then reports a failure, leaving the instance running. `Stop` therefore re-reads
+the instance and kills it when the graceful attempt ran out of time, which is
+what docker does at the same point.
+
+### Pause and Unpause
+
+```go
+err := instance.Pause(ctx)
+err = instance.Unpause(ctx)
+```
+
+Calls `UpdateInstanceState` with action "freeze" or "unfreeze", neither of which
+takes a timeout or a force flag. `Frozen()` reports the result, and never holds
+at the same time as `Running()`.
+
+`Pause` refuses an instance that is not running (`ErrNotRunning`) or already
+frozen (`ErrPaused`); `Unpause` refuses one that is not frozen (`ErrNotPaused`).
+
+`Pause` also writes `user.healthcheck.stopped`, and `Unpause` clears it: a
+frozen instance answers no healthcheck, so ic-healthd would otherwise read it as
+one that stopped and restart out of the pause.
 
 ### Delete
 
