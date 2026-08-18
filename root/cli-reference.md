@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T15:21:09.000Z
+date: 2026-08-18T15:46:24.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-18T15:21:09.000000000Z"
+leafwiki_updated_at: "2026-08-18T15:46:24.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: public-editor
 ---
@@ -199,19 +199,24 @@ incus-compose kill [SERVICE...]
 
 | Option           | Description                                                      |
 | ---------------- | ---------------------------------------------------------------- |
-| `-s`, `--signal` | Signal to send (default: `SIGKILL`; nothing else is supported)   |
+| `-s`, `--signal` | Signal to send: `SIGKILL`, `KILL` or `9`, in any case            |
 | `--with-deps`    | Also kill linked services (depends_on) - incus-compose extension |
 
 `docker compose kill -s` can send any signal. The Incus state API has no field
 for one, and Incus runs an OCI image's entrypoint under an init of its own, so
 the entrypoint is not PID 1 and a signal aimed at it would reach the wrong
-process. `kill` therefore accepts `SIGKILL` only and rejects anything else
-rather than pretending.
+process.
 
-`stop` takes the same `-s`, undocumented in its own `--help`, so a
-`docker compose stop -s SIGKILL` habit does what it says instead of failing.
-It has no environment variable, unlike every other `stop` flag: a forgotten
-`INCUS_COMPOSE_STOP_SIGNAL` would silently make every later `stop` a kill.
+So `-s` takes the three spellings of `SIGKILL` that docker takes, and anything
+else is an error rather than a kill dressed up as the signal you asked for:
+
+```bash
+incus-compose kill -s SIGKILL   # and KILL, 9, sigkill
+incus-compose kill -s SIGHUP    # error: unsupported signal
+```
+
+It has no environment variable, since the only value it accepts is the one it
+already defaults to.
 
 _Since: v1.3.0_
 
