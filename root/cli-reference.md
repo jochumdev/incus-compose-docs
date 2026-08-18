@@ -282,6 +282,60 @@ incus-compose exec web sh -c 'echo hello > /data/test.txt'
 
 _Changed in 1.0.0-beta.22_: exec uses the instances UID/GID by default.
 
+## port
+
+Print the host binding of a published port.
+
+```
+incus-compose port [options] SERVICE PRIVATE_PORT
+```
+
+| Option       | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| `--index`    | Index of the container if service has multiple replicas (default: 0) |
+| `--protocol` | Protocol of the port, `tcp` (default) or `udp`                       |
+
+`PRIVATE_PORT` is the port inside the instance - the right-hand side of a
+`ports:` entry - and the answer is the address and port the host publishes it
+on:
+
+```bash
+$ incus-compose port web 80
+0.0.0.0:8080
+```
+
+Unlike `docker compose port`, a stopped instance answers too: the binding is a
+device on the instance, not something the running process holds. A port that is
+not published is an error naming the ports the instance does have.
+
+## port-forward
+
+Forward a local TCP port into an instance, published or not.
+
+```
+incus-compose port-forward [options] SERVICE TARGET_PORT [LISTEN_PORT]
+```
+
+| Option      | Description                                                          |
+| ----------- | -------------------------------------------------------------------- |
+| `--index`   | Index of the container if service has multiple replicas (default: 0) |
+| `--dry-run` | Print the `incus` command instead of running it                      |
+
+This has no `docker compose` counterpart. It runs a local TCP listener and
+forwards every connection made to it into the instance, so it reaches a port
+that was never published - a database you did not want on the host, for
+instance. `LISTEN_PORT` defaults to `TARGET_PORT`, and either port can be
+prefixed with an address to use, IPv6 in square brackets:
+
+```bash
+incus-compose port-forward db 5432          # 127.0.0.1:5432 -> 5432 in db
+incus-compose port-forward db 5432 15432    # 127.0.0.1:15432 -> 5432 in db
+incus-compose port-forward db 5432 0.0.0.0:15432
+```
+
+Like `exec`, it shells out to your local `incus` client and targets the instance
+via `INCUS_PROJECT`. It needs Incus 7.3, or 7.0.1 LTS.
+
 ## ps
 
 List containers (instances).
@@ -531,22 +585,23 @@ Most `docker compose` verbs map directly. Anything without a dedicated command i
 reachable through the `incus-compose incus` passthrough, which runs any `incus`
 command scoped to the current project.
 
-| `docker compose`             | incus-compose                            | Notes                                         |
-| ---------------------------- | ---------------------------------------- | --------------------------------------------- |
-| `up`                         | `up`                                     |                                               |
-| `down`                       | `down`                                   |                                               |
-| `start` / `stop` / `restart` | `start` / `stop` / `restart`             |                                               |
-| `ps`                         | `ps`                                     |                                               |
-| `logs`                       | `logs`                                   |                                               |
-| `exec`                       | `exec`                                   |                                               |
-| `build`                      | `build`                                  |                                               |
-| `config`                     | `config`                                 |                                               |
-| `pull`                       | `pull`                                   |                                               |
-| `images`                     | `config --images`                        | Or `incus-compose incus image list`.          |
-| `cp`                         | `incus-compose incus file push` / `pull` |                                               |
-| `top`                        | `incus-compose incus top`                |                                               |
-| `events`                     | `incus-compose incus monitor`            |                                               |
-| `kill`                       | `stop --timeout 0`                       | Forces an immediate stop.                     |
-| `run`                        | not implemented                          | Use `up` then `exec`.                         |
-| `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough.    |
-| `port`                       | not implemented                          | Published ports are shown in `config` / `ps`. |
+| `docker compose`             | incus-compose                            | Notes                                                          |
+| ---------------------------- | ---------------------------------------- | -------------------------------------------------------------- |
+| `up`                         | `up`                                     |                                                                |
+| `down`                       | `down`                                   |                                                                |
+| `start` / `stop` / `restart` | `start` / `stop` / `restart`             |                                                                |
+| `ps`                         | `ps`                                     |                                                                |
+| `logs`                       | `logs`                                   |                                                                |
+| `exec`                       | `exec`                                   |                                                                |
+| `build`                      | `build`                                  |                                                                |
+| `config`                     | `config`                                 |                                                                |
+| `pull`                       | `pull`                                   |                                                                |
+| `images`                     | `config --images`                        | Or `incus-compose incus image list`.                           |
+| `cp`                         | `incus-compose incus file push` / `pull` |                                                                |
+| `top`                        | `incus-compose incus top`                |                                                                |
+| `events`                     | `incus-compose incus monitor`            |                                                                |
+| `kill`                       | `stop --timeout 0`                       | Forces an immediate stop.                                      |
+| `run`                        | not implemented                          | Use `up` then `exec`.                                          |
+| `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough.                     |
+| `port`                       | `port`                                   | A stopped instance answers too.                                |
+| -                            | `port-forward`                           | No docker equivalent: reaches a port that was never published. |
