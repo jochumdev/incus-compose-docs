@@ -163,6 +163,7 @@ incus-compose down
 ## Quick Links
 
 - **[Architecture](/architecture)** - the resource-first design behind incus-compose
+- **[coredns](/coredns)** - DNS for your instances, served from the Incus event stream
 - **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** - what changed since 0.0.1-beta1
 
 ## Support and community
