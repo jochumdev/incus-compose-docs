@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T00:07:28.000Z
+date: 2026-08-18T14:53:31.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-18T00:07:28.000000000Z"
+leafwiki_updated_at: "2026-08-18T14:53:31.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -122,7 +122,7 @@ setting one never leaks into another command. See [Command Flags](#command-flags
 for the full list, or run `incus-compose <command> --help` - every flag's
 env var is shown inline as `[$VAR_NAME]`.
 
-Seven flags are the deliberate exception and have **no** environment variable,
+Eight flags are the deliberate exception and have **no** environment variable,
 because a forgotten shell variable would silently make every future
 invocation destructive or a no-op instead of just changing cosmetic output:
 
@@ -132,6 +132,7 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 | `--project`  | `down`           | Would silently delete the whole project                       |
 | `--volumes`  | `down`           | Would silently delete volumes                                 |
 | `--dry-run`  | `exec`           | Would silently no-op every `exec`, breaking scripts           |
+| `--dry-run`  | `cp`             | Would silently no-op every copy                               |
 | `--dry-run`  | `port-forward`   | Would silently no-op every forward                            |
 | `--yes`      | `backup restore` | Would silently skip the confirmation on a destructive restore |
 | `--dry-run`  | `backup restore` | Would silently no-op every restore                            |
@@ -283,26 +284,35 @@ exceptions table above.
 | `ps`    | `INCUS_COMPOSE_PS_FORMAT`    | `--format`      | Output format: `table` or `json`         |
 | `ps`    | `INCUS_COMPOSE_PS_WITH_DEPS` | `--with-deps`   | Also list linked services                |
 
-### logs / exec / port / self-update
+### logs / exec / cp / top / events / port / self-update
 
-| Command        | Variable                                | Flag              | Description                           |
-| -------------- | --------------------------------------- | ----------------- | ------------------------------------- |
-| `logs`         | `INCUS_COMPOSE_LOGS_FOLLOW`             | `--follow`, `-f`  | Follow log output                     |
-| `exec`         | `INCUS_COMPOSE_EXEC_DETACH`             | `--detach`, `-d`  | Run command in the background         |
-| `exec`         | `INCUS_COMPOSE_EXEC_ENV`                | `--env`, `-e`     | Set environment variables (KEY=VALUE) |
-| `exec`         | `INCUS_COMPOSE_EXEC_INDEX`              | `--index`         | Replica index if service is scaled    |
-| `exec`         | `INCUS_COMPOSE_EXEC_NO_TTY`             | `--no-tty`, `-T`  | Disable pseudo-TTY allocation         |
-| `exec`         | `INCUS_COMPOSE_EXEC_PRIVILEGED`         | `--privileged`    | Accepted but not implemented          |
-| `exec`         | `INCUS_COMPOSE_EXEC_USER`               | `--user`, `-u`    | Run the command as this user          |
-| `exec`         | `INCUS_COMPOSE_EXEC_GROUP`              | `--group`, `-g`   | Run the command as this group         |
-| `exec`         | `INCUS_COMPOSE_EXEC_WORKDIR`            | `--workdir`, `-w` | Path to workdir directory             |
-| `port`         | `INCUS_COMPOSE_PORT_INDEX`              | `--index`         | Replica index if service is scaled    |
-| `port`         | `INCUS_COMPOSE_PORT_PROTOCOL`           | `--protocol`      | Protocol of the port, tcp or udp      |
-| `port-forward` | `INCUS_COMPOSE_PORT_FORWARD_INDEX`      | `--index`         | Replica index if service is scaled    |
-| `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_DRAFT`       | `--draft`         | Also consider draft releases          |
-| `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_PRE_RELEASE` | `--pre-release`   | Also consider pre-releases            |
+| Command        | Variable                                | Flag                  | Description                           |
+| -------------- | --------------------------------------- | --------------------- | ------------------------------------- |
+| `logs`         | `INCUS_COMPOSE_LOGS_FOLLOW`             | `--follow`, `-f`      | Follow log output                     |
+| `exec`         | `INCUS_COMPOSE_EXEC_DETACH`             | `--detach`, `-d`      | Run command in the background         |
+| `exec`         | `INCUS_COMPOSE_EXEC_ENV`                | `--env`, `-e`         | Set environment variables (KEY=VALUE) |
+| `exec`         | `INCUS_COMPOSE_EXEC_INDEX`              | `--index`             | Replica index if service is scaled    |
+| `exec`         | `INCUS_COMPOSE_EXEC_NO_TTY`             | `--no-tty`, `-T`      | Disable pseudo-TTY allocation         |
+| `exec`         | `INCUS_COMPOSE_EXEC_PRIVILEGED`         | `--privileged`        | Accepted but not implemented          |
+| `exec`         | `INCUS_COMPOSE_EXEC_USER`               | `--user`, `-u`        | Run the command as this user          |
+| `exec`         | `INCUS_COMPOSE_EXEC_GROUP`              | `--group`, `-g`       | Run the command as this group         |
+| `exec`         | `INCUS_COMPOSE_EXEC_WORKDIR`            | `--workdir`, `-w`     | Path to workdir directory             |
+| `cp`           | `INCUS_COMPOSE_CP_INDEX`                | `--index`             | Replica index if service is scaled    |
+| `cp`           | `INCUS_COMPOSE_CP_ARCHIVE`              | `--archive`, `-a`     | Keep the source's uid/gid             |
+| `cp`           | `INCUS_COMPOSE_CP_FOLLOW_LINK`          | `--follow-link`, `-L` | Always follow symlinks in SRC_PATH    |
+| `top`          | `INCUS_COMPOSE_TOP_COLUMNS`             | `--columns`, `-c`     | Columns to display                    |
+| `top`          | `INCUS_COMPOSE_TOP_FORMAT`              | `--format`            | Output format: table or compact       |
+| `top`          | `INCUS_COMPOSE_TOP_REFRESH`             | `--refresh`           | Refresh delay in seconds              |
+| `events`       | `INCUS_COMPOSE_EVENTS_TYPE`             | `--type`, `-t`        | Event types to listen for             |
+| `events`       | `INCUS_COMPOSE_EVENTS_FORMAT`           | `--format`            | Output format: pretty, yaml or json   |
+| `events`       | `INCUS_COMPOSE_EVENTS_JSON`             | `--json`              | Short for `--format=json`             |
+| `port`         | `INCUS_COMPOSE_PORT_INDEX`              | `--index`             | Replica index if service is scaled    |
+| `port`         | `INCUS_COMPOSE_PORT_PROTOCOL`           | `--protocol`          | Protocol of the port, tcp or udp      |
+| `port-forward` | `INCUS_COMPOSE_PORT_FORWARD_INDEX`      | `--index`             | Replica index if service is scaled    |
+| `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_DRAFT`       | `--draft`             | Also consider draft releases          |
+| `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_PRE_RELEASE` | `--pre-release`       | Also consider pre-releases            |
 
-`exec --dry-run`, `port-forward --dry-run` and `backup restore
+`exec --dry-run`, `cp --dry-run`, `port-forward --dry-run` and `backup restore
 --yes`/`--dry-run` have no variable - see the exceptions table above.
 
 ### healthd up / down / logs / restart

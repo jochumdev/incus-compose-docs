@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T00:07:28Z
+date: 2026-08-18T14:53:31.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-18T14:10:05.606368676Z"
+leafwiki_updated_at: "2026-08-18T14:53:31.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: public-editor
 ---
@@ -281,6 +281,92 @@ incus-compose exec web sh -c 'echo hello > /data/test.txt'
 ```
 
 _Changed in 1.0.0-beta.22_: exec uses the instances UID/GID by default.
+
+## cp
+
+Copy files between a service's instance and the local filesystem.
+
+```
+incus-compose cp [options] SERVICE:SRC_PATH DEST_PATH|-
+incus-compose cp [options] SRC_PATH|- SERVICE:DEST_PATH
+```
+
+| Option                | Description                                                          |
+| --------------------- | -------------------------------------------------------------------- |
+| `--index`             | Index of the container if service has multiple replicas (default: 0) |
+| `-a`, `--archive`     | Keep the source's uid/gid instead of the instance's                  |
+| `-L`, `--follow-link` | Always follow symbolic links in `SRC_PATH`                           |
+| `--dry-run`           | Print the `incus` command instead of running it                      |
+
+Which side is the instance is decided by the name before the colon: it has to
+name a service in the compose file. So `C:\data`, `./a:b` and `-` stay local
+paths, and a typo'd service name is a local path that does not exist rather
+than a copy into the wrong place.
+
+```bash
+incus-compose cp ./nginx.conf web:/etc/nginx/nginx.conf
+incus-compose cp web:/var/log/nginx ./logs
+```
+
+A path inside the instance resolves from its root, so `web:etc/hosts` and
+`web:/etc/hosts` are the same file. Directories are copied recursively without
+asking, and a symlink stays a symlink unless `-L` is given.
+
+Like `exec`, and unlike `docker compose cp`, a pushed file is owned by the
+instance's user rather than root - a 0400 file owned by root is unreadable to
+the non-root user most OCI images run as. `--archive` keeps whatever the source
+had.
+
+`cp` shells out to your local `incus` client and targets the instance via
+`INCUS_PROJECT`.
+
+## top
+
+Display resource usage per instance.
+
+```
+incus-compose top
+```
+
+| Option            | Description                                    |
+| ----------------- | ---------------------------------------------- |
+| `-c`, `--columns` | Columns to display, as `incus top` spells them |
+| `--format`        | table (default) or compact                     |
+| `--refresh`       | Refresh delay in seconds, 10 at the lowest     |
+
+This is `incus top` scoped to the project: a live table of CPU time, memory and
+disk **per instance**, refreshing until Ctrl-C. `docker compose top` reports
+per _process_ instead, which Incus has no API for, so the two do not print the
+same thing.
+
+It takes no service arguments - `incus top` has no name filter - and a
+project-scoped ic-healthd sidecar is listed along with the services.
+
+## events
+
+Receive real time events from the project.
+
+```
+incus-compose events
+```
+
+| Option         | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| `-t`, `--type` | Event type to listen for (repeatable; default: `lifecycle`)   |
+| `--format`     | `pretty` (default), `yaml` or `json`                          |
+| `--json`       | Short for `--format=json`, for `docker compose events` parity |
+
+This is `incus monitor` scoped to the project. The default `--type lifecycle`
+is the closest thing to docker's container events; pass `-t logging` or
+`-t operation` to widen it.
+
+```bash
+incus-compose events
+incus-compose events --json | jq -r .action
+```
+
+It takes no service arguments - `incus monitor` filters by project, not by
+instance - and has no `--since`/`--until`, which Incus does not offer.
 
 ## port
 
@@ -589,23 +675,23 @@ Most `docker compose` verbs map directly. Anything without a dedicated command i
 reachable through the `incus-compose incus` passthrough, which runs any `incus`
 command scoped to the current project.
 
-| `docker compose`             | incus-compose                            | Notes                                      |
-| ---------------------------- | ---------------------------------------- | ------------------------------------------ |
-| `up`                         | `up`                                     |                                            |
-| `down`                       | `down`                                   |                                            |
-| `start` / `stop` / `restart` | `start` / `stop` / `restart`             |                                            |
-| `ps`                         | `ps`                                     |                                            |
-| `logs`                       | `logs`                                   |                                            |
-| `exec`                       | `exec`                                   |                                            |
-| `build`                      | `build`                                  |                                            |
-| `config`                     | `config`                                 |                                            |
-| `pull`                       | `pull`                                   |                                            |
-| `images`                     | `config --images`                        | Or `incus-compose incus image list`.       |
-| `cp`                         | `incus-compose incus file push` / `pull` |                                            |
-| `top`                        | `incus-compose incus top`                |                                            |
-| `events`                     | `incus-compose incus monitor`            |                                            |
-| `kill`                       | `stop --timeout 0`                       | Forces an immediate stop.                  |
-| `run`                        | not implemented                          | Use `up` then `exec`.                      |
-| `pause` / `unpause`          | not implemented                          | Use the `incus-compose incus` passthrough. |
-| `port`                       | `port`                                   | A stopped instance answers too.            |
-|                              |
+| `docker compose`             | incus-compose                | Notes                                                          |
+| ---------------------------- | ---------------------------- | -------------------------------------------------------------- |
+| `up`                         | `up`                         |                                                                |
+| `down`                       | `down`                       |                                                                |
+| `start` / `stop` / `restart` | `start` / `stop` / `restart` |                                                                |
+| `ps`                         | `ps`                         |                                                                |
+| `logs`                       | `logs`                       |                                                                |
+| `exec`                       | `exec`                       |                                                                |
+| `build`                      | `build`                      |                                                                |
+| `config`                     | `config`                     |                                                                |
+| `pull`                       | `pull`                       |                                                                |
+| `images`                     | `config --images`            | Or `incus-compose incus image list`.                           |
+| `cp`                         | `cp`                         | Owned by the instance's user, not root.                        |
+| `top`                        | `top`                        | Per instance, not per process. No service filter.              |
+| `events`                     | `events`                     | Lifecycle events by default. No service filter.                |
+| `kill`                       | `stop --timeout 0`           | Forces an immediate stop.                                      |
+| `run`                        | not implemented              | Use `up` then `exec`.                                          |
+| `pause` / `unpause`          | not implemented              | Use the `incus-compose incus` passthrough.                     |
+| `port`                       | `port`                       | A stopped instance answers too.                                |
+| -                            | `port-forward`               | No docker equivalent: reaches a port that was never published. |
