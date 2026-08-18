@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-09T08:12:41Z
 dateCreated: 2026-07-05T01:03:24.052Z
 description: Why run Incus - one daemon and one REST API running OCI application containers, LXC system containers and full virtual machines side by side.
 editor: markdown
@@ -9,9 +9,9 @@ title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-18T19:19:42.500285707Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: vOmfrlBDg
+leafwiki_last_author_id: 3LRUaQsvg
 ---
 
 # Why Incus?
@@ -105,8 +105,6 @@ upgrade, roll back in seconds.
 Every container gets its own network address, so two services can both listen
 on port 80 without a port-mapping puzzle. You can shell into any container,
 snapshot it before a risky upgrade, and roll back in seconds.
-
-> > > > > > > v1.2
 
 Compose files reach the rest of Incus through `x-incus`: project-wide resource
 limits, static IPs, GPU passthrough, and storage-pool placement. See the
