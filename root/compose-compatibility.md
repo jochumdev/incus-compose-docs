@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T02:54:50.000Z
+date: 2026-08-18T12:19:10.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-18T02:54:50.000000000Z"
+leafwiki_updated_at: "2026-08-18T12:19:10.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -862,6 +862,12 @@ Restart enforcement is handled by the ic-healthd sidecar, including
 - Service `secrets[].target` - Custom target path
 - Service `secrets[].uid` / `secrets[].gid` - File ownership
 - Service `secrets[].mode` - File permissions (default: 0400)
+
+Setting one of `uid`/`gid` and not the other leaves the other at 0, as docker
+does. Setting neither is where we differ: the file is written owned by the
+instance user, where docker uses root. A 0400 secret owned by root is unreadable
+to the non-root user most OCI images run as, which makes docker's default
+useless here. The same applies to `configs[]`.
 
 ### Configs
 
