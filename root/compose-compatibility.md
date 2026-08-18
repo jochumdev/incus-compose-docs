@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T22:47:26.000Z
+date: 2026-08-18T00:07:28.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-17T22:47:26.000000000Z"
+leafwiki_updated_at: "2026-08-18T00:07:28.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -72,6 +72,7 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `restart` - Restart policies (`no`, `always`, `on-failure`, `unless-stopped`)
 - `x-incus` extension - pass any Incus project, network and instance option directly (see below)
 - Top-level `x-incus-compose.healthd` - configure the ic-healthd sidecar's network and Incus endpoint (see below)
+- Top-level `x-incus-compose.backup` - where `incus-compose backup` puts the copies (see below)
 
 #### Labels
 
@@ -325,6 +326,34 @@ services:
 ```
 
 Any [Project option](https://linuxcontainers.org/incus/docs/main/reference/projects/) is accepted.
+
+#### x-incus-compose Backup
+
+Configure `incus-compose backup` with the top-level `x-incus-compose.backup`
+extension:
+
+```yaml
+x-incus-compose:
+  backup:
+    pool: hdd
+
+services:
+  app:
+    image: docker.io/nginx:alpine
+    volumes:
+      - data:/var/lib/app
+
+volumes:
+  data:
+```
+
+| Key           | Description                                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `pool`        | Storage pool the backup copies live in. Defaults to the client's default pool; a separate disk is what makes them useful. |
+| `meta_volume` | Volume holding the manifests and the locks. Defaults to `ic-backup-manifest`.                                             |
+
+The key only has to be present, so an empty `backup:` is enough to opt in. See
+[CLI Reference - backup](/cli-reference#backup) for the commands.
 
 #### x-incus-compose Healthd
 

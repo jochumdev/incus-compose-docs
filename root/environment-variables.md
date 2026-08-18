@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-18T00:07:28.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-18T00:07:28.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -122,16 +122,18 @@ setting one never leaks into another command. See [Command Flags](#command-flags
 for the full list, or run `incus-compose <command> --help` - every flag's
 env var is shown inline as `[$VAR_NAME]`.
 
-Four flags are the deliberate exception and have **no** environment variable,
+Six flags are the deliberate exception and have **no** environment variable,
 because a forgotten shell variable would silently make every future
 invocation destructive or a no-op instead of just changing cosmetic output:
 
-| Flag         | Command | Why                                                 |
-| ------------ | ------- | --------------------------------------------------- |
-| `--recreate` | `up`    | Would silently recreate containers on every `up`    |
-| `--project`  | `down`  | Would silently delete the whole project             |
-| `--volumes`  | `down`  | Would silently delete volumes                       |
-| `--dry-run`  | `exec`  | Would silently no-op every `exec`, breaking scripts |
+| Flag         | Command          | Why                                                           |
+| ------------ | ---------------- | ------------------------------------------------------------- |
+| `--recreate` | `up`             | Would silently recreate containers on every `up`              |
+| `--project`  | `down`           | Would silently delete the whole project                       |
+| `--volumes`  | `down`           | Would silently delete volumes                                 |
+| `--dry-run`  | `exec`           | Would silently no-op every `exec`, breaking scripts           |
+| `--yes`      | `backup restore` | Would silently skip the confirmation on a destructive restore |
+| `--dry-run`  | `backup restore` | Would silently no-op every restore                            |
 
 ### Project and Files
 
@@ -243,6 +245,16 @@ exceptions table above.
 | `pull`  | `INCUS_COMPOSE_NO_HEALTHD`                | `--no-healthd`           | Don't pull the healthd sidecar    |
 | `pull`  | `INCUS_COMPOSE_HEALTHD_IMAGE`             | `--healthd-image`        | Healthd OCI image                 |
 
+### backup
+
+| Command          | Variable                                | Flag          | Description                          |
+| ---------------- | --------------------------------------- | ------------- | ------------------------------------ |
+| all              | `INCUS_COMPOSE_BACKUP_POOL`             | `--pool`      | Storage pool for backup volumes      |
+| `backup list`    | `INCUS_COMPOSE_BACKUP_LIST_FORMAT`      | `--format`    | Output format                        |
+| `backup verify`  | `INCUS_COMPOSE_BACKUP_VERIFY_FORMAT`    | `--format`    | Output format                        |
+| `backup restore` | `INCUS_COMPOSE_BACKUP_RESTORE_VOLUME`   | `--volume`    | Restore only these volumes           |
+| `backup delete`  | `INCUS_COMPOSE_BACKUP_DELETE_KEEP_LAST` | `--keep-last` | Delete every backup but the newest N |
+
 ### config
 
 | Variable                           | Flag             | Description                              |
@@ -286,7 +298,8 @@ exceptions table above.
 | `self-update` | `INCUS_COMPOSE_SELF_UPDATE_DRAFT`       | `--draft`         | Also consider draft releases          |
 | `self-update` | `INCUS_COMPOSE_SELF_UPDATE_PRE_RELEASE` | `--pre-release`   | Also consider pre-releases            |
 
-`exec --dry-run` has no variable - see the exceptions table above.
+`exec --dry-run` and `backup restore --yes`/`--dry-run` have no variable - see
+the exceptions table above.
 
 ### healthd up / down / logs / restart
 
