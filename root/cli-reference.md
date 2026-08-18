@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T14:53:31.000Z
+date: 2026-08-18T14:59:51.000Z
 dateCreated: 2026-07-05T01:03:05.46Z
 description: Every incus-compose command and flag, with the state diagram showing which command leaves your services created, running or stopped.
 editor: markdown
@@ -9,7 +9,7 @@ title: CLI Reference
 leafwiki_id: v4RXqlfDg
 leafwiki_title: CLI Reference
 leafwiki_created_at: "2026-07-05T03:53:59.241448744Z"
-leafwiki_updated_at: "2026-08-18T14:53:31.000000000Z"
+leafwiki_updated_at: "2026-08-18T14:59:51.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: public-editor
 ---
@@ -175,6 +175,38 @@ incus-compose stop [SERVICE...]
 | `--with-deps`  | Also stop linked services (depends_on) - incus-compose extension |
 | `--no-healthd` | Don't stop healthd sidecar                                       |
 
+Services are shut down gracefully and killed once `--timeout` is up, as docker
+does. Incus itself does not escalate - it reports a failure and leaves the
+instance running - so incus-compose issues the kill.
+
+A timeout below a second is rounded up to one: Incus reads a zero timeout as an
+immediate kill, which is the opposite of what a small number asks for.
+
+_Changed in v1.3.0_: `stop` shuts down gracefully. It always killed outright
+before, which made `--timeout` do nothing. Use [`kill`](#kill) for the old
+behavior.
+
+## kill
+
+Force stop running services, skipping the graceful shutdown.
+
+```
+incus-compose kill [SERVICE...]
+```
+
+| Option           | Description                                                      |
+| ---------------- | ---------------------------------------------------------------- |
+| `-s`, `--signal` | Signal to send (default: `SIGKILL`; nothing else is supported)   |
+| `--with-deps`    | Also kill linked services (depends_on) - incus-compose extension |
+
+`docker compose kill -s` can send any signal. The Incus state API has no field
+for one, and Incus runs an OCI image's entrypoint under an init of its own, so
+the entrypoint is not PID 1 and a signal aimed at it would reach the wrong
+process. `kill` therefore accepts `SIGKILL` only and rejects anything else
+rather than pretending.
+
+_Since: v1.3.0_
+
 ## restart
 
 Restart running services.
@@ -320,6 +352,8 @@ had.
 `cp` shells out to your local `incus` client and targets the instance via
 `INCUS_PROJECT`.
 
+_Since: v1.3.0_
+
 ## top
 
 Display resource usage per instance.
@@ -341,6 +375,8 @@ same thing.
 
 It takes no service arguments - `incus top` has no name filter - and a
 project-scoped ic-healthd sidecar is listed along with the services.
+
+_Since: v1.3.0_
 
 ## events
 
@@ -367,6 +403,8 @@ incus-compose events --json | jq -r .action
 
 It takes no service arguments - `incus monitor` filters by project, not by
 instance - and has no `--since`/`--until`, which Incus does not offer.
+
+_Since: v1.3.0_
 
 ## port
 
@@ -690,7 +728,7 @@ command scoped to the current project.
 | `cp`                         | `cp`                         | Owned by the instance's user, not root.                        |
 | `top`                        | `top`                        | Per instance, not per process. No service filter.              |
 | `events`                     | `events`                     | Lifecycle events by default. No service filter.                |
-| `kill`                       | `stop --timeout 0`           | Forces an immediate stop.                                      |
+| `kill`                       | `kill`                       | `SIGKILL` only; Incus delivers no other signal.                |
 | `run`                        | not implemented              | Use `up` then `exec`.                                          |
 | `pause` / `unpause`          | not implemented              | Use the `incus-compose incus` passthrough.                     |
 | `port`                       | `port`                       | A stopped instance answers too.                                |

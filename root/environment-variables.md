@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T14:53:31.000Z
+date: 2026-08-18T14:58:52.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-18T14:53:31.000000000Z"
+leafwiki_updated_at: "2026-08-18T14:58:52.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -227,6 +227,8 @@ are abbreviated; run `incus-compose <command> --help` for the full text and defa
 | `start`   | `INCUS_COMPOSE_START_WITH_DEPS`       | `--with-deps`          | Also start linked services                |
 | `stop`    | `INCUS_COMPOSE_STOP_TIMEOUT`          | `--timeout`            | Timeout for stopping                      |
 | `stop`    | `INCUS_COMPOSE_STOP_WITH_DEPS`        | `--with-deps`          | Also stop linked services                 |
+| `kill`    | `INCUS_COMPOSE_KILL_SIGNAL`           | `--signal`, `-s`       | Signal to send; only `SIGKILL` works      |
+| `kill`    | `INCUS_COMPOSE_KILL_WITH_DEPS`        | `--with-deps`          | Also kill linked services                 |
 | `restart` | `INCUS_COMPOSE_RESTART_TIMEOUT`       | `--timeout`            | Timeout for stopping and starting         |
 | `restart` | `INCUS_COMPOSE_RESTART_WITH_DEPS`     | `--with-deps`          | Also restart linked services              |
 
