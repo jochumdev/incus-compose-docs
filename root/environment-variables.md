@@ -298,6 +298,31 @@ exceptions table above.
 | `ps`    | `INCUS_COMPOSE_PS_FORMAT`    | `--format`      | Output format: `table` or `json`         |
 | `ps`    | `INCUS_COMPOSE_PS_WITH_DEPS` | `--with-deps`   | Also list linked services                |
 
+### run
+
+| Command             | Variable                          | Flag                    | Description                                   |
+| ------------------- | --------------------------------- | ----------------------- | --------------------------------------------- |
+| `run`               | `INCUS_COMPOSE_RUN_RM`            | `--rm`                  | Remove the instance after the command exits   |
+| `run`               | `INCUS_COMPOSE_RUN_DETACH`        | `--detach`, `-d`        | Print the instance name and return            |
+| `run`               | `INCUS_COMPOSE_RUN_ENV`           | `--env`, `-e`           | Set environment variables (KEY=VALUE)         |
+| `run`               | `INCUS_COMPOSE_RUN_LABEL`         | `--label`, `-l`         | Add a label (KEY=VALUE)                       |
+| `run`               | `INCUS_COMPOSE_RUN_VOLUME`        | `--volume`, `-v`        | Bind mount a volume                           |
+| `run`               | `INCUS_COMPOSE_RUN_PUBLISH`       | `--publish`, `-p`       | Publish a port                                |
+| `run`               | `INCUS_COMPOSE_RUN_SERVICE_PORTS` | `--service-ports`, `-P` | Keep the ports the service declares           |
+| `run`               | `INCUS_COMPOSE_RUN_ENTRYPOINT`    | `--entrypoint`          | Override the image entrypoint                 |
+| `run`               | `INCUS_COMPOSE_RUN_USER`          | `--user`, `-u`          | Run as this user                              |
+| `run`               | `INCUS_COMPOSE_RUN_GROUP`         | `--group`               | Run as this group                             |
+| `run`               | `INCUS_COMPOSE_RUN_WORKDIR`       | `--workdir`, `-w`       | Working directory for the command             |
+| `run`               | `INCUS_COMPOSE_RUN_NAME`          | `--name`                | Name for the one-off instance                 |
+| `run`               | `INCUS_COMPOSE_RUN_NO_TTY`        | `--no-tty`, `-T`        | Disable pseudo-TTY allocation                 |
+| `run`               | `INCUS_COMPOSE_RUN_NO_DEPS`       | `--no-deps`             | Don't start the services this one depends on  |
+| `run`               | `INCUS_COMPOSE_RUN_BUILD`         | `--build`               | Build the image before running                |
+| `run`               | `INCUS_COMPOSE_RUN_NO_BUILD`      | `--no-build`            | Never build                                   |
+| `run`               | `INCUS_COMPOSE_RUN_BUILDER`       | `--builder`             | Preferred builder                             |
+| `run`               | `INCUS_COMPOSE_RUN_PULL`          | `--pull`                | always / missing / never                      |
+| `run`, `pull`, `up` | `INCUS_COMPOSE_INIT_IMAGE`        | `--init`                | Image the blocking helper comes from          |
+| `run`               | `INCUS_COMPOSE_RUN_TIMEOUT`       | `--timeout`             | Timeout for creating and stopping the one-off |
+
 ### logs / exec / cp / top / events / port / self-update
 
 | Command        | Variable                                | Flag                  | Description                           |

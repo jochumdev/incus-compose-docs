@@ -1068,6 +1068,24 @@ endpoint must be set explicitly. See
 
 ## Behavioral Differences
 
+### One-off commands (`run`)
+
+The command a one-off runs is **not PID 1**, where docker's is.
+
+Incus reports no exit status for an instance that stopped, and `incus exec`
+reports an exact one, so the instance runs a helper that does nothing but block
+and the service's own entrypoint and command run through an exec into it. `run`
+still exits with the command's own status, which is what the difference buys.
+Nothing user-visible depends on the process being PID 1, and Incus runs an OCI
+entrypoint under an init of its own in either case.
+
+**A cluster mixing CPU architectures is not supported for `run`.** The helper is
+pulled for the architecture of the server that fetched it, and an OCI remote
+serves no other. A standalone server, or a cluster on one architecture, never
+meets this.
+
+See [`run`](/cli-reference#run) for the volume the helper lives in.
+
 ### Images
 
 **Registries:**

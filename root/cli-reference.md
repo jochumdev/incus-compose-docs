@@ -95,6 +95,7 @@ incus-compose up [SERVICE...]
 | `--no-healthd`         | Don't create healthd sidecar for healthchecks                                                                                                                                                                                                      |
 | `--external-healthd`   | Use an existing (unmanaged) healthd; don't create or look one up                                                                                                                                                                                   |
 | `--healthd-image`      | Healthd OCI image; `{version}` is replaced with the incus-compose version                                                                                                                                                                          |
+| `--init`               | Image the `run` helper comes from, fetched here so a one-off works later; `{version}` is replaced with the incus-compose version                                                                                                                   |
 | `--healthd-binary`     | Path to local ic-healthd binary (uses images:alpine/edge instead of OCI image)                                                                                                                                                                     |
 | `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP                                                                                                                  |
 | `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                                                                                                                                    |
@@ -368,6 +369,91 @@ incus-compose exec web sh -c 'echo hello > /data/test.txt'
 
 _Changed in 1.0.0-beta.22_: exec uses the instances UID/GID by default.
 
+## run
+
+Run a one-off command on a service, as `docker compose run` does.
+
+```
+incus-compose run [options] SERVICE [COMMAND] [ARGS...]
+```
+
+| Option                   | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `--rm`                   | Remove the instance after the command exits                 |
+| `-d`, `--detach`         | Print the instance name and return                          |
+| `-e`, `--env`            | Set environment variables `KEY=VALUE` (repeatable)          |
+| `-l`, `--label`          | Add a label `KEY=VALUE` (repeatable)                        |
+| `-v`, `--volume`         | Bind mount a volume (repeatable)                            |
+| `-p`, `--publish`        | Publish a port (repeatable)                                 |
+| `-P`, `--service-ports`  | Keep the ports the service declares                         |
+| `--entrypoint`           | Override the image entrypoint                               |
+| `-u`, `--user`           | Run as this user (default: the instance's UID)              |
+| `--group`                | Run as this group (default: the instance's GID)             |
+| `-w`, `--workdir`        | Working directory for the command                           |
+| `--name`                 | Name for the one-off instance                               |
+| `-T`, `--no-tty`         | Disable pseudo-TTY allocation                               |
+| `--no-deps`              | Don't start the services this one depends on                |
+| `--build` / `--no-build` | Build the image first, or never build                       |
+| `--builder`              | Preferred builder, binary name or absolute path             |
+| `--pull`                 | `always` / `missing` (default) / `never`                    |
+| `--init`                 | Image the blocking helper comes from                        |
+| `--timeout`              | Timeout for creating and stopping the one-off (default: 2m) |
+
+Everything after SERVICE belongs to the command, so its own flags need no
+escaping:
+
+```bash
+incus-compose run --rm web sh -c 'echo hello'
+incus-compose run --rm db psql -U postgres -c 'select 1'
+```
+
+`run` exits with the command's own status:
+
+```bash
+incus-compose run --rm web sh -c 'exit 42'; echo $?   # 42
+```
+
+The one-off is named `<service>-run-<8 hex>` unless `--name` says otherwise, and
+it carries `user.incus-compose.oneoff=true`. It is not one of the service's
+instances: `up` never reconciles it, `ps` lists it under its service name, and
+`down` removes it even without `--rm`. Health checks are off on it, so ic-healthd
+never restarts one.
+
+Ports are dropped unless `-p` or `-P` is given, because a proxy device would
+fight the running service for the same listener.
+
+### How the exit code is obtained
+
+Incus reports no exit status for an instance that stopped, and `incus exec`
+reports an exact one. So the instance runs a helper that does nothing but block,
+and the service's own entrypoint and command run through an exec into it.
+
+That helper comes from `ghcr.io/lxc/incus-compose/ic-sleep`, read once per
+server into an `incus-compose-tools` volume in the `incus-compose` project and
+copied from there into each compose project that runs a one-off. Point `--init`,
+or `x-incus-compose.init`, at another image for a private mirror.
+
+Fetching that image is the only step of a one-off that needs the network, and
+`pull` does it - so does `up`, which runs `pull`. Both take `--init` for the
+same reason, and both only warn when it cannot be fetched: most projects never
+run a one-off, so an unreachable tools image must not fail the whole command.
+`run` is where it becomes an error. That is what makes an air-gapped install
+work: `pull` while connected, `run` later.
+
+Two consequences:
+
+- **The command is not PID 1**, where docker's is. Nothing user-visible depends
+  on it, and Incus runs an OCI entrypoint under an init of its own either way.
+- **A cluster mixing CPU architectures is not supported.** The helper is pulled
+  for the architecture of the server that fetched it, and an OCI remote serves
+  no other. On a single-architecture cluster, or a standalone server, this never
+  comes up.
+
+`run` shells out to your local `incus` client for the exec, as
+[`exec`](#exec) does.
+
+_Since: v1.3.0_
+
 ## cp
 
 Copy files between a service's instance and the local filesystem.
@@ -549,6 +635,7 @@ incus-compose pull [SERVICE...]
 | `--policy`                      | Pull policy: `always` (default), `missing`, `never`                            |
 | `--no-healthd`                  | Don't pull the healthd sidecar                                                 |
 | `--healthd-image`               | Healthd OCI image to use; {version} is replaced with the incus-compose version |
+| `--init`                        | Image the `run` helper comes from; {version} is replaced likewise              |
 | `--include-deps`, `--with-deps` | Also pull linked services                                                      |
 
 ## backup
@@ -783,7 +870,7 @@ command scoped to the current project.
 | `top`                        | `top`                        | Per instance, not per process. No service filter.              |
 | `events`                     | `events`                     | Lifecycle events by default. No service filter.                |
 | `kill`                       | `kill`                       | `SIGKILL` only; Incus delivers no other signal.                |
-| `run`                        | not implemented              | Use `up` then `exec`.                                          |
+| `run`                        | `run`                        | The command is not PID 1; see below.                           |
 | `pause` / `unpause`          | `pause` / `unpause`          | Incus freeze/unfreeze; no timeout to give.                     |
 | `port`                       | `port`                       | A stopped instance answers too.                                |
 | -                            | `port-forward`               | No docker equivalent: reaches a port that was never published. |
