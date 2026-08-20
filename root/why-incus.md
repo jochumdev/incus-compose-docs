@@ -23,24 +23,17 @@ machines** side by side. It is Apache-2.0, developed in the open under the
 started LXC in 2008.
 
 Most compose tooling assumes a Docker-style OCI engine. `incus-compose` runs
-your existing `compose.yaml` against Incus instead.
+your existing `compose.yaml` against Incus instead - we treat a compose file
+that doesn't run as a bug, unless the [compatibility matrix](/compose-compatibility)
+says it doesn't.
 
 ## One Package, One Daemon
 
 A typical container-plus-VM setup accumulates an engine daemon, a container
 runtime under it, a hypervisor manager beside it, network plugins, storage
-drivers, and a different CLI for each. Incus ships all of it as one package and
-one daemon:
-
-- **Containers and VMs** - application containers, system containers, and KVM
-  virtual machines from the same command
-- **Networking** - managed bridges with DHCP and DNS, no SDN add-on
-- **Storage** - Ceph, ZFS, Btrfs, LVM, or plain directory pools, with snapshots
-  and clones as first-class operations
-- **Images, projects, and clustering** - image cache, multi-tenancy, and
-  multi-host scaling, in the same daemon
-
-There is no second daemon to patch and no separate CLI per subsystem.
+drivers, and a different CLI for each. Incus ships all of it - containers and
+VMs, networking, storage, images, projects, clustering - as one package and
+one daemon.
 
 ## Running an OCI Engine Inside a Container
 
@@ -88,23 +81,18 @@ services:
 
 ## Compared to an OCI Engine
 
-| Feature        | OCI Engines                 | Incus                                             |
-| -------------- | --------------------------- | ------------------------------------------------- |
-| Container type | Application (PID 1 = app)   | Application (PID 1 = app) or system (full init)   |
-| Isolation      | Namespaces + cgroups        | Namespaces + cgroups, unprivileged by default     |
-| Security       | Varies by engine and config | AppArmor + seccomp confinement by default         |
-| Networking     | Port mapping via iptables   | Real IPs and port proxies                         |
-| Storage        | Overlay filesystem          | ZFS/Btrfs with instant snapshots (pool-dependent) |
-| Image caching  | Per-engine cache            | Global blob cache, per-project alias              |
-
-Real IPs deserve a special mention: every container gets its own network
-address, so two services can both listen on port 80 without a port-mapping
-puzzle. Shell into any container for debugging, snapshot it before a risky
-upgrade, roll back in seconds.
+| Feature        | OCI Engines                             | Incus                                             |
+| -------------- | --------------------------------------- | ------------------------------------------------- |
+| Container type | Application (PID 1 = app)               | Application (PID 1 = app) or system (full init)   |
+| Isolation      | Namespaces + cgroups                    | Namespaces + cgroups, unprivileged by default     |
+| Security       | Daemon runs as root; rootless is opt-in | AppArmor + seccomp confinement by default         |
+| Networking     | Port mapping via iptables               | Real IPs and port proxies                         |
+| Storage        | Overlay filesystem                      | ZFS/Btrfs with instant snapshots (pool-dependent) |
+| Image caching  | Per-engine cache                        | Global blob cache, per-project alias              |
 
 Every container gets its own network address, so two services can both listen
-on port 80 without a port-mapping puzzle. You can shell into any container,
-snapshot it before a risky upgrade, and roll back in seconds.
+on port 80 without a port-mapping puzzle. Shell into any container for
+debugging, snapshot it before a risky upgrade, roll back in seconds.
 
 Compose files reach the rest of Incus through `x-incus`: project-wide resource
 limits, static IPs, GPU passthrough, and storage-pool placement. See the
@@ -144,35 +132,10 @@ See [Installing on Windows](/getting-started/windows) for the client setup.
 ## Scaling Out
 
 The API is the same on one host and on many, so there is no second
-orchestration layer to learn.
+orchestration layer to learn: [Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/) covers placement and live migration across hosts, and [IncusOS](https://linuxcontainers.org/incus-os/) is an immutable OS purpose-built to run it.
 
-**[Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/):**
-
-- 1 to 100+ bare metal hosts
-- A single API endpoint for the entire cluster
-- Automatic instance placement and load balancing
-- Live migration between hosts
-
-**[IncusOS](https://linuxcontainers.org/incus-os/):**
-
-- Immutable OS purpose-built for Incus
-- Safe, predictable updates
-- Minimal attack surface
-
-Those numbers are Incus's. `incus-compose` runs on single hosts and small
+Those capabilities are Incus's. `incus-compose` runs on single hosts and small
 clusters today and has not been exercised across a hundred-node deployment.
-
-## Choose Incus When
-
-- You need to shell into containers for debugging
-- You want true RW volumes (not Kubernetes volume limitations)
-- You need real network addresses (no port conflicts)
-- You want unprivileged-by-default containers without full VM overhead
-- You need ZFS/Btrfs snapshots and clones
-- You are running apps that expect a full OS environment
-- Security and multi-tenancy are priorities
-- You are already using Incus for infrastructure
-- You want one workflow from dev laptop to production cluster
 
 ## Stick With OCI Engines When
 
@@ -181,8 +144,6 @@ clusters today and has not been exercised across a hundred-node deployment.
   templates, and marketplace integrations mostly assume Docker/OCI
 - You want a managed cloud container service (ECS, Cloud Run, GKE Autopilot)
   instead of operating your own hosts
-- You are relying on the depth of existing tutorials, Stack Overflow answers,
-  and community troubleshooting that comes with Docker's larger install base
 
 One caveat either way: Incus's OCI application-container support is newer than
 its system-container support and has seen less production mileage.
