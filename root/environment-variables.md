@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T15:46:04.000Z
+date: 2026-08-20T07:20:59.000Z
 dateCreated: 2026-07-05T01:03:10.392Z
 description: How incus-compose loads environment variables - .env files, --env-file, and the deliberate differences from docker compose for security and reproducibility.
 editor: markdown
@@ -9,7 +9,7 @@ title: Environment Variables
 leafwiki_id: 20gXqlBDR
 leafwiki_title: Environment Variables
 leafwiki_created_at: "2026-07-05T03:53:59.566641541Z"
-leafwiki_updated_at: "2026-08-18T15:46:04.000000000Z"
+leafwiki_updated_at: "2026-08-20T07:20:59.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -38,6 +38,8 @@ CURRENT_USER=${USER}
 
 Only variables explicitly defined in `.env` files are passed to your compose project. Your shell's environment (like `PATH`, `EDITOR`, etc.) is **not** automatically included.
 
+Values are not treated literally: a `$` inside a value is itself interpolated (`PASSWORD=abc$def` becomes `abc`, since `$def` resolves to nothing), and a single-quoted value has no way to represent a literal `'`. Only double-quoting with backslash-escaping (`\\`, `\"`, `\$`) round-trips a value containing any of these characters.
+
 ```mermaid
 flowchart LR
     ENV[".env plus<br/>--env-file files"] --> M[compose model]
@@ -61,6 +63,10 @@ incus-compose -E up
 ```
 
 This includes all OS environment variables directly, matching docker-compose behavior.
+
+`--os-env` resolves before `.env`/`--env-file` in the merge order: when a key is
+set by both, the shell's value wins and the `.env` value for that key is
+dropped rather than overriding it.
 
 ## Examples
 

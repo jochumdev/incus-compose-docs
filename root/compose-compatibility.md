@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T12:19:10.000Z
+date: 2026-08-20T07:29:22.000Z
 dateCreated: 2026-07-05T01:03:07.97Z
 description: Which parts of the Compose Specification incus-compose supports, what it does differently, and the x-incus extensions for Incus-only options.
 editor: markdown
@@ -9,7 +9,7 @@ title: Compose Compatibility
 leafwiki_id: 9dRX3lBvR
 leafwiki_title: Compose Compatibility
 leafwiki_created_at: "2026-07-05T03:53:59.388277193Z"
-leafwiki_updated_at: "2026-08-18T12:19:10.000000000Z"
+leafwiki_updated_at: "2026-08-20T07:29:22.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -327,6 +327,18 @@ This is an escape hatch for device types incus-compose does not model natively
 accepted; keys collide by device name, so a raw device sharing a name with a
 compose-managed one overrides it.
 
+A `gpu` device's `id:` is the DRM ID (`incus info --resources`, under `GPU` ->
+`DRM` -> `ID`, typically a small integer), not the `/dev/dri/cardN` or
+`renderDNNN` filename - the device name fails with "Failed to detect requested
+GPU device" otherwise.
+
+A `unix-hotplug` device matches on `idVendor`/`idProduct` present on a device's
+own udev attributes. It cannot reach a character device created several sysfs
+levels below the matched USB node by a kernel driver that fans out into a
+different subsystem - the DVB character devices a `dvb-usb` driver creates are
+one such case. That case is accepted with no error, and the device simply
+never appears in the instance.
+
 _Since 1.0.0-beta.22_
 
 ### Projects
@@ -348,6 +360,12 @@ services:
 ```
 
 Any [Project option](https://linuxcontainers.org/incus/docs/main/reference/projects/) is accepted.
+
+The generic `restricted: "true"` flag, as distinct from scoping options like
+`restricted.cluster.groups`, additionally forbids low-level config keys
+outright - an instance-level `x-incus` block setting `raw.lxc`, `raw.idmap` or
+similar fails with `Use of low-level config "raw.lxc" ... is forbidden` in a
+project that has it set.
 
 #### x-incus-compose Backup
 
@@ -622,6 +640,12 @@ isso declares `/config` and `/db`, so `store` comes up with a volume at each.
 Without them Incus mounts a tmpfs over those paths, and isso's database is gone
 on the next restart.
 
+This isn't limited to declared `VOLUME` paths: an application container's
+rootfs resets to the base image on every restart, so anything written directly
+into the filesystem outside a mount is gone the next time it restarts too. A
+bind mount target must already exist in the image, or live on storage that
+persists independently, since it cannot be created this way.
+
 Declaring anything at the same target takes it over, which is how you choose the
 pool, the size, or that the path should not persist at all:
 
@@ -800,6 +824,10 @@ _Since: v1.0.0_
 - Variable interpolation
 - Default values: `${VAR:-default}`
 - Required variables: `${VAR?error message}`
+
+The bare `${VAR}` form, with no `:-`/`?` operator, does not fail on a missing
+or empty value - it silently interpolates to an empty string. Only the
+`${VAR?message}` form hard-fails.
 
 ### Project
 
