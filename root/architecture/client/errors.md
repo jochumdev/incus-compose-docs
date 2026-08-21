@@ -16,11 +16,13 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Errors
 
-The client package uses a sentinel-based error system with automatic context enrichment.
+The client package uses a sentinel-based error system with automatic context
+enrichment.
 
 ## Automatic Resource Context
 
-All errors returned from resource operations are automatically enriched with resource context via the `hookAfter` mechanism:
+All errors returned from resource operations are automatically enriched with
+resource context via the `hookAfter` mechanism:
 
 ```go
 // This happens automatically for every resource operation
@@ -32,9 +34,11 @@ err := client.RunAction(instance, client.ActionEnsure, client.OptionCreate())
 
 1. Any error returned from a resource operation passes through `hookAfter`
 2. If the error is already a `*client.Error`, it gets `.WithResource(r)` added
-3. If the error is any other type, it gets wrapped: `ErrUnknown.WithResource(r).Wrap(err)`
+3. If the error is any other type, it gets wrapped:
+   `ErrUnknown.WithResource(r).Wrap(err)`
 
-This means you never need to manually add resource context to errors - the client does it automatically.
+This means you never need to manually add resource context to errors - the
+client does it automatically.
 
 ## Sentinel Errors
 
@@ -98,7 +102,8 @@ underlying := errors.Unwrap(err)
 
 ## Creating Contextual Errors
 
-Within the client package, errors are created with context using method chaining:
+Within the client package, errors are created with context using method
+chaining:
 
 ```go
 // Add resource context (usually automatic via hookAfter)
@@ -120,8 +125,10 @@ return ErrOperation.Wrap(incusErr)
 return ErrCreate.WithResource(r).Wrap(incusErr)
 ```
 
-Each `With*` method returns a new `*Error` preserving the sentinel identity, so `errors.Is()` continues to work correctly.
+Each `With*` method returns a new `*Error` preserving the sentinel identity, so
+`errors.Is()` continues to work correctly.
 
-`Wrap(nil)` returns a non-nil `*Error` (a sentinel with no cause), so only wrap a
-real error: wrapping unconditionally turns a success path into a spurious failure
-(common in after hooks, see [Hooks](/architecture/client/hooks#attribute-failures-in-complex-hooks)).
+`Wrap(nil)` returns a non-nil `*Error` (a sentinel with no cause), so only wrap
+a real error: wrapping unconditionally turns a success path into a spurious
+failure (common in after hooks, see
+[Hooks](/architecture/client/hooks#attribute-failures-in-complex-hooks)).

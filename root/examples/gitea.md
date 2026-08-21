@@ -15,13 +15,17 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Gitea
 
-[Gitea](https://about.gitea.com/), a lightweight self-hosted Git service, backed by Postgres.
+[Gitea](https://about.gitea.com/), a lightweight self-hosted Git service, backed
+by Postgres.
 
-The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/gitea).
+The files for this example are on
+[Github](https://github.com/lxc/incus-compose/tree/main/examples/gitea).
 
 ## The example
 
-Two services: `database` (Postgres) and `gitea`, wired together with `depends_on: condition: service_healthy`. Versions, credentials, and network settings all come from `.env`.
+Two services: `database` (Postgres) and `gitea`, wired together with
+`depends_on: condition: service_healthy`. Versions, credentials, and network
+settings all come from `.env`.
 
 ## Usage
 

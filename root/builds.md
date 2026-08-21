@@ -16,11 +16,15 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Builds
 
-incus-compose supports building local service images from Compose `build:` definitions and importing the result into the Incus project.
+incus-compose supports building local service images from Compose `build:`
+definitions and importing the result into the Incus project.
 
-> Build support requires `podman` or `docker` on the machine running incus-compose.
+> Build support requires `podman` or `docker` on the machine running
+> incus-compose.
 
-incus-compose does not implement a builder itself and does not use the Buildah Go library. It shells out to a local container builder, then imports the built rootfs into Incus as an image.
+incus-compose does not implement a builder itself and does not use the Buildah
+Go library. It shells out to a local container builder, then imports the built
+rootfs into Incus as an image.
 
 Builder selection:
 
@@ -91,7 +95,8 @@ services:
       dockerfile: Containerfile
 ```
 
-When `image:` is omitted, incus-compose uses a local image name based on the project and service:
+When `image:` is omitted, incus-compose uses a local image name based on the
+project and service:
 
 ```text
 localhost/<project>-<service>
@@ -113,10 +118,10 @@ localhost/<project>-<service>
 
 ## Image Caching
 
-By default, a built image is imported into the shared image-cache project
-first (the `incus-compose-cache` project, or whatever `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
-points at) and then copied from there into the compose project, the same
-path pulled images take.
+By default, a built image is imported into the shared image-cache project first
+(the `incus-compose-cache` project, or whatever `--image-cache` /
+`INCUS_COMPOSE_IMAGE_CACHE` points at) and then copied from there into the
+compose project, the same path pulled images take.
 
 ```mermaid
 flowchart LR
@@ -140,8 +145,8 @@ _Since: v1.2.0-rc.2_
 
 ### The cache key is the image name
 
-A built image is stored in the cache under its Incus alias, which comes from
-the service's image name and nothing else:
+A built image is stored in the cache under its Incus alias, which comes from the
+service's image name and nothing else:
 
 | Compose                    | Cache alias                      |
 | -------------------------- | -------------------------------- |
@@ -156,21 +161,19 @@ build to finish wins for all of them.
 
 So the image name is the knob: set `image:` explicitly on every service that
 builds, and give services that build different content different names. The
-`localhost/<service>` fallback has no project prefix, so relying on it means
-two projects that both have a service called `web` share one entry.
+`localhost/<service>` fallback has no project prefix, so relying on it means two
+projects that both have a service called `web` share one entry.
 
-:::warning
-Because a cache hit skips the builder entirely, editing your Dockerfile or
-build context does **not** trigger a rebuild on its own - the image name is
-unchanged, so the cached image still matches. Use `--build` to force one, or
-bump the tag in `image:`. This mirrors `docker compose`, where an existing
-image is reused until you pass `--build`.
-:::
+:::warning Because a cache hit skips the builder entirely, editing your
+Dockerfile or build context does **not** trigger a rebuild on its own - the
+image name is unchanged, so the cached image still matches. Use `--build` to
+force one, or bump the tag in `image:`. This mirrors `docker compose`, where an
+existing image is reused until you pass `--build`. :::
 
-Set `no_cache: true` on the service's `build:` block to skip the shared
-cache and import straight into the project instead. The service then rebuilds
-in every project, which is also how you avoid sharing a cache entry with a
-same-named build elsewhere:
+Set `no_cache: true` on the service's `build:` block to skip the shared cache
+and import straight into the project instead. The service then rebuilds in every
+project, which is also how you avoid sharing a cache entry with a same-named
+build elsewhere:
 
 ```yaml
 services:
@@ -187,9 +190,9 @@ _Since: v1.1.0_
 
 ## Reusing a built image across projects
 
-Nothing special is needed. Keep the `build:` block where it is, give the
-service an explicit `image:` name, and every project that uses that name gets
-the cached image:
+Nothing special is needed. Keep the `build:` block where it is, give the service
+an explicit `image:` name, and every project that uses that name gets the cached
+image:
 
 ```yaml
 services:
@@ -221,10 +224,10 @@ Because a machine only builds on a cache miss, a client with no local
 `buildah`/`podman`/`docker` - common on Windows and macOS - can run either form
 as long as someone has seeded the cache.
 
-Rebuild under a new tag (`:v2`) when the content changes rather than
-overwriting an existing one. Consumers already holding a project copy of `:v1`
-will not pick up an in-place replacement, and `--build` only forces a rebuild
-for whoever runs it.
+Rebuild under a new tag (`:v2`) when the content changes rather than overwriting
+an existing one. Consumers already holding a project copy of `:v1` will not pick
+up an in-place replacement, and `--build` only forces a rebuild for whoever runs
+it.
 
 _Since: v1.1.0_
 
@@ -232,7 +235,9 @@ _Since: v1.1.0_
 
 Built images must match an architecture supported by the target Incus server.
 
-incus-compose asks Incus for its supported server architectures and uses the first one as the default build target. This is not a compose key: it is the list Incus reports. For example, if the server reports:
+incus-compose asks Incus for its supported server architectures and uses the
+first one as the default build target. This is not a compose key: it is the list
+Incus reports. For example, if the server reports:
 
 ```text
 x86_64, i686
@@ -263,7 +268,8 @@ Supported architecture mappings include:
 | `s390x`            | `linux/s390x`    |
 | `riscv64`          | `linux/riscv64`  |
 
-If a service requests a platform that Incus does not report as supported, the build fails before invoking the builder.
+If a service requests a platform that Incus does not report as supported, the
+build fails before invoking the builder.
 
 ## Build command options
 
@@ -365,10 +371,13 @@ The following Compose build options are currently not implemented:
 - `tags`
 - `ulimits`
 
-`tags` are intentionally ignored for now. incus-compose imports the built artifact into Incus and uses the Incus image alias needed by the project; extra Docker-style tags do not affect runtime behavior.
+`tags` are intentionally ignored for now. incus-compose imports the built
+artifact into Incus and uses the Incus image alias needed by the project; extra
+Docker-style tags do not affect runtime behavior.
 
 ## See Also
 
-- [CLI Reference](/cli-reference#build) - `build` command flags and `up` build behavior
+- [CLI Reference](/cli-reference#build) - `build` command flags and `up` build
+  behavior
 - [Compose Compatibility](/compose-compatibility) - overall feature support
 - [Getting Started](/getting-started) - first project walkthrough

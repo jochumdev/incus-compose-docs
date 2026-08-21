@@ -34,21 +34,22 @@ flowchart LR
     BIN -.->|"not available from here: builds,<br/>and bind mounts unless seeded"| INST
 ```
 
-_Since 1.0.0: Windows has been tested with version 1.0.0, MacOS by the lack of one not yet_
+_Since 1.0.0: Windows has been tested with version 1.0.0, MacOS by the lack of
+one not yet_
 
 ## Prerequisites
 
 - Windows 10/11, `x86_64` or `arm64`.
-- A reachable Incus server (Linux) with `core.https_address` set. This is required
-  even beyond remote access - see
+- A reachable Incus server (Linux) with `core.https_address` set. This is
+  required even beyond remote access - see
   [Getting Started - Incus must listen on the network](/getting-started#incus-must-listen-on-the-network-required).
 - Admin access to that server to trust your client certificate.
 
 ## 1. Create a bin directory and add it to your PATH
 
 Create `%LOCALAPPDATA%\bin` and add it to your user `PATH` (Settings -> "Edit
-environment variables for your account" -> `Path` -> New). Open a **new** terminal
-afterwards so the change takes effect.
+environment variables for your account" -> `Path` -> New). Open a **new**
+terminal afterwards so the change takes effect.
 
 ![environment.png](/assets/6qk9CMLDg/environment.png)
 
@@ -129,7 +130,8 @@ incus list --all-projects
   for data that lives on the server anyway. Health checks work automatically
   over HTTPS. See
   [Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus).
-- **Builds** need a local `podman` or `docker` which are not available on Windows.
+- **Builds** need a local `podman` or `docker` which are not available on
+  Windows.
 
 Have fun with incus and incus-compose on Windows!
 

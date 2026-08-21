@@ -16,7 +16,8 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Getting Started
 
-incus-compose lets you run your existing `compose.yaml` files directly on Incus without Docker.
+incus-compose lets you run your existing `compose.yaml` files directly on Incus
+without Docker.
 
 ## Prerequisites
 
@@ -106,10 +107,11 @@ release is installed.
 
 ### Binary
 
-Download a prebuilt archive from the [Releases Page](https://github.com/lxc/incus-compose/releases).
+Download a prebuilt archive from the
+[Releases Page](https://github.com/lxc/incus-compose/releases).
 
-On Windows and MacOS, incus-compose runs as a client that drives a remote Incus host over
-HTTPS - see [Installing on Windows](/getting-started/windows).
+On Windows and MacOS, incus-compose runs as a client that drives a remote Incus
+host over HTTPS - see [Installing on Windows](/getting-started/windows).
 
 ### Source
 
@@ -174,7 +176,15 @@ flowchart TD
     INST --> WAIT["wait for service_healthy<br/>dependencies to report healthy"]
 ```
 
-If your compose file uses health checks, incus-compose manages the `ic-healthd` sidecar automatically. It is transparent during normal use, but it is also a core component: all `healthcheck`, `restart:` and `depends_on: service_healthy` behavior is enforced by this sidecar, not by Incus. A working healthd is also required to bring up a project that has `service_healthy` dependencies - `up` waits for healthd to report them healthy, so a broken healthd makes `up` hang and fail (unless you pass `--no-healthd`). If health, restart, or startup behavior ever looks wrong, debug healthd first - see [Health Checking](/healthd) and [Debugging ic-healthd](/healthd#debugging-ic-healthd).
+If your compose file uses health checks, incus-compose manages the `ic-healthd`
+sidecar automatically. It is transparent during normal use, but it is also a
+core component: all `healthcheck`, `restart:` and `depends_on: service_healthy`
+behavior is enforced by this sidecar, not by Incus. A working healthd is also
+required to bring up a project that has `service_healthy` dependencies - `up`
+waits for healthd to report them healthy, so a broken healthd makes `up` hang
+and fail (unless you pass `--no-healthd`). If health, restart, or startup
+behavior ever looks wrong, debug healthd first - see [Health Checking](/healthd)
+and [Debugging ic-healthd](/healthd#debugging-ic-healthd).
 
 ### 3. Check status
 
@@ -210,13 +220,16 @@ incus-compose down --project
 
 ## compose.incus.yaml Override
 
-`compose.incus.yaml` is loaded automatically when it exists next to the selected `compose.yaml`. This lets you keep an upstream or Docker-focused Compose file unchanged while adding Incus-specific settings in a separate file.
+`compose.incus.yaml` is loaded automatically when it exists next to the selected
+`compose.yaml`. This lets you keep an upstream or Docker-focused Compose file
+unchanged while adding Incus-specific settings in a separate file.
 
 Typical uses:
 
 - Remove Docker-only port publishing with `ports: !reset []`
 - Add explicit health checks for `ic-healthd`
-- Set [static service IPs](/compose-compatibility#static-ip-assignment) on Incus networks
+- Set [static service IPs](/compose-compatibility#static-ip-assignment) on Incus
+  networks
 - Pass raw Incus network or instance options via `x-incus`
 
 Example `compose.incus.yaml`:
@@ -238,7 +251,10 @@ networks:
       ipv4.address: 10.131.32.1/24
 ```
 
-The file follows normal [Compose merge rules](https://docs.docker.com/reference/compose-file/merge). For example, `!reset []` clears a list from the base file. See [Compose Compatibility](/compose-compatibility#incus-override-file) for details.
+The file follows normal
+[Compose merge rules](https://docs.docker.com/reference/compose-file/merge). For
+example, `!reset []` clears a list from the base file. See
+[Compose Compatibility](/compose-compatibility#incus-override-file) for details.
 
 ## Common Workflows
 
@@ -335,8 +351,8 @@ volumes:
 ```
 
 A bind mount is passed through to incusd, which opens the path on its own
-filesystem, so it works when the server is this machine, over the Unix socket
-or over HTTPS. Against a server elsewhere, either use a named volume or set
+filesystem, so it works when the server is this machine, over the Unix socket or
+over HTTPS. Against a server elsewhere, either use a named volume or set
 [`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
 to copy the files across.
 
@@ -350,7 +366,8 @@ networks:
   backend:
 ```
 
-Long network names are hashed to fit Linux interface limits (13 chars for dhclient compatibility).
+Long network names are hashed to fit Linux interface limits (13 chars for
+dhclient compatibility).
 
 ## Project Isolation
 
@@ -368,7 +385,8 @@ Projects are isolated: separate networks, volumes, and instances.
 
 ## Image Caching
 
-Images are cached in either the `incus-compose-cache` project or the project you set via the `INCUS_COMPOSE_IMAGE_CACHE` env:
+Images are cached in either the `incus-compose-cache` project or the project you
+set via the `INCUS_COMPOSE_IMAGE_CACHE` env:
 
 ```bash
 $ incus project list
@@ -388,7 +406,8 @@ This means:
 - No Docker Hub rate limits after initial pull
 - `incus-compose down` only removes project images, cache persists
 
-For a technical background about images see [architecture/client/image.md](/architecture/client/image)
+For a technical background about images see
+[architecture/client/image.md](/architecture/client/image)
 
 The cache project is created automatically on first use.
 

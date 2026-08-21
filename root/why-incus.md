@@ -24,16 +24,16 @@ started LXC in 2008.
 
 Most compose tooling assumes a Docker-style OCI engine. `incus-compose` runs
 your existing `compose.yaml` against Incus instead - we treat a compose file
-that doesn't run as a bug, unless the [compatibility matrix](/compose-compatibility)
-says it doesn't.
+that doesn't run as a bug, unless the
+[compatibility matrix](/compose-compatibility) says it doesn't.
 
 ## One Package, One Daemon
 
 A typical container-plus-VM setup accumulates an engine daemon, a container
 runtime under it, a hypervisor manager beside it, network plugins, storage
 drivers, and a different CLI for each. Incus ships all of it - containers and
-VMs, networking, storage, images, projects, clustering - as one package and
-one daemon.
+VMs, networking, storage, images, projects, clustering - as one package and one
+daemon.
 
 ## Running an OCI Engine Inside a Container
 
@@ -90,13 +90,13 @@ services:
 | Storage        | Overlay filesystem                      | ZFS/Btrfs with instant snapshots (pool-dependent) |
 | Image caching  | Per-engine cache                        | Global blob cache, per-project alias              |
 
-Every container gets its own network address, so two services can both listen
-on port 80 without a port-mapping puzzle. Shell into any container for
-debugging, snapshot it before a risky upgrade, roll back in seconds.
+Every container gets its own network address, so two services can both listen on
+port 80 without a port-mapping puzzle. Shell into any container for debugging,
+snapshot it before a risky upgrade, roll back in seconds.
 
 Compose files reach the rest of Incus through `x-incus`: project-wide resource
-limits, static IPs, GPU passthrough, and storage-pool placement. See the
-feature overview on the [home page](/home) and the complete matrix in
+limits, static IPs, GPU passthrough, and storage-pool placement. See the feature
+overview on the [home page](/home) and the complete matrix in
 [Compose Compatibility](/compose-compatibility).
 
 ## Client and Server Are Separate
@@ -123,16 +123,20 @@ flowchart LR
     CLI -->|HTTPS| INCUSD
 ```
 
-Docker Desktop works differently: on Windows and macOS it runs a hidden Linux
-VM to host the engine, so the workload runs on your laptop rather than on the
+Docker Desktop works differently: on Windows and macOS it runs a hidden Linux VM
+to host the engine, so the workload runs on your laptop rather than on the
 server.
 
 See [Installing on Windows](/getting-started/windows) for the client setup.
 
 ## Scaling Out
 
-The API is the same on one host and on many, so there is no second
-orchestration layer to learn: [Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/) covers placement and live migration across hosts, and [IncusOS](https://linuxcontainers.org/incus-os/) is an immutable OS purpose-built to run it.
+The API is the same on one host and on many, so there is no second orchestration
+layer to learn:
+[Incus clustering](https://linuxcontainers.org/incus/docs/main/explanation/clustering/)
+covers placement and live migration across hosts, and
+[IncusOS](https://linuxcontainers.org/incus-os/) is an immutable OS
+purpose-built to run it.
 
 Those capabilities are Incus's. `incus-compose` runs on single hosts and small
 clusters today and has not been exercised across a hundred-node deployment.

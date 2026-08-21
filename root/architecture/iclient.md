@@ -57,8 +57,8 @@ remote has no daemon to dial; its `info` goes to
 
 `ReadConfig` is the only thing that touches disk. Nothing mutates a `*Config`
 afterwards, so it is safe to share - a well-known registry is resolved against
-it, never written into it, and the
-[credentials memo](#registry-credentials) is filled in before it is shared.
+it, never written into it, and the [credentials memo](#registry-credentials) is
+filled in before it is shared.
 
 | Method                         | Returns                                                               |
 | ------------------------------ | --------------------------------------------------------------------- |
@@ -107,9 +107,8 @@ reported; see [Progress](/architecture/progress).
 
 > **Trap: token operations.** A trust token (`CreateCertificateToken`) is
 > created and then waits to be _used_, so it never reaches a terminal state.
-> Read the first value, which carries the token, and cancel the context.
-> Ranging to the close waits for the token to expire, and `WaitOperation` never
-> returns.
+> Read the first value, which carries the token, and cancel the context. Ranging
+> to the close waits for the token to expire, and `WaitOperation` never returns.
 >
 > An image secret is a token operation too, which is why `CopyImage` reads it
 > from the response to the request rather than following it at all.
@@ -145,8 +144,8 @@ Sentinels, matched with `errors.Is`:
 | `ErrRegistryAddrCredentials` | An address still carries a login; the fields take it.  |
 | `ErrCredHelper`              | A remote's credentials helper failed.                  |
 
-Everything else arrives as an `api.StatusError`, so `api.StatusErrorCheck(err, 404)`
-works as it does upstream.
+Everything else arrives as an `api.StatusError`, so
+`api.StatusErrorCheck(err, 404)` works as it does upstream.
 
 ### The instance lock
 
@@ -154,7 +153,8 @@ Incus takes the instance's operation lock **in the driver, inside the
 operation**, so a write issued while it is held is accepted and then fails from
 the operation. `ErrInstanceBusy` therefore usually surfaces from
 `WaitOperation`, not from the call that started it - a retry has to wrap the
-wait, not just the request.
+wait, not just the request. A config PATCH is the exception and fails on the
+call itself.
 
 `WaitInstanceBusy(ctx, name)` blocks until no queryable operation holds the
 lock, which turns a retry from a blind sleep into one that starts when the
@@ -222,8 +222,8 @@ remote whose protocol is not `oci` returns `ErrRegistryProtocol`.
 from its `credentials_helper` if it has one, else from a login its address
 carries. The helper is the
 [docker credentials helper](https://github.com/docker/docker-credential-helpers)
-protocol, called exactly as the incus CLI calls it - the registry host on
-stdin, `{"Username","Secret"}` back - so one helper serves both tools.
+protocol, called exactly as the incus CLI calls it - the registry host on stdin,
+`{"Username","Secret"}` back - so one helper serves both tools.
 
 **The login never stays in `Addrs`.** It is lifted out into the two fields, and
 an address that still carries one is refused by `NewRepository` with
@@ -235,9 +235,9 @@ remote a memo entry up front, so a run pulling a dozen images from one registry
 asks the helper once, and two registries still resolve at the same time.
 
 The one place a login becomes a URL again is the pull, where
-`ImagesPost.Source.Server` is the only channel incusd offers - `ImageSource`
-has no field for it. incusd logs that URL when it connects, which is inherent
-to the API rather than something this can avoid.
+`ImagesPost.Source.Server` is the only channel incusd offers - `ImageSource` has
+no field for it. incusd logs that URL when it connects, which is inherent to the
+API rather than something this can avoid.
 
 _Since: v1.3.0_
 
@@ -287,8 +287,8 @@ Two tiers, following [Testing](/architecture/testing):
   dropped one. `NewRepository` is tested the same way, against an `httptest`
   server speaking enough of the Distribution API to serve one manifest.
 - **Integration and E2E** tests (`skipLocal` / `skipE2E`) drive a real Incus:
-  the operation and event paths, exec, console, the busy lock, and an image
-  pull from a registry.
+  the operation and event paths, exec, console, the busy lock, and an image pull
+  from a registry.
 
 ## See Also
 

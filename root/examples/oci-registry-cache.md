@@ -15,7 +15,12 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # OCI Registry Cache
 
-This example runs three [distribution](https://github.com/distribution/distribution) registry instances as pull-through caches, one per upstream registry. Incus remotes are then reconfigured to point at these local caches instead of the real upstream endpoints, so container images are fetched once and served locally on subsequent pulls.
+This example runs three
+[distribution](https://github.com/distribution/distribution) registry instances
+as pull-through caches, one per upstream registry. Incus remotes are then
+reconfigured to point at these local caches instead of the real upstream
+endpoints, so container images are fetched once and served locally on subsequent
+pulls.
 
 | Service           | Upstream                       | Static IP           |
 | ----------------- | ------------------------------ | ------------------- |
@@ -23,7 +28,8 @@ This example runs three [distribution](https://github.com/distribution/distribut
 | `ghcr-registry`   | `https://ghcr.io`              | `10.132.32.18:5000` |
 | `gitlab-registry` | `https://registry.gitlab.com`  | `10.132.32.19:5000` |
 
-Each cache holds images for 168 h (7 days) before re-validating with the upstream.
+Each cache holds images for 168 h (7 days) before re-validating with the
+upstream.
 
 ```mermaid
 flowchart LR
@@ -40,23 +46,32 @@ flowchart LR
     IC -.->|"direct-docker.io, bootstrap only"| U1
 ```
 
-The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/oci-registry-cache).
+The files for this example are on
+[Github](https://github.com/lxc/incus-compose/tree/main/examples/oci-registry-cache).
 
 ## Prerequisites
 
-The registry image itself lives on `docker.io`, which creates a bootstrapping problem: you can't pull the registry image through the proxy before the proxy exists. The solution is to add a direct (non-proxied) remote for the initial pull:
+The registry image itself lives on `docker.io`, which creates a bootstrapping
+problem: you can't pull the registry image through the proxy before the proxy
+exists. The solution is to add a direct (non-proxied) remote for the initial
+pull:
 
 ```sh
 incus remote add --protocol oci direct-docker.io https://docker.io
 ```
 
-This remote is used by `compose.yaml` (`image: direct-docker.io/library/registry:3`) and can be left in place permanently: it is only contacted during `incus-compose up` to pull or update the registry image.
+This remote is used by `compose.yaml`
+(`image: direct-docker.io/library/registry:3`) and can be left in place
+permanently: it is only contacted during `incus-compose up` to pull or update
+the registry image.
 
 ## Setup
 
 ### 1. Expose the caches via a reverse proxy
 
-The registry instances listen on their static IPs inside the Incus network. A TLS-terminating reverse proxy is required to expose them as proper HTTPS endpoints (Incus remotes require HTTPS).
+The registry instances listen on their static IPs inside the Incus network. A
+TLS-terminating reverse proxy is required to expose them as proper HTTPS
+endpoints (Incus remotes require HTTPS).
 
 **Caddy example** - the IPs must match those in `compose.incus.yaml`:
 
@@ -95,9 +110,13 @@ incus-compose up
 
 ### 3. Point Incus remotes at the local caches
 
-Point the Incus remotes at your new endpoints. Any subsequent `incus image copy` or container launch will hit the local cache first, and so will incus-compose: a configured remote overrides its built-in address for that registry.
+Point the Incus remotes at your new endpoints. Any subsequent `incus image copy`
+or container launch will hit the local cache first, and so will incus-compose: a
+configured remote overrides its built-in address for that registry.
 
-Drop the `remote remove` line for any name you have not added before — these three are built into incus-compose but are not in the Incus configuration until you put them there.
+Drop the `remote remove` line for any name you have not added before — these
+three are built into incus-compose but are not in the Incus configuration until
+you put them there.
 
 ```sh
 incus remote remove docker.io
@@ -112,9 +131,14 @@ incus remote add --protocol oci registry.gitlab.com https://gitlab-registry.exam
 
 ## Notes
 
-- The startup command in `compose.incus.yaml` includes a `sleep 10s` delay. This is a workaround for a race condition where `registry serve` starts before the Incus network interface is fully ready.
-- Cache storage is backed by named Incus volumes (`docker_registry_cache`, `ghcr_registry_cache`, `gitlab_registry_cache`) and survives container restarts.
-- To add another registry (e.g. `quay.io`), add a new service to both compose files with the next available static IP and a matching Caddy block.
+- The startup command in `compose.incus.yaml` includes a `sleep 10s` delay. This
+  is a workaround for a race condition where `registry serve` starts before the
+  Incus network interface is fully ready.
+- Cache storage is backed by named Incus volumes (`docker_registry_cache`,
+  `ghcr_registry_cache`, `gitlab_registry_cache`) and survives container
+  restarts.
+- To add another registry (e.g. `quay.io`), add a new service to both compose
+  files with the next available static IP and a matching Caddy block.
 
 ## Reference
 

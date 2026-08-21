@@ -16,7 +16,8 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Environment Variables
 
-incus-compose handles environment variables differently than docker-compose for security and reproducibility reasons.
+incus-compose handles environment variables differently than docker-compose for
+security and reproducibility reasons.
 
 ## How It Works
 
@@ -36,9 +37,15 @@ HOME_DIR=${HOME}
 CURRENT_USER=${USER}
 ```
 
-Only variables explicitly defined in `.env` files are passed to your compose project. Your shell's environment (like `PATH`, `EDITOR`, etc.) is **not** automatically included.
+Only variables explicitly defined in `.env` files are passed to your compose
+project. Your shell's environment (like `PATH`, `EDITOR`, etc.) is **not**
+automatically included.
 
-Values are not treated literally: a `$` inside a value is itself interpolated (`PASSWORD=abc$def` becomes `abc`, since `$def` resolves to nothing), and a single-quoted value has no way to represent a literal `'`. Only double-quoting with backslash-escaping (`\\`, `\"`, `\$`) round-trips a value containing any of these characters.
+Values are not treated literally: a `$` inside a value is itself interpolated
+(`PASSWORD=abc$def` becomes `abc`, since `$def` resolves to nothing), and a
+single-quoted value has no way to represent a literal `'`. Only double-quoting
+with backslash-escaping (`\\`, `\"`, `\$`) round-trips a value containing any of
+these characters.
 
 ```mermaid
 flowchart LR
@@ -49,8 +56,10 @@ flowchart LR
 
 ### Why This Matters
 
-- **Security**: Sensitive environment variables from your shell don't accidentally leak into containers
-- **Reproducibility**: The same compose file behaves the same way on different machines
+- **Security**: Sensitive environment variables from your shell don't
+  accidentally leak into containers
+- **Reproducibility**: The same compose file behaves the same way on different
+  machines
 - **Explicitness**: You always know exactly which variables are available
 
 ## The `--os-env` / `-E` Flag
@@ -62,11 +71,12 @@ incus-compose --os-env up
 incus-compose -E up
 ```
 
-This includes all OS environment variables directly, matching docker-compose behavior.
+This includes all OS environment variables directly, matching docker-compose
+behavior.
 
 `--os-env` resolves before `.env`/`--env-file` in the merge order: when a key is
-set by both, the shell's value wins and the `.env` value for that key is
-dropped rather than overriding it.
+set by both, the shell's value wins and the `.env` value for that key is dropped
+rather than overriding it.
 
 ## Examples
 
@@ -109,7 +119,8 @@ incus-compose --os-env up
 
 ## CLI Configuration
 
-Every global flag can be set via an environment variable. Flags given on the command line take precedence over environment variables.
+Every global flag can be set via an environment variable. Flags given on the
+command line take precedence over environment variables.
 
 ```mermaid
 flowchart TD
@@ -122,15 +133,16 @@ flowchart TD
 
 Every command-specific flag can be set too, scoped per command as
 `INCUS_COMPOSE_<COMMAND>_<FLAG>` - e.g. `--timeout` on `up` is
-`INCUS_COMPOSE_UP_TIMEOUT`, `--timeout` on `down` is `INCUS_COMPOSE_DOWN_TIMEOUT`.
-Each command gets its own variable even when the flag name is shared, so
-setting one never leaks into another command. See [Command Flags](#command-flags)
-for the full list, or run `incus-compose <command> --help` - every flag's
-env var is shown inline as `[$VAR_NAME]`.
+`INCUS_COMPOSE_UP_TIMEOUT`, `--timeout` on `down` is
+`INCUS_COMPOSE_DOWN_TIMEOUT`. Each command gets its own variable even when the
+flag name is shared, so setting one never leaks into another command. See
+[Command Flags](#command-flags) for the full list, or run
+`incus-compose <command> --help` - every flag's env var is shown inline as
+`[$VAR_NAME]`.
 
 Nine flags are the deliberate exception and have **no** environment variable,
-because a forgotten shell variable would silently make every future
-invocation destructive or a no-op instead of just changing cosmetic output:
+because a forgotten shell variable would silently make every future invocation
+destructive or a no-op instead of just changing cosmetic output:
 
 | Flag         | Command          | Why                                                           |
 | ------------ | ---------------- | ------------------------------------------------------------- |
@@ -173,9 +185,9 @@ invocation destructive or a no-op instead of just changing cosmetic output:
 | `INCUS_COMPOSE_WORKERS` | `--workers` | Number of concurrent workers (default: `4`)                      |
 | `NO_COLOR`              | --          | Disable color output ([no-color.org](https://no-color.org/))     |
 
-`--builder` and `--healthd-*` are command flags (`up`, `build`, `pull`, `healthd up`,
-`healthd down`), not global ones - see [Command Flags](#command-flags) below for
-their per-command variable names.
+`--builder` and `--healthd-*` are command flags (`up`, `build`, `pull`,
+`healthd up`, `healthd down`), not global ones - see
+[Command Flags](#command-flags) below for their per-command variable names.
 
 The ic-healthd daemon reads a further set of `INCUS_COMPOSE_HEALTHD_*` variables
 of its own, which incus-compose injects into the sidecar - see
@@ -199,9 +211,10 @@ INCUS_COMPOSE_DEBUG=1 INCUS_COMPOSE_WORKERS=20 incus-compose up
 
 ## Command Flags
 
-Every flag on every command below can be set via `INCUS_COMPOSE_<COMMAND>_<FLAG>`,
-except the four listed under [CLI Configuration](#cli-configuration). Descriptions
-are abbreviated; run `incus-compose <command> --help` for the full text and defaults.
+Every flag on every command below can be set via
+`INCUS_COMPOSE_<COMMAND>_<FLAG>`, except the four listed under
+[CLI Configuration](#cli-configuration). Descriptions are abbreviated; run
+`incus-compose <command> --help` for the full text and defaults.
 
 ### up / down / start / stop / kill / restart / pause / unpause
 
@@ -351,8 +364,9 @@ exceptions table above.
 | `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_DRAFT`       | `--draft`             | Also consider draft releases          |
 | `self-update`  | `INCUS_COMPOSE_SELF_UPDATE_PRE_RELEASE` | `--pre-release`       | Also consider pre-releases            |
 
-`exec --dry-run`, `cp --dry-run`, `port-forward --dry-run` and `backup restore
---yes`/`--dry-run` have no variable - see the exceptions table above.
+`exec --dry-run`, `cp --dry-run`, `port-forward --dry-run` and
+`backup restore --yes`/`--dry-run` have no variable - see the exceptions table
+above.
 
 ### healthd up / down / logs / restart
 
@@ -410,4 +424,5 @@ They agree in the normal flow because the former is how the latter gets set.
 ## See Also
 
 - [CLI Reference](/cli-reference) - command options and flags
-- [Compose Compatibility](/compose-compatibility) - interpolation and env_file support
+- [Compose Compatibility](/compose-compatibility) - interpolation and env_file
+  support

@@ -16,13 +16,17 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Compose Compatibility
 
-incus-compose implements a subset of the Compose Specification. This doc lists what works and what doesn't.
+incus-compose implements a subset of the Compose Specification. This doc lists
+what works and what doesn't.
 
 ## Supported Features
 
 ### Incus Override File
 
-If a `compose.incus.yaml` file exists next to the selected `compose.yaml`, incus-compose loads it automatically as an additional Compose file. Use it for Incus-specific overrides while keeping the upstream Docker Compose file unchanged.
+If a `compose.incus.yaml` file exists next to the selected `compose.yaml`,
+incus-compose loads it automatically as an additional Compose file. Use it for
+Incus-specific overrides while keeping the upstream Docker Compose file
+unchanged.
 
 ```text
 compose.yaml
@@ -51,7 +55,8 @@ Running with the base file also applies the Incus override when present:
 incus-compose -f compose.yaml up
 ```
 
-The override file follows normal Compose merge rules. For example, `!reset []` clears a list from the base file.
+The override file follows normal Compose merge rules. For example, `!reset []`
+clears a list from the base file.
 
 ### Services
 
@@ -59,7 +64,8 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `command` - Override container command (replaces the image's, see below)
 - `entrypoint` - Override the container entrypoint (see below)
 - `working_dir` - Set working directory
-- `user` - Run the container process as a specific UID/GID (numeric only, see below)
+- `user` - Run the container process as a specific UID/GID (numeric only, see
+  below)
 - `dns` / `dns_search` / `domainname` - DNS resolver configuration (see below)
 - `sysctls` - Kernel parameters, set as `linux.sysctl.*` config (see below)
 - `environment` - Environment variables
@@ -70,9 +76,12 @@ The override file follows normal Compose merge rules. For example, `!reset []` c
 - `volumes` - Named volumes and bind mounts
 - `deploy.replicas` - Service scaling (instances named `{service}-{index}`)
 - `restart` - Restart policies (`no`, `always`, `on-failure`, `unless-stopped`)
-- `x-incus` extension - pass any Incus project, network and instance option directly (see below)
-- Top-level `x-incus-compose.healthd` - configure the ic-healthd sidecar's network and Incus endpoint (see below)
-- Top-level `x-incus-compose.backup` - where `incus-compose backup` puts the copies (see below)
+- `x-incus` extension - pass any Incus project, network and instance option
+  directly (see below)
+- Top-level `x-incus-compose.healthd` - configure the ic-healthd sidecar's
+  network and Incus endpoint (see below)
+- Top-level `x-incus-compose.backup` - where `incus-compose backup` puts the
+  copies (see below)
 
 #### Labels
 
@@ -118,22 +127,25 @@ incus-compose incus config get app-1 user.label.caddy
 `user.*` namespace incus-compose uses for its own keys, and mirrors the label
 conventions of reverse proxies and DNS managers:
 
-- [Traefik](https://doc.traefik.io/traefik/) - `traefik.enable`, `traefik.http.routers.<name>.rule`, ...
-- [caddy-docker-proxy](https://github.com/lucaslorentz/caddy-docker-proxy) - `caddy`, `caddy.reverse_proxy`
-- [dnsweaver](https://maxfield-allison.github.io/dnsweaver/) - reads the Traefik router labels above
+- [Traefik](https://doc.traefik.io/traefik/) - `traefik.enable`,
+  `traefik.http.routers.<name>.rule`, ...
+- [caddy-docker-proxy](https://github.com/lucaslorentz/caddy-docker-proxy) -
+  `caddy`, `caddy.reverse_proxy`
+- [dnsweaver](https://maxfield-allison.github.io/dnsweaver/) - reads the Traefik
+  router labels above
 
 > None of these tools support incus-compose yet: they discover services over the
 > Docker socket, not the Incus API. incus-compose only exposes the labels as
 > `user.label.*` instance config; consuming them needs an Incus-aware discovery
 > integration.
 
-_Changed in 1.0.0-rc.2_: labels moved from `user.<key>` to `user.label.<key>`, and the
-`incus-compose.project` / `incus-compose.service` labels were added.
+_Changed in 1.0.0-rc.2_: labels moved from `user.<key>` to `user.label.<key>`,
+and the `incus-compose.project` / `incus-compose.service` labels were added.
 
 #### User
 
-The `user` attribute overrides the user the container process runs as, mapping to
-the image's `oci.uid` / `oci.gid`:
+The `user` attribute overrides the user the container process runs as, mapping
+to the image's `oci.uid` / `oci.gid`:
 
 ```yaml
 services:
@@ -143,7 +155,8 @@ services:
 ```
 
 Either side may be a number or a name the image's own `/etc/passwd` and
-`/etc/group` define, so `1000`, `1000:root`, `nobody` and `netbox:root` all work:
+`/etc/group` define, so `1000`, `1000:root`, `nobody` and `netbox:root` all
+work:
 
 ```yaml
 services:
@@ -165,10 +178,11 @@ image and reads it over SFTP. That is one instance per image per command, shared
 by every service using that image and removed when the command ends. A `user:`
 that is numeric on both sides never reads the image at all.
 
-> The [Compose Specification](https://github.com/compose-spec/compose-spec/blob/main/05-services.md#user)
-> only says `user` "overrides the user used to run the container process" and does
-> not document a value format. The `UID:GID` form is Docker's convention, which we
-> follow.
+> The
+> [Compose Specification](https://github.com/compose-spec/compose-spec/blob/main/05-services.md#user)
+> only says `user` "overrides the user used to run the container process" and
+> does not document a value format. The `UID:GID` form is Docker's convention,
+> which we follow.
 
 _Since: 1.0.0-beta.22_
 
@@ -197,9 +211,9 @@ services:
 | `[]`          | unset      | rejected - nothing to run    |
 | unset         | set        | image entrypoint + `command` |
 
-`command:` on its own **replaces the image's `CMD` and keeps its
-`ENTRYPOINT`**, as Docker does. An image with `ENTRYPOINT ["caddy"]` and
-`CMD ["run"]` plus `command: ["version"]` runs `caddy version`.
+`command:` on its own **replaces the image's `CMD` and keeps its `ENTRYPOINT`**,
+as Docker does. An image with `ENTRYPOINT ["caddy"]` and `CMD ["run"]` plus
+`command: ["version"]` runs `caddy version`.
 
 Incus cannot answer which part of an image's argv was the `ENTRYPOINT`: it
 reports the two already concatenated. incus-compose reads the split from the
@@ -214,13 +228,13 @@ then runs on its own, without the image's entrypoint in front of it - set
 `entrypoint:` to say exactly what should run, which needs nothing from the
 image.
 
-_Since: v1.3.0_ - until v1.2.0 `command:` appended to the image's whole argv,
-so the example above ran `caddy run version`.
+_Since: v1.3.0_ - until v1.2.0 `command:` appended to the image's whole argv, so
+the example above ran `caddy run version`.
 
 #### DNS
 
-`dns`, `dns_search`, and `domainname` map to Incus's `oci.dns.*` instance
-config keys, which seed the container's initial `/etc/resolv.conf`:
+`dns`, `dns_search`, and `domainname` map to Incus's `oci.dns.*` instance config
+keys, which seed the container's initial `/etc/resolv.conf`:
 
 ```yaml
 services:
@@ -243,8 +257,8 @@ config:
   oci.dns.domain: example.com
 ```
 
-Each key is only set when the corresponding compose field is non-empty. `dns_opt`
-has no Incus equivalent and is not mapped.
+Each key is only set when the corresponding compose field is non-empty.
+`dns_opt` has no Incus equivalent and is not mapped.
 
 _Since: v1.1.0_
 
@@ -277,14 +291,16 @@ config:
 
 The value applies when the instance starts and survives a restart, on both
 privileged and unprivileged containers. Which parameters are writable from
-inside an unprivileged container is Incus's business, not ours: a key the
-kernel refuses in that namespace fails at start rather than being ignored.
+inside an unprivileged container is Incus's business, not ours: a key the kernel
+refuses in that namespace fails at start rather than being ignored.
 
 _Since: v1.2.0_
 
 #### x-incus Instance Extensions
 
-Any Incus instance config key can be set via the `x-incus` extension block on a service definition. Keys are passed verbatim to the Incus instance config on creation.
+Any Incus instance config key can be set via the `x-incus` extension block on a
+service definition. Keys are passed verbatim to the Incus instance config on
+creation.
 
 ```yaml
 services:
@@ -296,13 +312,15 @@ services:
       security.privileged: "true"
 ```
 
-Any [Incus instance option](https://linuxcontainers.org/incus/docs/main/reference/instance_options/) is accepted.
+Any
+[Incus instance option](https://linuxcontainers.org/incus/docs/main/reference/instance_options/)
+is accepted.
 
 #### x-incus-compose Devices
 
-Attach raw Incus devices to a service's instances with the `x-incus-compose.devices`
-block. Each named entry is passed to Incus verbatim; the `type` key selects the
-device type and is required.
+Attach raw Incus devices to a service's instances with the
+`x-incus-compose.devices` block. Each named entry is passed to Incus verbatim;
+the `type` key selects the device type and is required.
 
 ```yaml
 services:
@@ -323,8 +341,8 @@ services:
 This is an escape hatch for device types incus-compose does not model natively
 (`gpu`, `unix-char`, `usb`, ...). Compose-managed devices (`ports`, `volumes`,
 `networks`) should use their native keys. Any
-[Incus device](https://linuxcontainers.org/incus/docs/main/reference/devices/) is
-accepted; keys collide by device name, so a raw device sharing a name with a
+[Incus device](https://linuxcontainers.org/incus/docs/main/reference/devices/)
+is accepted; keys collide by device name, so a raw device sharing a name with a
 compose-managed one overrides it.
 
 A `gpu` device's `id:` is the DRM ID (`incus info --resources`, under `GPU` ->
@@ -336,8 +354,8 @@ A `unix-hotplug` device matches on `idVendor`/`idProduct` present on a device's
 own udev attributes. It cannot reach a character device created several sysfs
 levels below the matched USB node by a kernel driver that fans out into a
 different subsystem - the DVB character devices a `dvb-usb` driver creates are
-one such case. That case is accepted with no error, and the device simply
-never appears in the instance.
+one such case. That case is accepted with no error, and the device simply never
+appears in the instance.
 
 _Since 1.0.0-beta.22_
 
@@ -359,7 +377,9 @@ services:
       limits.memory: 512MiB
 ```
 
-Any [Project option](https://linuxcontainers.org/incus/docs/main/reference/projects/) is accepted.
+Any
+[Project option](https://linuxcontainers.org/incus/docs/main/reference/projects/)
+is accepted.
 
 The generic `restricted: "true"` flag, as distinct from scoping options like
 `restricted.cluster.groups`, additionally forbids low-level config keys
@@ -436,7 +456,11 @@ With `scope: global` the daemon is shared, so the first project to bring it up
 supplies `incus`, `workers`, `restart-workers` and `x-incus`; a later project
 asking for something different is warned and ignored.
 
-When this option is set, incus-compose does not create compose-managed Incus network resources for service network attachments. Instances use the network devices provided by the copied profile instead. Service-level static IP assignments (`ipv4_address` / `ipv6_address`) are not supported in this mode because incus-compose does not create explicit NIC devices.
+When this option is set, incus-compose does not create compose-managed Incus
+network resources for service network attachments. Instances use the network
+devices provided by the copied profile instead. Service-level static IP
+assignments (`ipv4_address` / `ipv6_address`) are not supported in this mode
+because incus-compose does not create explicit NIC devices.
 
 ### Networks
 
@@ -447,7 +471,8 @@ When this option is set, incus-compose does not create compose-managed Incus net
 - External networks (pre-existing Incus networks)
 - `x-incus` extension - pass any Incus network config key directly (see below)
 - Automatic DHCP range configuration on creation (see below)
-- Static IP assignment per service via `ipv4_address` / `ipv6_address` (see below)
+- Static IP assignment per service via `ipv4_address` / `ipv6_address` (see
+  below)
 
 Not supported:
 
@@ -455,7 +480,9 @@ Not supported:
 
 #### x-incus Network Extensions
 
-Any Incus network config key can be set via the `x-incus` extension block on a network definition. Keys are passed verbatim to the Incus network config on creation.
+Any Incus network config key can be set via the `x-incus` extension block on a
+network definition. Keys are passed verbatim to the Incus network config on
+creation.
 
 ```yaml
 networks:
@@ -466,12 +493,14 @@ networks:
       ipv4.dhcp.ranges: 10.100.0.100-10.100.0.200
 ```
 
-Any [Incus bridge network option](https://linuxcontainers.org/incus/docs/main/reference/network_bridge/) is accepted.
+Any
+[Incus bridge network option](https://linuxcontainers.org/incus/docs/main/reference/network_bridge/)
+is accepted.
 
 #### External Networks
 
-Mark a network as `external: true` to attach services to a pre-existing Incus network.
-incus-compose will never create or delete an external network.
+Mark a network as `external: true` to attach services to a pre-existing Incus
+network. incus-compose will never create or delete an external network.
 
 ```yaml
 networks:
@@ -496,23 +525,26 @@ becomes `alpha-dns`, and a pair long enough to exceed the interface limit
 becomes the same `ic-` hash on both sides. Only the project that declares the
 network creates it; everyone else is `external: true`.
 
-**Name resolution** — incus-compose probes the following candidates in order and uses
-the first one that exists in Incus:
+**Name resolution** — incus-compose probes the following candidates in order and
+uses the first one that exists in Incus:
 
 1. `name:` value — literal, only when it names no project
 2. `name:` value — resolved (`{project}-{network}`, or its hash)
 3. Compose network name — raw
 4. Compose network name — sanitized
 
-If none of the candidates match an existing network, `up` fails with a not-found error.
+If none of the candidates match an existing network, `up` fails with a not-found
+error.
 
 _Since: v1.2.0_
 
 #### Automatic DHCP Ranges
 
-When a managed bridge network is created, incus-compose automatically configures DHCP ranges if they are not already set:
+When a managed bridge network is created, incus-compose automatically configures
+DHCP ranges if they are not already set:
 
-**IPv4** - The first quarter of the address block is reserved for static assignment. The DHCP range starts at that boundary:
+**IPv4** - The first quarter of the address block is reserved for static
+assignment. The DHCP range starts at that boundary:
 
 | Subnet | Static range   | DHCP range       |
 | ------ | -------------- | ---------------- |
@@ -520,19 +552,22 @@ When a managed bridge network is created, incus-compose automatically configures
 | /16    | `.0.0-.63.255` | `.64.0-.255.254` |
 | /28    | `.1-.3`        | `.4-.14`         |
 
-**IPv6** - The first 256 addresses (`::0-::ff`) are reserved for static; DHCP runs from `::100` to `::ffff`. Stateful DHCPv6 (`ipv6.dhcp.stateful`) is enabled automatically.
+**IPv6** - The first 256 addresses (`::0-::ff`) are reserved for static; DHCP
+runs from `::100` to `::ffff`. Stateful DHCPv6 (`ipv6.dhcp.stateful`) is enabled
+automatically.
 
-Setting `ipv4.dhcp.ranges` or `ipv6.dhcp.ranges` in `x-incus` disables auto-calculation for that protocol. Existing networks (already present in Incus when `up` runs) are never modified.
+Setting `ipv4.dhcp.ranges` or `ipv6.dhcp.ranges` in `x-incus` disables
+auto-calculation for that protocol. Existing networks (already present in Incus
+when `up` runs) are never modified.
 
 #### Static IP Assignment
 
-A service can be assigned a fixed IP on a specific network using the standard Compose
-`ipv4_address` / `ipv6_address` fields on the per-service network attachment:
+A service can be assigned a fixed IP on a specific network using the standard
+Compose `ipv4_address` / `ipv6_address` fields on the per-service network
+attachment:
 
-:::warning
-An address without a netmask (e.g. `10.100.0.2` instead of `10.100.0.2/24`) is invalid and
-fails silently.
-:::
+:::warning An address without a netmask (e.g. `10.100.0.2` instead of
+`10.100.0.2/24`) is invalid and fails silently. :::
 
 ```yaml
 services:
@@ -561,15 +596,17 @@ networks:
     internal: true
 ```
 
-The address is set as `ipv4.address` / `ipv6.address` on the Incus NIC device. The bridge's
-built-in DHCP server reserves it so the instance always receives that address on the network.
+The address is set as `ipv4.address` / `ipv6.address` on the Incus NIC device.
+The bridge's built-in DHCP server reserves it so the instance always receives
+that address on the network.
 
-The address must fall within the static zone (first quarter of the block) to avoid conflicts
-with DHCP-assigned addresses.
+The address must fall within the static zone (first quarter of the block) to
+avoid conflicts with DHCP-assigned addresses.
 
-Setting `internal: true` on a network disables its gateway by setting `ipv4.gateway` and
-`ipv6.gateway` to `none`. This requires Incus 7.3 or later (or the 7.0.2 LTS point release).
-Override this per-service with `x-incus-compose.internal: false`.
+Setting `internal: true` on a network disables its gateway by setting
+`ipv4.gateway` and `ipv6.gateway` to `none`. This requires Incus 7.3 or later
+(or the 7.0.2 LTS point release). Override this per-service with
+`x-incus-compose.internal: false`.
 
 _`internal: true` since: v1.1.0_
 
@@ -590,20 +627,17 @@ services:
 ```
 
 Each alias becomes a `cname=<alias>,<instance>` record in the network's
-`raw.dnsmasq`, resolving straight to the instance, with no DHCP lease to wait for,
-unlike the IP-based service-name records described in
+`raw.dnsmasq`, resolving straight to the instance, with no DHCP lease to wait
+for, unlike the IP-based service-name records described in
 [DNS Resolution](#dns-resolution). Aliases on networks shared by multiple
-projects (`external: true` / `name:`) coexist without
-clobbering each other's records, the same way service-name records do.
+projects (`external: true` / `name:`) coexist without clobbering each other's
+records, the same way service-name records do.
 
-:::warning
-Because a CNAME alias can only point at one target, `aliases` is for
-single-instance services. Declaring it on a service with more than one
-replica registers the same alias against every replica's instance name,
-which dnsmasq does not support (an alias must be unique) and produces
-undefined DNS behavior. Use the service name, which does round-robin, for
-scaled services instead.
-:::
+:::warning Because a CNAME alias can only point at one target, `aliases` is for
+single-instance services. Declaring it on a service with more than one replica
+registers the same alias against every replica's instance name, which dnsmasq
+does not support (an alias must be unique) and produces undefined DNS behavior.
+Use the service name, which does round-robin, for scaled services instead. :::
 
 _Since: v1.1.0_
 
@@ -616,10 +650,14 @@ _Since: v1.1.0_
 - Automatic UID/GID shifting
 - tmpfs mounts (with optional size limit)
 - `x-incus` extension - pass any Incus volume config key directly (see below)
-- `x-incus-compose.pool` - select the storage pool for a named volume (see below)
-- `x-incus-compose.seed` - copy a bind mount's source into the instance (see below)
-- Image volumes - a path the image declares as `VOLUME` gets one of its own (see below)
-- Prefetching - a volume starts from what the image ships at its target (see below)
+- `x-incus-compose.pool` - select the storage pool for a named volume (see
+  below)
+- `x-incus-compose.seed` - copy a bind mount's source into the instance (see
+  below)
+- Image volumes - a path the image declares as `VOLUME` gets one of its own (see
+  below)
+- Prefetching - a volume starts from what the image ships at its target (see
+  below)
 
 Not supported:
 
@@ -640,11 +678,11 @@ isso declares `/config` and `/db`, so `store` comes up with a volume at each.
 Without them Incus mounts a tmpfs over those paths, and isso's database is gone
 on the next restart.
 
-This isn't limited to declared `VOLUME` paths: an application container's
-rootfs resets to the base image on every restart, so anything written directly
-into the filesystem outside a mount is gone the next time it restarts too. A
-bind mount target must already exist in the image, or live on storage that
-persists independently, since it cannot be created this way.
+This isn't limited to declared `VOLUME` paths: an application container's rootfs
+resets to the base image on every restart, so anything written directly into the
+filesystem outside a mount is gone the next time it restarts too. A bind mount
+target must already exist in the image, or live on storage that persists
+independently, since it cannot be created this way.
 
 Declaring anything at the same target takes it over, which is how you choose the
 pool, the size, or that the path should not persist at all:
@@ -668,18 +706,18 @@ x-incus-compose:
 ```
 
 The volume is named after the service and the path, `vol-auto-store-db`, so it
-cannot collide with a name you chose. An instance brings its volumes
-up and takes them down again, so `down --volumes` removes them - after a plain
-`down` there is no instance left to ask, and `down --project` is what clears
-them. The next `up` recreates the instance and adopts the same volumes.
+cannot collide with a name you chose. An instance brings its volumes up and
+takes them down again, so `down --volumes` removes them - after a plain `down`
+there is no instance left to ask, and `down --project` is what clears them. The
+next `up` recreates the instance and adopts the same volumes.
 
 _Since: v1.3.0_
 
 #### Prefetching
 
 A volume created empty starts from whatever the image holds at the path it is
-mounted over, as docker fills an empty volume from the image. This matters for
-a config directory the image ships:
+mounted over, as docker fills an empty volume from the image. This matters for a
+config directory the image ships:
 
 ```yaml
 services:
@@ -716,7 +754,9 @@ _Since: v1.3.0_
 
 #### x-incus Volume Extensions
 
-Any Incus storage volume config key can be set via the `x-incus` extension block on a volume definition. Keys are passed verbatim to the Incus volume config on creation.
+Any Incus storage volume config key can be set via the `x-incus` extension block
+on a volume definition. Keys are passed verbatim to the Incus volume config on
+creation.
 
 ```yaml
 volumes:
@@ -726,10 +766,13 @@ volumes:
       block.filesystem: ext4
 ```
 
-Any [Incus storage volume option](https://linuxcontainers.org/incus/docs/main/reference/storage_volumes/) is accepted.
+Any
+[Incus storage volume option](https://linuxcontainers.org/incus/docs/main/reference/storage_volumes/)
+is accepted.
 
-The `x-incus` block also works inline on a volume entry, which is the only way to
-set options on a **bind mount** (a bind's source is a path, not a named volume):
+The `x-incus` block also works inline on a volume entry, which is the only way
+to set options on a **bind mount** (a bind's source is a path, not a named
+volume):
 
 ```yaml
 services:
@@ -743,11 +786,13 @@ services:
 ```
 
 An inline `x-incus` block takes precedence over the matching named volume
-definition. See [Volume Permissions](#volume-permissions) for `security.shifted`.
+definition. See [Volume Permissions](#volume-permissions) for
+`security.shifted`.
 
 #### x-incus-compose Volume Pool
 
-Set `x-incus-compose.pool` on a named volume to place it in a specific Incus storage pool. Without this the client's default storage pool is used.
+Set `x-incus-compose.pool` on a named volume to place it in a specific Incus
+storage pool. Without this the client's default storage pool is used.
 
 ```yaml
 volumes:
@@ -762,7 +807,8 @@ services:
       - data:/var/lib/app
 ```
 
-To move an existing volume to a different pool, stop the project, then use `incus storage volume move` via the `incus-compose incus` passthrough:
+To move an existing volume to a different pool, stop the project, then use
+`incus storage volume move` via the `incus-compose incus` passthrough:
 
 ```bash
 incus-compose stop
@@ -770,9 +816,12 @@ incus-compose incus storage volume move default/vol-library ext/vol-library
 incus-compose start
 ```
 
-Then update `x-incus-compose.pool` in your compose file and run `incus-compose up --recreate` to reattach.
+Then update `x-incus-compose.pool` in your compose file and run
+`incus-compose up --recreate` to reattach.
 
-Volumes are stored with a `vol-` prefix. Long names are hashed, so `my-very-long-volume-name` may become `vol-a1b2c3d4...`. Use `incus storage volume list` to find the actual name before moving:
+Volumes are stored with a `vol-` prefix. Long names are hashed, so
+`my-very-long-volume-name` may become `vol-a1b2c3d4...`. Use
+`incus storage volume list` to find the actual name before moving:
 
 ```bash
 incus-compose incus storage volume list default
@@ -825,8 +874,8 @@ _Since: v1.0.0_
 - Default values: `${VAR:-default}`
 - Required variables: `${VAR?error message}`
 
-The bare `${VAR}` form, with no `:-`/`?` operator, does not fail on a missing
-or empty value - it silently interpolates to an empty string. Only the
+The bare `${VAR}` form, with no `:-`/`?` operator, does not fail on a missing or
+empty value - it silently interpolates to an empty string. Only the
 `${VAR?message}` form hard-fails.
 
 ### Project
@@ -837,19 +886,23 @@ or empty value - it silently interpolates to an empty string. Only the
 
 ### Build
 
-See [Builds](/builds) for supported options, builder selection, and platform handling.
+See [Builds](/builds) for supported options, builder selection, and platform
+handling.
 
 ### Health Checks
 
-Supported via the `ic-healthd` sidecar. See [Health Checking](/healthd) for full details,
-including config keys, defaults, security model, and `healthd` management commands.
+Supported via the `ic-healthd` sidecar. See [Health Checking](/healthd) for full
+details, including config keys, defaults, security model, and `healthd`
+management commands.
 
-The healthcheck status (`starting`, `healthy`, `unhealthy`) is reported in the `Status` column of
-`incus-compose list` and `incus-compose ps` when healthchecks are configured.
+The healthcheck status (`starting`, `healthy`, `unhealthy`) is reported in the
+`Status` column of `incus-compose list` and `incus-compose ps` when healthchecks
+are configured.
 
 ### Resource Limits
 
-`deploy.resources` is not mapped. Use `x-incus` to set Incus instance limits directly:
+`deploy.resources` is not mapped. Use `x-incus` to set Incus instance limits
+directly:
 
 ```yaml
 services:
@@ -859,7 +912,8 @@ services:
       limits.memory: 512MiB
 ```
 
-Any Incus instance config key is accepted. See [Architecture](/architecture#x-incus-raw-incus-options) for full details.
+Any Incus instance config key is accepted. See
+[Architecture](/architecture#x-incus-raw-incus-options) for full details.
 
 ### Restart Policies
 
@@ -879,8 +933,8 @@ services:
     restart: always
 ```
 
-Restart enforcement is handled by the ic-healthd sidecar, including
-`restart` without a healthcheck - see [Health Checking](/healthd#restart-without-a-test).
+Restart enforcement is handled by the ic-healthd sidecar, including `restart`
+without a healthcheck - see [Health Checking](/healthd#restart-without-a-test).
 
 ### Secrets
 
@@ -906,8 +960,8 @@ useless here. The same applies to `configs[]`.
 - Service `configs[].target` - Custom target path
 - Service `configs[].uid` / `configs[].gid` - File ownership
 - Service `configs[].mode` - File permissions (default: `0444`); the writable
-  bit is always ignored, per the compose-spec, even if an explicit mode with
-  a write bit is set
+  bit is always ignored, per the compose-spec, even if an explicit mode with a
+  write bit is set
 
 ```yaml
 configs:
@@ -946,8 +1000,8 @@ configs:
 
 Docker achieves the same by mounting over the path, so the image file is only
 hidden for the container's lifetime. incus-compose writes into the instance's
-root filesystem instead, so the replacement is permanent for that instance -
-the original is gone until the instance is recreated.
+root filesystem instead, so the replacement is permanent for that instance - the
+original is gone until the instance is recreated.
 
 A target inside a volume is written into that volume instead, since a mount
 would otherwise hide it. So a config lands on top of what
@@ -988,17 +1042,17 @@ stacks/services could then point at that same object, so rotating it means
 updating the one external secret rather than every compose file that uses it.
 
 incus-compose has no equivalent standalone "secret" or "config" resource in
-Incus to reference: it only knows how to read a `file`, inline `content`, or
-an `environment` variable and push the result into a container as a file.
-There's nothing in Incus for `external` to point _at_, so it's not a missing
-mapping to fill in later, it's a concept without a target. Use `file`,
-`content` (configs only), or `environment` instead.
+Incus to reference: it only knows how to read a `file`, inline `content`, or an
+`environment` variable and push the result into a container as a file. There's
+nothing in Incus for `external` to point _at_, so it's not a missing mapping to
+fill in later, it's a concept without a target. Use `file`, `content` (configs
+only), or `environment` instead.
 
 ### Dockerfile HEALTHCHECK
 
 The `HEALTHCHECK` instruction embedded in Docker images is not read, so declare
-`healthcheck.test` explicitly in the compose file.
-See [healthd.md](/healthd#dockerfile-healthcheck-not-supported) for the background.
+`healthcheck.test` explicitly in the compose file. See
+[healthd.md](/healthd#dockerfile-healthcheck-not-supported) for the background.
 
 ### Extended Features
 
@@ -1014,8 +1068,9 @@ Not supported:
 > **The Incus server must have `core.https_address` set in all cases**, even for
 > a local Unix-socket client. Image caching copies images between Incus projects
 > using pull mode, which requires the server to be reachable over the network.
-> Without it, `up` fails with `The source server isn't listening on the network`.
-> See [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
+> Without it, `up` fails with
+> `The source server isn't listening on the network`. See
+> [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
 
 With that in place, a few behaviors still depend on whether incus-compose talks
 to a local Incus over the Unix socket or to a remote daemon over HTTPS:
@@ -1060,9 +1115,9 @@ Copy the files across with
 applies: that is what the option is for.
 
 For health checks, ic-healthd reaches Incus over HTTPS. When
-`core.https_address` names a host (`10.0.0.5:8443`) that address is used, however
-you connected. Only a bare `:8443` falls back to the bridge IP plus the port
-incus-compose connected on, which a Unix socket does not have, so there the
+`core.https_address` names a host (`10.0.0.5:8443`) that address is used,
+however you connected. Only a bare `:8443` falls back to the bridge IP plus the
+port incus-compose connected on, which a Unix socket does not have, so there the
 endpoint must be set explicitly. See
 [Network Configuration](/healthd#network-configuration).
 
@@ -1112,7 +1167,8 @@ image: ghcr.io/myorg/app:v1 # explicit registry
 
 **Global cache:**
 
-Like Docker, images are cached globally. An image pulled for one project is available to all projects. This avoids duplicate downloads.
+Like Docker, images are cached globally. An image pulled for one project is
+available to all projects. This avoids duplicate downloads.
 
 **Registry authentication:**
 
@@ -1146,7 +1202,8 @@ _Since: v1.3.0_
 
 **Platform selection:**
 
-Docker allows `--platform linux/amd64`. incus-compose uses the host architecture automatically. Multi-arch images select the correct variant.
+Docker allows `--platform linux/amd64`. incus-compose uses the host architecture
+automatically. Multi-arch images select the correct variant.
 
 ### Port Publishing
 
@@ -1176,9 +1233,10 @@ flowchart LR
     LO -.->|"not reachable"| NAT
 ```
 
-Both work the same from outside. By default incus-compose uses userspace proxy devices (a Go
-process per forwarded connection). For high-throughput services you can opt in to kernel-mode NAT
-via a service extension, which installs nftables DNAT rules instead:
+Both work the same from outside. By default incus-compose uses userspace proxy
+devices (a Go process per forwarded connection). For high-throughput services
+you can opt in to kernel-mode NAT via a service extension, which installs
+nftables DNAT rules instead:
 
 ```yaml
 services:
@@ -1193,16 +1251,18 @@ services:
       - frontend
 ```
 
-`nat: true` requires Incus 7.2 or later (or the 7.0.1 LTS point release) for ARP/NDP-based
-instance IP detection. Combining `nat: true` with a static instance IP additionally requires
-Incus 7.3 or later (or the 7.0.2 LTS point release).
+`nat: true` requires Incus 7.2 or later (or the 7.0.1 LTS point release) for
+ARP/NDP-based instance IP detection. Combining `nat: true` with a static
+instance IP additionally requires Incus 7.3 or later (or the 7.0.2 LTS point
+release).
 
-> **Warning:** with `nat: true`, published ports are not reachable via `localhost`/`127.0.0.1` on
-> the host running incus-compose. The nftables DNAT rules only masquerade traffic for the
-> hairpin case (an instance reaching itself via its own forwarded address); host-loopback traffic
-> keeps its `127.0.0.1` source address, which is dropped or fails to route back. Use the host's
-> real (LAN/bridge) address to reach the port, or stick with the default userspace proxy if you
-> need `localhost` access to work.
+> **Warning:** with `nat: true`, published ports are not reachable via
+> `localhost`/`127.0.0.1` on the host running incus-compose. The nftables DNAT
+> rules only masquerade traffic for the hairpin case (an instance reaching
+> itself via its own forwarded address); host-loopback traffic keeps its
+> `127.0.0.1` source address, which is dropped or fails to route back. Use the
+> host's real (LAN/bridge) address to reach the port, or stick with the default
+> userspace proxy if you need `localhost` access to work.
 
 _Since: v1.1.0_
 
@@ -1266,13 +1326,13 @@ For a bind mount this must be set inline on the volume entry (see
 
 ### External Volumes
 
-**Docker Compose:** an external volume must already exist. Compose will
-never create it, and never removes it (not even with `down --volumes` /
-equivalent), since it doesn't own the volume's lifecycle.
+**Docker Compose:** an external volume must already exist. Compose will never
+create it, and never removes it (not even with `down --volumes` / equivalent),
+since it doesn't own the volume's lifecycle.
 
 **incus-compose:** every named volume, external or not, goes through the same
-get-or-create path: reuse the Incus storage volume if it already exists,
-create it if it doesn't. There's no tracking of "this one was pre-existing."
+get-or-create path: reuse the Incus storage volume if it already exists, create
+it if it doesn't. There's no tracking of "this one was pre-existing."
 Concretely, that means:
 
 - A typo'd or renamed volume that would fail fast under Docker (volume not
@@ -1283,8 +1343,8 @@ Concretely, that means:
   something else.
 
 If you need to reference a real pre-existing Incus storage volume without
-risking it being deleted, avoid `down --volumes` for that project, or manage
-the volume directly with `incus storage volume` outside of compose.
+risking it being deleted, avoid `down --volumes` for that project, or manage the
+volume directly with `incus storage volume` outside of compose.
 
 ### Instance Naming
 
@@ -1306,14 +1366,16 @@ You can also override replicas via CLI:
 incus-compose up --scale web=5
 ```
 
-`--scale` applies only to that invocation. Like `docker compose up`, a plain `up`
-reconciles each service back to `deploy.replicas` in both directions: it recreates
-instances removed by an earlier `--scale` and tears down extras added by one. Use
-`--scale` (or edit `deploy.replicas`) to change the persistent count.
+`--scale` applies only to that invocation. Like `docker compose up`, a plain
+`up` reconciles each service back to `deploy.replicas` in both directions: it
+recreates instances removed by an earlier `--scale` and tears down extras added
+by one. Use `--scale` (or edit `deploy.replicas`) to change the persistent
+count.
 
 ### DNS Resolution
 
-After `up`, both the **service name** and the **instance name** resolve inside containers:
+After `up`, both the **service name** and the **instance name** resolve inside
+containers:
 
 ```
 database    → round-robins across all database instances (A/AAAA records)
@@ -1412,7 +1474,8 @@ incus-compose list
 
 ## Reporting Compatibility Issues
 
-If you find a compose feature that should work but doesn't, please report it with:
+If you find a compose feature that should work but doesn't, please report it
+with:
 
 1. Minimal `compose.yaml` that reproduces the issue
 2. Expected behavior (what docker-compose does)

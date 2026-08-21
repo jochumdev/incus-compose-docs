@@ -20,12 +20,14 @@ Hooks intercept resource actions before and after they execute.
 
 ## Overview
 
-Every resource action (ensure, delete, start, stop) can be intercepted with hooks:
+Every resource action (ensure, delete, start, stop) can be intercepted with
+hooks:
 
 - **Before hooks** - Run before an action starts
 - **After hooks** - Run after an action completes
 
-Hooks receive the action context and can modify errors, abort actions, or add logging.
+Hooks receive the action context and can modify errors, abort actions, or add
+logging.
 
 ```mermaid
 flowchart LR
@@ -62,7 +64,8 @@ func(ctx context.Context, action Action, r Resource, args Options, err error) er
 - `args` - Action options (create, force, timeout)
 - `err` - Error from previous hooks or the action
 
-Connected and Done hooks use a smaller signature; see [Lifecycle Hooks](#lifecycle-hooks).
+Connected and Done hooks use a smaller signature; see
+[Lifecycle Hooks](#lifecycle-hooks).
 
 **Return:**
 
@@ -71,7 +74,8 @@ Connected and Done hooks use a smaller signature; see [Lifecycle Hooks](#lifecyc
 
 ## Before Hooks
 
-Before hooks run in FIFO order (first added runs first). Use them for validation, logging, or aborting actions.
+Before hooks run in FIFO order (first added runs first). Use them for
+validation, logging, or aborting actions.
 
 ### Abort an Action
 
@@ -116,7 +120,8 @@ client.AddHookBefore(func(_ context.Context, action Action, r Resource, args Opt
 
 ## After Hooks
 
-After hooks run in LIFO order (last added runs first). Use them for logging results, wrapping errors, or cleanup.
+After hooks run in LIFO order (last added runs first). Use them for logging
+results, wrapping errors, or cleanup.
 
 ### Log Action Results
 
@@ -202,16 +207,17 @@ never invent an error where the action actually succeeded.
 ## Lifecycle Hooks
 
 Connected and Done hooks bracket the client's whole run instead of a single
-action. They share a smaller signature, since there is no action or resource yet:
+action. They share a smaller signature, since there is no action or resource
+yet:
 
 ```go
 func(err error) error
 ```
 
-They do not fire on their own. `client.Open()` fires the connected hooks (call it
-once after registering all hooks, before running any stack actions), and
-`client.Done()` fires the done hooks (call it when the client's work is complete,
-usually deferred):
+They do not fire on their own. `client.Open()` fires the connected hooks (call
+it once after registering all hooks, before running any stack actions), and
+`client.Done()` fires the done hooks (call it when the client's work is
+complete, usually deferred):
 
 ```go
 if err := client.Open(); err != nil {
@@ -238,10 +244,10 @@ sequenceDiagram
 
 ### Connected Hooks
 
-Connected hooks run in FIFO order (first added runs first). Use them for one-time
-setup: starting a progress renderer, acquiring a connection-scoped resource, or
-validating preconditions. Each hook starts a fresh chain (it always receives a nil
-error); the only propagation is abort-on-error.
+Connected hooks run in FIFO order (first added runs first). Use them for
+one-time setup: starting a progress renderer, acquiring a connection-scoped
+resource, or validating preconditions. Each hook starts a fresh chain (it always
+receives a nil error); the only propagation is abort-on-error.
 
 ```go
 client.AddHookConnected(func(err error) error {
@@ -249,8 +255,9 @@ client.AddHookConnected(func(err error) error {
 })
 ```
 
-If any connected hook returns an error, the remaining connected hooks are skipped
-and `Open()` returns that error, mirroring how a before hook aborts an action.
+If any connected hook returns an error, the remaining connected hooks are
+skipped and `Open()` returns that error, mirroring how a before hook aborts an
+action.
 
 ### Done Hooks
 
@@ -268,9 +275,10 @@ client.AddHookDone(func(err error) error {
 
 ### Scope
 
-Unlike before and after hooks, connected and done hooks are **not** inherited from
-GlobalClient. Each project Client starts with no-op connected/done hooks, so
-register them on the specific project Client whose lifecycle you want to bracket.
+Unlike before and after hooks, connected and done hooks are **not** inherited
+from GlobalClient. Each project Client starts with no-op connected/done hooks,
+so register them on the specific project Client whose lifecycle you want to
+bracket.
 
 ## Execution Order
 
@@ -312,7 +320,8 @@ client.AddHookDone(flushRenderer)      // Done():  runs 2nd (inner)
 client.AddHookDone(stopRenderer)       // Done():  runs 1st (outer)
 ```
 
-A connected hook that returns an error aborts `Open()`; done hooks always all run.
+A connected hook that returns an error aborts `Open()`; done hooks always all
+run.
 
 ## Common Patterns
 
@@ -348,7 +357,8 @@ client.AddHookAfter(func(_ context.Context, action Action, r Resource, args Opti
 ```
 
 For live, per-operation progress (image pulls, lifecycle), see
-[Progress](/architecture/progress) - the after-hook is what marks each line done.
+[Progress](/architecture/progress) - the after-hook is what marks each line
+done.
 
 ### Conditional Error Suppression
 
@@ -403,9 +413,9 @@ client.AddHookAfter(func(_ context.Context, action Action, r Resource, _ Options
 Read-only closures that capture only immutable values (string literals, slices
 built before registration) are safe without a mutex.
 
-Connected and Done hooks do not run in the WorkerPool. `Open()` and `Done()` fire
-them synchronously on the calling goroutine, once each, so they need no mutex for
-their own state.
+Connected and Done hooks do not run in the WorkerPool. `Open()` and `Done()`
+fire them synchronously on the calling goroutine, once each, so they need no
+mutex for their own state.
 
 ## Best Practices
 

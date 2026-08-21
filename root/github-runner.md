@@ -104,9 +104,9 @@ adduser --disabled-password --shell /usr/bin/bash runner
 
 ## 6. Install golangci-lint - _runner user_
 
-The install script drops the binary in `~/.local/bin`. Create that directory _before_
-logging in: Debian's `~/.profile` only adds `~/.local/bin` to `PATH` if it exists at
-login, so log out and back in afterwards to pick it up.
+The install script drops the binary in `~/.local/bin`. Create that directory
+_before_ logging in: Debian's `~/.profile` only adds `~/.local/bin` to `PATH` if
+it exists at login, so log out and back in afterwards to pick it up.
 
 ```bash
 sudo -u runner bash -c 'mkdir -p ~/.local/bin; curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b ~/.local/bin'
@@ -211,7 +211,8 @@ sudo -u runner -iH
 cd actions-runner
 ```
 
-Optain that one from: https://github.com/lxc/incus-compose/settings/actions/runners/new
+Optain that one from:
+https://github.com/lxc/incus-compose/settings/actions/runners/new
 
 ```bash
 ./config.sh --url https://github.com/lxc/incus-compose --token XXX

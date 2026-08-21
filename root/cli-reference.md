@@ -43,9 +43,9 @@ and the shared image cache. `down --volumes` also deletes the volumes;
 
 ## Global Options
 
-Every option below (and every command-specific one further down) can also be
-set via an environment variable - see [Environment Variables](/environment-variables)
-for the full list.
+Every option below (and every command-specific one further down) can also be set
+via an environment variable - see
+[Environment Variables](/environment-variables) for the full list.
 
 | Option                      | Description                                                                                                                        |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -101,11 +101,22 @@ incus-compose up [SERVICE...]
 | `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                                                                                                                                    |
 | `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose` project, the default) or `project`; loses to a scope the project already carries                                                                                                              |
 
-Without `--detach`, `up` streams logs from all started services (equivalent to running `logs --follow` immediately after). Use `--detach` to return as soon as containers are started. `--no-start` implies it: there is nothing to stream logs from.
+Without `--detach`, `up` streams logs from all started services (equivalent to
+running `logs --follow` immediately after). Use `--detach` to return as soon as
+containers are started. `--no-start` implies it: there is nothing to stream logs
+from.
 
-For services with `build:`, `up` builds missing images by default. Use `--build` to force a rebuild or `--no-build` to require the image to already exist. `--build` also recreates the instances of the services whose image it rebuilt - a rebuilt image only reaches an instance created from it again. Every other service is left alone; `--recreate` is how you recreate the whole project. See [Builds](/builds) for details.
+For services with `build:`, `up` builds missing images by default. Use `--build`
+to force a rebuild or `--no-build` to require the image to already exist.
+`--build` also recreates the instances of the services whose image it rebuilt -
+a rebuilt image only reaches an instance created from it again. Every other
+service is left alone; `--recreate` is how you recreate the whole project. See
+[Builds](/builds) for details.
 
-`--pull always` recreates on the same rule: an instance whose image the refresh replaced is torn down and made again from the new one. Only what the pull itself replaced counts - under every other policy a running instance keeps the image it was created from, even when the compose file now names a different one.
+`--pull always` recreates on the same rule: an instance whose image the refresh
+replaced is torn down and made again from the new one. Only what the pull itself
+replaced counts - under every other policy a running instance keeps the image it
+was created from, even when the compose file now names a different one.
 
 _Since: v1.3.0_
 
@@ -122,15 +133,17 @@ incus-compose build [SERVICE...]
 | `--no-cache` | Disable the builder's layer cache, and skip the shared image cache the build would otherwise land in (see [Builds - Image Caching](/builds#image-caching))                                      |
 | `--pull`     | Pull policy for the images this build depends on: `always`, `missing`/`policy`, `never`. Base-image freshness is the builder's own concern, set `build.pull: true` in the compose file for that |
 
-When service names are provided, only matching build-configured services are built. Services without `build:` are skipped. Built images are imported into the Incus project and used by `up`.
+When service names are provided, only matching build-configured services are
+built. Services without `build:` are skipped. Built images are imported into the
+Incus project and used by `up`.
 
 See [Builds](/builds): for supported Compose build options and requirements.
 
 ## down
 
-Stop and remove containers. Per-project image copies are removed too; volumes and
-the image cache are kept. Use `--volumes` to also delete volumes while keeping the
-project, or `--project` to remove everything (project and volumes).
+Stop and remove containers. Per-project image copies are removed too; volumes
+and the image cache are kept. Use `--volumes` to also delete volumes while
+keeping the project, or `--project` to remove everything (project and volumes).
 
 ```
 incus-compose down [SERVICE...]
@@ -153,7 +166,8 @@ An instance takes its own volumes down with it, so `--volumes` reaches the ones
 `down` the instance is gone and there is nothing left to ask: those volumes stay
 until `--project`, or until the next `up` recreates the instance that owns them.
 
-_Changed in 1.0.0-rc.1_: `--volumes` is now no more an alias for `--project` but deletes volumes.
+_Changed in 1.0.0-rc.1_: `--volumes` is now no more an alias for `--project` but
+deletes volumes.
 
 ## start
 
@@ -302,7 +316,8 @@ incus-compose logs [SERVICE...]
 | `-f`, `--follow` | Follow output                                                              |
 | `--with-deps`    | Also show logs from linked services (depends_on) - incus-compose extension |
 
-Missing instances are skipped with a warning; logs from available instances are still shown.
+Missing instances are skipped with a warning; logs from available instances are
+still shown.
 
 ## config
 
@@ -351,16 +366,16 @@ not incus-compose's own connection settings.
 
 Like `docker compose exec`, the command runs as the instance's user and group by
 default: the image's `oci.uid` / `oci.gid`, or the numeric IDs from the service
-[`user:`](/compose-compatibility#user) override. Pass `--user` / `--group` to run
-as someone else:
+[`user:`](/compose-compatibility#user) override. Pass `--user` / `--group` to
+run as someone else:
 
 ```bash
 incus-compose exec web id             # runs as the instance's user (e.g. 1000:1000)
 incus-compose exec --user 0 web id    # runs as root
 ```
 
-The command and its arguments are passed to Incus verbatim, so flags with leading
-dashes work without escaping:
+The command and its arguments are passed to Incus verbatim, so flags with
+leading dashes work without escaping:
 
 ```bash
 incus-compose exec web ls -ln /data
@@ -472,8 +487,8 @@ incus-compose cp [options] SRC_PATH|- SERVICE:DEST_PATH
 
 Which side is the instance is decided by the name before the colon: it has to
 name a service in the compose file. So `C:\data`, `./a:b` and `-` stay local
-paths, and a typo'd service name is a local path that does not exist rather
-than a copy into the wrong place.
+paths, and a typo'd service name is a local path that does not exist rather than
+a copy into the wrong place.
 
 ```bash
 incus-compose cp ./nginx.conf web:/etc/nginx/nginx.conf
@@ -509,9 +524,9 @@ incus-compose top
 | `--refresh`       | Refresh delay in seconds, 10 at the lowest     |
 
 This is `incus top` scoped to the project: a live table of CPU time, memory and
-disk **per instance**, refreshing until Ctrl-C. `docker compose top` reports
-per _process_ instead, which Incus has no API for, so the two do not print the
-same thing.
+disk **per instance**, refreshing until Ctrl-C. `docker compose top` reports per
+_process_ instead, which Incus has no API for, so the two do not print the same
+thing.
 
 It takes no service arguments - `incus top` has no name filter - and a
 project-scoped ic-healthd sidecar is listed along with the services.
@@ -532,8 +547,8 @@ incus-compose events
 | `--format`     | `pretty` (default), `yaml` or `json`                          |
 | `--json`       | Short for `--format=json`, for `docker compose events` parity |
 
-This is `incus monitor` scoped to the project. The default `--type lifecycle`
-is the closest thing to docker's container events; pass `-t logging` or
+This is `incus monitor` scoped to the project. The default `--type lifecycle` is
+the closest thing to docker's container events; pass `-t logging` or
 `-t operation` to widen it.
 
 ```bash
@@ -640,9 +655,10 @@ incus-compose pull [SERVICE...]
 
 ## backup
 
-Copy the project's named volumes into a separate Incus project, `<project>-backup`,
-and keep per-run restore points on them. `down`, `down --volumes` and
-`down --project` never touch that project, which is the point of it.
+Copy the project's named volumes into a separate Incus project,
+`<project>-backup`, and keep per-run restore points on them. `down`,
+`down --volumes` and `down --project` never touch that project, which is the
+point of it.
 
 ```
 incus-compose backup <subcommand>
@@ -753,7 +769,8 @@ next time, and says so.
 
 ## incus
 
-Run any `incus` command scoped to the current compose project. All flags and arguments are passed through verbatim; only `INCUS_PROJECT` is injected.
+Run any `incus` command scoped to the current compose project. All flags and
+arguments are passed through verbatim; only `INCUS_PROJECT` is injected.
 
 ```
 incus-compose incus COMMAND [ARGS...]
@@ -788,11 +805,11 @@ incus-compose healthd <subcommand>
 | `down [--force]`  | Stop and remove the sidecar                               |
 
 Each follows the project's scope, so in a `global`-scope project they act on the
-shared daemon in the Incus `incus-compose` project. With no compose file present they
-all act on the shared daemon directly: `healthd up` creates one, the rest fail
-with `no ic-healthd is running` when there is none. `healthd down` asks first
-when other projects rely on that daemon; `--force` skips the question and is
-required without a terminal.
+shared daemon in the Incus `incus-compose` project. With no compose file present
+they all act on the shared daemon directly: `healthd up` creates one, the rest
+fail with `no ic-healthd is running` when there is none. `healthd down` asks
+first when other projects rely on that daemon; `--force` skips the question and
+is required without a terminal.
 
 _Since: v1.3.0_: `healthd status`.
 
@@ -814,7 +831,9 @@ incus-compose list [SERVICE...]
 | `--format`     | table (default), yaml, json                    |
 | `--no-healthd` | Exclude the ic-healthd sidecar from the output |
 
-The `IMAGE` column shows the compose image for each service. The ic-healthd sidecar is listed by default; its image is resolved from the instance's stored metadata. Pass `--no-healthd` to omit it.
+The `IMAGE` column shows the compose image for each service. The ic-healthd
+sidecar is listed by default; its image is resolved from the instance's stored
+metadata. Pass `--no-healthd` to omit it.
 
 _Changed in 1.0.0-rc.1_: healthd is listed by default.
 
@@ -841,18 +860,23 @@ incus-compose self-update
 
 This command is only available when both conditions are met:
 
-1. The binary was built with a release version (not `latest` / development builds)
+1. The binary was built with a release version (not `latest` / development
+   builds)
 2. The binary file is writable by the current user
 
-When available, `self-update` checks the [lxc/incus-compose](https://github.com/lxc/incus-compose) GitHub releases for a newer version matching the current OS and architecture. If a newer version is found, the binary is replaced in-place. If you are already on the latest version, no action is taken.
+When available, `self-update` checks the
+[lxc/incus-compose](https://github.com/lxc/incus-compose) GitHub releases for a
+newer version matching the current OS and architecture. If a newer version is
+found, the binary is replaced in-place. If you are already on the latest
+version, no action is taken.
 
 _Changed v1.0.0: the `--drafts` option has been added_
 
 ## Docker Compose command parity
 
-Most `docker compose` verbs map directly. Anything without a dedicated command is
-reachable through the `incus-compose incus` passthrough, which runs any `incus`
-command scoped to the current project.
+Most `docker compose` verbs map directly. Anything without a dedicated command
+is reachable through the `incus-compose incus` passthrough, which runs any
+`incus` command scoped to the current project.
 
 | `docker compose`             | incus-compose                | Notes                                                          |
 | ---------------------------- | ---------------------------- | -------------------------------------------------------------- |

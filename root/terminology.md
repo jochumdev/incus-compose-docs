@@ -16,13 +16,15 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Terminology
 
-If you're new to incus-compose, this page helps you translate between Docker Compose, Incus, and incus-compose terms.
-incus-compose sits between three vocabularies:
+If you're new to incus-compose, this page helps you translate between Docker
+Compose, Incus, and incus-compose terms. incus-compose sits between three
+vocabularies:
 
-- **Docker Compose** - what you write in `compose.yaml` (service, network, volume).
+- **Docker Compose** - what you write in `compose.yaml` (service, network,
+  volume).
 - **Incus** - what actually runs (instance, project, profile, image).
-- **incus-compose** - the glue and its own concepts (the ic-healthd sidecar,
-  the image cache, name sanitization).
+- **incus-compose** - the glue and its own concepts (the ic-healthd sidecar, the
+  image cache, name sanitization).
 
 The same word sometimes means different things in each, and the same concept
 sometimes has two names. This page disambiguates them.
@@ -80,13 +82,14 @@ flowchart LR
 - **Service** - a Compose concept: one entry under `services:` in your
   `compose.yaml`. It is a _definition_, not a running thing.
 - **Instance** - an Incus concept: a single running (or stopped) workload. This
-  is what a service becomes. With [`deploy.replicas`](/compose-compatibility)
-  a single service produces several instances named `{service}-{index}`
-  (e.g. `web-1`, `web-2`). A service with no replicas still becomes one
-  instance, `{service}-1`.
+  is what a service becomes. With [`deploy.replicas`](/compose-compatibility) a
+  single service produces several instances named `{service}-{index}` (e.g.
+  `web-1`, `web-2`). A service with no replicas still becomes one instance,
+  `{service}-1`.
 - **Container** - informal. An Incus instance is either a _container_ or a
-  _virtual machine_. incus-compose creates containers from OCI images. "Container"
-  and "instance" are often used interchangeably, but "instance" is the precise term.
+  _virtual machine_. incus-compose creates containers from OCI images.
+  "Container" and "instance" are often used interchangeably, but "instance" is
+  the precise term.
 
 ### Project (two layers)
 
@@ -95,8 +98,8 @@ flowchart LR
 - **Compose project** - the directory and `compose.yaml` you run against; named
   after the directory by default, overridable with `-p`.
 - **Incus project** - an isolation boundary inside Incus (its own instances,
-  networks, volumes). incus-compose creates one Incus project per compose project,
-  using a [sanitized name](/architecture#name-sanitization).
+  networks, volumes). incus-compose creates one Incus project per compose
+  project, using a [sanitized name](/architecture#name-sanitization).
 
 ### Network
 
@@ -133,7 +136,8 @@ flowchart LR
   built in; anything else is added with `incus remote add --protocol oci ...`
   before images can be pulled from it.
 - **Storage pool** - where volumes live. Select a non-default pool per named
-  volume with [`x-incus-compose.pool`](/compose-compatibility#x-incus-compose-volume-pool).
+  volume with
+  [`x-incus-compose.pool`](/compose-compatibility#x-incus-compose-volume-pool).
 - **Operation** - an asynchronous Incus task (start, copy, etc.). The client
   waits on it; a successful start operation means the instance reached running.
 - **Proxy device** - how published `ports:` are forwarded (not iptables NAT).
@@ -141,21 +145,21 @@ flowchart LR
 ## incus-compose terms
 
 - **ic-healthd / sidecar** - a small daemon incus-compose runs to enforce
-  `healthcheck`, `restart:`, and `depends_on: service_healthy`. Incus does not do
-  these itself. It is transparent in normal use but a core component; see
+  `healthcheck`, `restart:`, and `depends_on: service_healthy`. Incus does not
+  do these itself. It is transparent in normal use but a core component; see
   [Health Checking](/healthd) and
   [Debugging ic-healthd](/healthd#debugging-ic-healthd).
 - **Image cache** - a separate Incus project holding pulled images so repeated
-  `up` + `down --project` runs are fast and avoid registry rate limits. Configurable via
-  `INCUS_COMPOSE_IMAGE_CACHE`.
+  `up` + `down --project` runs are fast and avoid registry rate limits.
+  Configurable via `INCUS_COMPOSE_IMAGE_CACHE`.
 - **Name sanitization** - the rules that turn compose names into valid Incus
   project, instance, and network names; see
   [Name Sanitization](/architecture#name-sanitization).
 - **`x-incus`** - a compose extension to pass raw Incus options verbatim to
   instances, networks, and volumes; see
   [x-incus](/architecture#x-incus-raw-incus-options).
-- **`x-incus-compose`** - a compose extension for incus-compose-specific features
-  (e.g. `healthd`, volume `pool`); see
+- **`x-incus-compose`** - a compose extension for incus-compose-specific
+  features (e.g. `healthd`, volume `pool`); see
   [x-incus-compose](/architecture#x-incus-compose-compose-specific-features).
 - **`compose.incus.yaml`** - an optional override file loaded automatically
   alongside `compose.yaml` for Incus-specific settings; see

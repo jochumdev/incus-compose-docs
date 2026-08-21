@@ -19,8 +19,8 @@ High-level Incus API wrapper with resource management and parallel execution.
 
 ## Overview
 
-This package provides a compose-spec friendly interface for managing Incus resources:
-instances, networks, volumes, profiles, and images.
+This package provides a compose-spec friendly interface for managing Incus
+resources: instances, networks, volumes, profiles, and images.
 
 ## Quick Start
 
@@ -75,11 +75,13 @@ func main() {
 
 ## Documentation
 
-- [Errors](/architecture/client/errors) - Sentinel errors and automatic context enrichment
+- [Errors](/architecture/client/errors) - Sentinel errors and automatic context
+  enrichment
 - [Hooks](/architecture/client/hooks) - Hook system details
 - [Image](/architecture/client/image) - Image resource
 - [Instance](/architecture/client/instance) - Instance resource
-- [Storage Volume](/architecture/client/storage_volume) - SFTP access and the VolumeLock advisory lock
+- [Storage Volume](/architecture/client/storage_volume) - SFTP access and the
+  VolumeLock advisory lock
 
 See also [Architecture Overview](/architecture).
 
@@ -98,7 +100,8 @@ project, _ := gc.EnsureProject("myapp", true)
 
 ### Client
 
-Project-scoped client returned by `EnsureProject`. All resource operations happen through this:
+Project-scoped client returned by `EnsureProject`. All resource operations
+happen through this:
 
 ```go
 profile, _ := project.Resource(client.KindProfile, "default", config)
@@ -168,8 +171,10 @@ err = stack.Run(client.ActionDelete, client.OptionForce())
 
 **Sort Order**:
 
-- `ForAction()` automatically determines order: `ActionEnsure`/`ActionStart` use ascending, `ActionStop`/`ActionDelete` use descending
-- `StackSortDescending()` option explicitly sets descending order for `NewStack()`
+- `ForAction()` automatically determines order: `ActionEnsure`/`ActionStart` use
+  ascending, `ActionStop`/`ActionDelete` use descending
+- `StackSortDescending()` option explicitly sets descending order for
+  `NewStack()`
 - Unknown actions in `ForAction()` preserve the stack's existing sort order
 
 ## Resource Kinds

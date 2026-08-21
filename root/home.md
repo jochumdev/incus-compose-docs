@@ -1,7 +1,9 @@
 ---
 date: 2026-08-18T15:32:26.000Z
 dateCreated: 2026-07-05T01:20:36.522Z
-description: A drop-in replacement for docker compose that runs your compose.yaml on Incus - with the full Incus API available as an escape hatch when you need more than the Compose spec covers.
+description: A drop-in replacement for docker compose that runs your compose.yaml on Incus
+  - with the full Incus API available as an escape hatch when you need more than
+  the Compose spec covers.
 editor: markdown
 published: true
 tags: []
@@ -16,7 +18,9 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # incus-compose
 
-A drop-in replacement for `docker compose` that runs your `compose.yaml` on [Incus](https://linuxcontainers.org/incus/) - with the full Incus API available as an escape hatch when you need more than the Compose spec covers.
+A drop-in replacement for `docker compose` that runs your `compose.yaml` on
+[Incus](https://linuxcontainers.org/incus/) - with the full Incus API available
+as an escape hatch when you need more than the Compose spec covers.
 
 ```yaml
 services:
@@ -71,8 +75,8 @@ flowchart LR
     end
 ```
 
-New to Incus? See [Why Incus?](/why-incus) for what the platform brings over
-a classic OCI engine setup.
+New to Incus? See [Why Incus?](/why-incus) for what the platform brings over a
+classic OCI engine setup.
 
 ## Demos
 
@@ -81,22 +85,41 @@ a classic OCI engine setup.
 
 ## Features
 
-**Drop-in.** All the commands you know - `up`, `down`, `start`, `stop`, `restart`, `pause`, `logs`, `exec`, `cp`, `top`, `ps`, `config`, `build` - parsing via compose-go with `.env` interpolation, profiles, `depends_on`, secrets, and configs. See the [CLI reference](/cli-reference) and the [compatibility matrix](/compose-compatibility).
+**Drop-in.** All the commands you know - `up`, `down`, `start`, `stop`,
+`restart`, `pause`, `logs`, `exec`, `cp`, `top`, `ps`, `config`, `build` -
+parsing via compose-go with `.env` interpolation, profiles, `depends_on`,
+secrets, and configs. See the [CLI reference](/cli-reference) and the
+[compatibility matrix](/compose-compatibility).
 
-**Operable.** Health checks, restart policies, and `depends_on: service_healthy` ordering via the `ic-healthd` sidecar; scaling with `up --scale`; project isolation; live progress for pulls and lifecycle. See [Health Checking](/healthd).
+**Operable.** Health checks, restart policies, and `depends_on: service_healthy`
+ordering via the `ic-healthd` sidecar; scaling with `up --scale`; project
+isolation; live progress for pulls and lifecycle. See
+[Health Checking](/healthd).
 
-**Fast images.** OCI pulls from any registry, a two-stage cache that survives `down`/`up` and dodges rate limits, and local builds via Podman/Docker. See [Builds](/builds).
+**Fast images.** OCI pulls from any registry, a two-stage cache that survives
+`down`/`up` and dodges rate limits, and local builds via Podman/Docker. See
+[Builds](/builds).
 
-**Real networking and storage.** Bridge networks with static IPs, port publishing via proxy devices or kernel NAT, volumes with UID/GID shifting, seeded bind mounts, and per-volume pool placement.
+**Real networking and storage.** Bridge networks with static IPs, port
+publishing via proxy devices or kernel NAT, volumes with UID/GID shifting,
+seeded bind mounts, and per-volume pool placement.
 
-**Incus-native when you want it.** Every instance, network, and volume option passes straight through via `x-incus`; `x-incus-compose` adds devices (GPU, USB, raw disk), project-wide resource limits, and healthd tuning. See [Compose Compatibility](/compose-compatibility).
+**Incus-native when you want it.** Every instance, network, and volume option
+passes straight through via `x-incus`; `x-incus-compose` adds devices (GPU, USB,
+raw disk), project-wide resource limits, and healthd tuning. See
+[Compose Compatibility](/compose-compatibility).
 
-**Extensions.** `incus-compose backup` snapshots a project's data volumes into a backup project - create, list, verify, restore, and prune - so a stack's state survives the project itself, and `incus-compose port-forward` forwards a local TCP port into an instance, published or not. See [backup](/cli-reference#backup) and [port-forward](/cli-reference#port-forward).
+**Extensions.** `incus-compose backup` snapshots a project's data volumes into a
+backup project - create, list, verify, restore, and prune - so a stack's state
+survives the project itself, and `incus-compose port-forward` forwards a local
+TCP port into an instance, published or not. See [backup](/cli-reference#backup)
+and [port-forward](/cli-reference#port-forward).
 
 ## Quick Start
 
-Requires Incus 7.0.1 (LTS) or 7.2+, `podman` or `docker` for image building and an Incus https remote (needed for healthchecking) with OCI registries added.
-See [Getting Started](/getting-started) for the full setup walkthrough.
+Requires Incus 7.0.1 (LTS) or 7.2+, `podman` or `docker` for image building and
+an Incus https remote (needed for healthchecking) with OCI registries added. See
+[Getting Started](/getting-started) for the full setup walkthrough.
 
 Install the latest release:
 
@@ -104,10 +127,12 @@ Install the latest release:
 curl -sSfL https://raw.githubusercontent.com/lxc/incus-compose/main/install.sh | sh -s -- -b ~/.local/bin
 ```
 
-Or grab a prebuilt archive from the [Releases Page](https://github.com/lxc/incus-compose/releases).
-On Arch Linux, install [incus-compose-bin](https://aur.archlinux.org/packages/incus-compose-bin)
-(or [incus-compose-git](https://aur.archlinux.org/packages/incus-compose-git) for builds from `main`)
-from the AUR.
+Or grab a prebuilt archive from the
+[Releases Page](https://github.com/lxc/incus-compose/releases). On Arch Linux,
+install
+[incus-compose-bin](https://aur.archlinux.org/packages/incus-compose-bin) (or
+[incus-compose-git](https://aur.archlinux.org/packages/incus-compose-git) for
+builds from `main`) from the AUR.
 
 Then point it at your existing `compose.yaml`:
 
@@ -127,21 +152,28 @@ incus-compose down
 
 ## Quick Links
 
-- **[Architecture](/architecture)** - the resource-first design behind incus-compose
-- **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** - what changed since 0.0.1-beta1
+- **[Architecture](/architecture)** - the resource-first design behind
+  incus-compose
+- **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** -
+  what changed since 0.0.1-beta1
 
 ## Support and community
 
-The following channels are available for questions and discussion around incus-compose.
+The following channels are available for questions and discussion around
+incus-compose.
 
 ### Bug reports
 
-You can file bug reports and feature requests at: [`https://github.com/lxc/incus-compose/issues/new`](https://github.com/lxc/incus-compose/issues/new)
+You can file bug reports and feature requests at:
+[`https://github.com/lxc/incus-compose/issues/new`](https://github.com/lxc/incus-compose/issues/new)
 
 ### Community support
 
-Community support is handled at: [`https://discuss.linuxcontainers.org`](https://discuss.linuxcontainers.org)
+Community support is handled at:
+[`https://discuss.linuxcontainers.org`](https://discuss.linuxcontainers.org)
 
 ## Contributing
 
-Fixes and new features are greatly appreciated. Make sure to read our [contributing guidelines](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md) first!
+Fixes and new features are greatly appreciated. Make sure to read our
+[contributing guidelines](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md)
+first!

@@ -133,10 +133,10 @@ flowchart TD
 
 `instance-resumed` is routed as a start. A pause parks the instance, via the
 `user.healthcheck.stopped` marker `incus-compose pause` writes, and a start
-event is the only thing that un-parks one - the `instance-updated` that
-clearing the marker emits refreshes an instance's config and status but leaves
-its state alone. Without the resume the instance would run unwatched until the
-next resync.
+event is the only thing that un-parks one - the `instance-updated` that clearing
+the marker emits refreshes an instance's config and status but leaves its state
+alone. Without the resume the instance would run unwatched until the next
+resync.
 
 The registry is a plain map with no mutex, because only this goroutine touches
 it. `start` and `stop` are closures over it for the same reason.
@@ -232,11 +232,11 @@ caps are fleet-wide rather than per project. They are separate because a restart
 holds its worker for up to `restartTimeout`, and a handful of slow ones must not
 be able to starve the checks.
 
-Both are non-blocking: a full pool refuses the action instead of queueing it, and
-`runInstanceActions` leaves the instance idle and re-dues it `poolRetryDelay`
-later. Queueing would be worse than refusing on both counts - a submit that
-blocks stalls the loop, and hence routing and the websocket read (see
-[Backpressure](#backpressure)), while a task waiting for a worker burns the
+Both are non-blocking: a full pool refuses the action instead of queueing it,
+and `runInstanceActions` leaves the instance idle and re-dues it
+`poolRetryDelay` later. Queueing would be worse than refusing on both counts - a
+submit that blocks stalls the loop, and hence routing and the websocket read
+(see [Backpressure](#backpressure)), while a task waiting for a worker burns the
 deadline the watchdog reaps it by, which for a check counts as a failed probe.
 
 The state, the deadline and the context are set only once the pool accepts, so a
@@ -269,11 +269,11 @@ and checking a stopped instance is pointless.
 
 A **started event**, which a resume counts as, puts an idle or parked instance
 back into the shape a fresh start leaves it in (`instanceStarted`): due for a
-check at once, failure run cleared, start period re-armed. That is also what discards a restart the stop
-before it had queued - an instance somebody else already started has nothing
-left to restart, and firing it anyway would force-stop a running instance one
-backoff later. An instance with an action in flight is left alone; its result
-says what happens next.
+check at once, failure run cleared, start period re-armed. That is also what
+discards a restart the stop before it had queued - an instance somebody else
+already started has nothing left to restart, and firing it anyway would
+force-stop a running instance one backoff later. An instance with an action in
+flight is left alone; its result says what happens next.
 
 ### Telling results apart
 
@@ -347,8 +347,8 @@ Every flag has a matching env var:
 | `--debug`           | `INCUS_COMPOSE_HEALTHD_DEBUG`           | `false`                         | Verbose logging                                                             |
 | `--trace`           | `INCUS_COMPOSE_HEALTHD_TRACE`           | `false`                         | Per-event logging, which implies `--debug`                                  |
 
-`--own-project` and `--own-name` are how the daemon writes its own health status;
-leaving `--own-name` empty means it skips itself.
+`--own-project` and `--own-name` are how the daemon writes its own health
+status; leaving `--own-name` empty means it skips itself.
 
 ### Choosing what to watch
 
@@ -378,8 +378,8 @@ ic-healthd run
 ic-healthd run --project blog --project shop
 ```
 
-Projects created, renamed or deleted while the daemon runs are picked up from the
-event stream; no reload is needed.
+Projects created, renamed or deleted while the daemon runs are picked up from
+the event stream; no reload is needed.
 
 ### Local binary in the sidecar
 
@@ -387,17 +387,17 @@ event stream; no reload is needed.
 incus-compose up --healthd-binary ./bin/ic-healthd
 ```
 
-Uses `images:alpine/edge` instead of the published OCI image and pushes the local
-binary into the container before start. Useful when iterating on the daemon but
-still wanting `up` to manage its lifecycle.
+Uses `images:alpine/edge` instead of the published OCI image and pushes the
+local binary into the container before start. Useful when iterating on the
+daemon but still wanting `up` to manage its lifecycle.
 
 ### Standalone on the host
 
 The fastest edit-run-reload loop when hacking on the daemon: run `ic-healthd` on
 the host and attach a project to it with `--external-healthd`.
 
-> The daemon registers over the Incus HTTPS API, so the default remote must expose
-> an HTTPS address (not just the local unix socket).
+> The daemon registers over the Incus HTTPS API, so the default remote must
+> expose an HTTPS address (not just the local unix socket).
 
 1. Build and start the daemon; the token is minted inline and passed via
    `INCUS_COMPOSE_HEALTHD_TOKEN`:
@@ -428,8 +428,8 @@ the host and attach a project to it with `--external-healthd`.
    ```
 
 3. In another terminal, bring the project up against the running daemon.
-   `--external-healthd` makes incus-compose use healthd features without creating
-   or looking up a sidecar of its own:
+   `--external-healthd` makes incus-compose use healthd features without
+   creating or looking up a sidecar of its own:
 
    ```bash
    just run -P examples/many-dependencies/ up --external-healthd
@@ -452,12 +452,12 @@ anything but the default profile is in the project, so a rename can never lose
 watched instances. That is why the router handles it by simply stopping the old
 name and starting the new one.
 
-**A rename does not refresh incusd's certificate cache.** `certificates_projects`
-is keyed by project ID, so the database follows a rename, but the in-memory cache
-the authorizer reads still holds the old name until something else refreshes it.
-A daemon on a restricted token can therefore get 403s on the renamed project for
-a while. Combined with the point above, the blast radius is small enough to log
-and carry on.
+**A rename does not refresh incusd's certificate cache.**
+`certificates_projects` is keyed by project ID, so the database follows a
+rename, but the in-memory cache the authorizer reads still holds the old name
+until something else refreshes it. A daemon on a restricted token can therefore
+get 403s on the renamed project for a while. Combined with the point above, the
+blast radius is small enough to log and carry on.
 
 **A project event names nothing.** `ProjectAction.Event` sets neither `Name` nor
 `Project` on the lifecycle payload, so the new name arrives only in the
@@ -506,8 +506,8 @@ daemon by hand, pass `--token` or drop a token file in `--secrets-dir`. Deleting
 the contents of `--data-dir` forces a fresh registration.
 
 The token also carries the scope: Incus takes the certificate's name and project
-restriction from the token, not from what the daemon asks for. A restricted token
-is what bounds a daemon, whatever its flags say.
+restriction from the token, not from what the daemon asks for. A restricted
+token is what bounds a daemon, whatever its flags say.
 
 ## See Also
 

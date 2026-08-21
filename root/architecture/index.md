@@ -15,11 +15,15 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Architecture
 
-High-level architecture of incus-compose and how components fit together, a **resource-first design**:
+High-level architecture of incus-compose and how components fit together, a
+**resource-first design**:
 
-- **Unified Resource Interface** - Images, instances, networks, profiles, and volumes are all first-class resources
-- **Two-Phase Pattern** - Configuration (resource creation) then execution (ensure/start/stop/delete)
-- **Priority-Based Ordering** - Dependencies managed via numeric priorities, no complex graph resolution
+- **Unified Resource Interface** - Images, instances, networks, profiles, and
+  volumes are all first-class resources
+- **Two-Phase Pattern** - Configuration (resource creation) then execution
+  (ensure/start/stop/delete)
+- **Priority-Based Ordering** - Dependencies managed via numeric priorities, no
+  complex graph resolution
 - **Stack Execution** - Batch operations with parallel image downloads
 - **Hook System** - Before/after action interception for logging and validation
 
@@ -68,13 +72,13 @@ flowchart LR
     PRJ -->|"calls client.Resource()"| CLI
 ```
 
-The CLI creates a GlobalClient and loads the compose project. Then project takes over:
-it reads the compose definitions and configures resources on the client. The client
-owns the resources, but project drives what gets created.
+The CLI creates a GlobalClient and loads the compose project. Then project takes
+over: it reads the compose definitions and configures resources on the client.
+The client owns the resources, but project drives what gets created.
 
-This means project is not a passive loader. It actively builds the resource graph
-by calling into client. The Stack returned by project contains all resources ready
-for execution.
+This means project is not a passive loader. It actively builds the resource
+graph by calling into client. The Stack returned by project contains all
+resources ready for execution.
 
 ## Resource Hierarchy
 
@@ -99,7 +103,8 @@ flowchart TD
 Images go through three stages:
 
 1. **Remote** - OCI registry (docker.io, ghcr.io)
-2. **Cache** - Incus `incus-compose-cache` project (configurable via `INCUS_COMPOSE_IMAGE_CACHE`)
+2. **Cache** - Incus `incus-compose-cache` project (configurable via
+   `INCUS_COMPOSE_IMAGE_CACHE`)
 3. **Project** - per-project copy used by the instance
 
 ```mermaid
@@ -132,7 +137,8 @@ Benefits:
 
 ## Stack, WorkerPool, and Hooks
 
-See [Client Package](/architecture/client) for Stack, WorkerPool, resource ordering, and hook details.
+See [Client Package](/architecture/client) for Stack, WorkerPool, resource
+ordering, and hook details.
 
 ## Name Sanitization
 
@@ -146,12 +152,13 @@ Valid DNS names, max 63 chars, long names hashed to 32 hex chars.
 
 ### Networks
 
-Linux interface limit (13 chars), uses hash for long names:
-`backend` -> `app-backend` or `ic-a1b2c3d4e5`
+Linux interface limit (13 chars), uses hash for long names: `backend` ->
+`app-backend` or `ic-a1b2c3d4e5`
 
 ## Error Handling
 
-See [Errors](/architecture/client/errors) for sentinel errors and context enrichment.
+See [Errors](/architecture/client/errors) for sentinel errors and context
+enrichment.
 
 ## Connection Modes
 
@@ -163,9 +170,9 @@ incus remote add ci https://192.168.1.100:8443
 incus-compose --remote ci up
 ```
 
-A library user builds the connection and hands it over. `DialRemote` is the
-same path the CLI takes; anything reachable through `iclient` works,
-which is how the tests point at a project of their own.
+A library user builds the connection and hands it over. `DialRemote` is the same
+path the CLI takes; anything reachable through `iclient` works, which is how the
+tests point at a project of their own.
 
 ```go
 conn, err := client.DialRemote("", "ci")
@@ -206,7 +213,11 @@ networks:
       ipv4.nat: "true"
 ```
 
-All key-value pairs are passed verbatim to Incus. See the [Incus instance options reference](https://linuxcontainers.org/incus/docs/main/reference/instance_options/) for available options, and [Compose Compatibility](/compose-compatibility#x-incus-instance-extensions) for the per-resource (instance, network, volume) `x-incus` reference.
+All key-value pairs are passed verbatim to Incus. See the
+[Incus instance options reference](https://linuxcontainers.org/incus/docs/main/reference/instance_options/)
+for available options, and
+[Compose Compatibility](/compose-compatibility#x-incus-instance-extensions) for
+the per-resource (instance, network, volume) `x-incus` reference.
 
 ### x-incus-compose (Compose-Specific Features)
 
@@ -289,16 +300,20 @@ services:
 
 ## Documentation
 
-See the [docs index](/architecture) for all user and contributor docs. Closely related:
+See the [docs index](/architecture) for all user and contributor docs. Closely
+related:
 
 - [Client Package](/architecture/client) - Resources, Stack, WorkerPool
 - [iclient](/architecture/iclient) - the Incus client everything talks through
 - [Testing](/architecture/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
-- [ic-healthd Internals](/architecture/healthd) - the listener, the router, and the per-project schedulers
-- [Progress](/architecture/progress) - Live operation progress and the terminal renderer
+- [ic-healthd Internals](/architecture/healthd) - the listener, the router, and
+  the per-project schedulers
+- [Progress](/architecture/progress) - Live operation progress and the terminal
+  renderer
 
 ## Need Help?
 
-- **Bugs/Features**: Open an issue on [GitHub](https://github.com/lxc/incus-compose/issues)
+- **Bugs/Features**: Open an issue on
+  [GitHub](https://github.com/lxc/incus-compose/issues)
 - **Questions**: Check the docs above or open a discussion

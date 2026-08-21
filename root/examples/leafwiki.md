@@ -15,17 +15,21 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # LeafWiki
 
-[LeafWiki](https://leafwiki.com/) - a self-hosted wiki as a single Go binary, Markdown + SQLite on disk, no external database.
+[LeafWiki](https://leafwiki.com/) - a self-hosted wiki as a single Go binary,
+Markdown + SQLite on disk, no external database.
 
-The page you see is a LeafWiki with a Git backup to [jochumdev/incus-compose-docs](https://github.com/jochumdev/incus-compose-docs).
+The page you see is a LeafWiki with a Git backup to
+[jochumdev/incus-compose-docs](https://github.com/jochumdev/incus-compose-docs).
 
-The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/leafwiki).
+The files for this example are on
+[Github](https://github.com/lxc/incus-compose/tree/main/examples/leafwiki).
 
 ## The example
 
 A single `wiki` service. Demonstrates:
 
-- a bind-mounted SSH deploy key (`ssh.key`, a placeholder here) for LeafWiki's optional Git backup (`LEAFWIKI_GIT_BACKUP*` env vars)
+- a bind-mounted SSH deploy key (`ssh.key`, a placeholder here) for LeafWiki's
+  optional Git backup (`LEAFWIKI_GIT_BACKUP*` env vars)
 
 All config comes from `.env`.
 

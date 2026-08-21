@@ -16,7 +16,8 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Instance Details
 
-Instance is the most complex resource due to device handling and UID/GID shifting for volumes.
+Instance is the most complex resource due to device handling and UID/GID
+shifting for volumes.
 
 ## InstanceConfig
 
@@ -206,7 +207,8 @@ volConfig.UID = inst.UID
 volConfig.GID = inst.GID
 ```
 
-This ensures files in the volume are owned by the correct user inside the container.
+This ensures files in the volume are owned by the correct user inside the
+container.
 
 ## Bind Mount Restriction
 
@@ -223,8 +225,8 @@ err := c.Global().SameHost()
 `GlobalClient.SameHost()` returns nil for a Unix socket, and otherwise compares
 the remote's resolved addresses against the local interfaces. So a pass-through
 bind is allowed whenever incusd is this machine, HTTPS included, and refused
-with `not on the same host` when it is not, because incusd resolves the source path on
-its own filesystem, so a path from elsewhere would not be there.
+with `not on the same host` when it is not, because incusd resolves the source
+path on its own filesystem, so a path from elsewhere would not be there.
 
 A volume carrying `x-incus-compose.seed` skips the check entirely: a directory
 becomes a `StorageVolume` with `HostPath` set, seeded at creation, and a single
@@ -255,7 +257,8 @@ Calls `UpdateInstanceState` with action "start". No-op if already running.
 err := instance.Stop(client.OptionForce())
 ```
 
-Calls `UpdateInstanceState` with action "stop". Force bypasses graceful shutdown.
+Calls `UpdateInstanceState` with action "stop". Force bypasses graceful
+shutdown.
 
 Without `OptionForce`, Incus is asked to shut down within `OptionTimeout` and
 then reports a failure, leaving the instance running. `Stop` therefore re-reads
@@ -316,4 +319,7 @@ instanceConfig := &InstanceConfig{
 }
 ```
 
-Instance.Ensure() checks all Resources are ensured before creating. It does not cascade Ensure calls - `Stack.Run()` ensures dependencies are ensured first via priority-based ordering. Resources with lower priority values (images, networks) are ensured before higher priority values (instances).
+Instance.Ensure() checks all Resources are ensured before creating. It does not
+cascade Ensure calls - `Stack.Run()` ensures dependencies are ensured first via
+priority-based ordering. Resources with lower priority values (images, networks)
+are ensured before higher priority values (instances).

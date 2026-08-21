@@ -17,11 +17,14 @@ leafwiki_last_author_id: vOmfrlBDg
 
 [Wiki.js](https://js.wiki/), a modern wiki app, backed by Postgres.
 
-The files for this example are on [Github](https://github.com/lxc/incus-compose/tree/main/examples/wikijs).
+The files for this example are on
+[Github](https://github.com/lxc/incus-compose/tree/main/examples/wikijs).
 
 ## The example
 
-Two services: `database` (Postgres) and `wiki`, wired together with `depends_on: condition: service_healthy`. Versions and credentials come from `.env`.
+Two services: `database` (Postgres) and `wiki`, wired together with
+`depends_on: condition: service_healthy`. Versions and credentials come from
+`.env`.
 
 ## Usage
 
@@ -33,4 +36,5 @@ Open http://10.133.32.17:3000/
 
 ## Notes
 
-- `init: true` on `wiki` isn't implemented by incus-compose yet; left in `compose.yaml` as documentation of intent.
+- `init: true` on `wiki` isn't implemented by incus-compose yet; left in
+  `compose.yaml` as documentation of intent.

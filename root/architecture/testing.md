@@ -16,17 +16,22 @@ leafwiki_last_author_id: vOmfrlBDg
 
 # Testing Guide
 
-This guide covers testing patterns, fixtures, and best practices for incus-compose.
+This guide covers testing patterns, fixtures, and best practices for
+incus-compose.
 
 ## Prerequisites
 
-- **gotestsum** - required to run tests via [just](https://github.com/casey/just/releases); install with `go install gotest.tools/gotestsum@latest`
-- **just** - must be a recent version; the one shipped with Debian Trixie is too old and will not work
+- **gotestsum** - required to run tests via
+  [just](https://github.com/casey/just/releases); install with
+  `go install gotest.tools/gotestsum@latest`
+- **just** - must be a recent version; the one shipped with Debian Trixie is too
+  old and will not work
 - **jq** - the purge commands require `jq` to be installed.
 
 ## Running Tests
 
-Use `just --list` to see all available commands. Below is the complete reference:
+Use `just --list` to see all available commands. Below is the complete
+reference:
 
 **Run with**:
 
@@ -36,9 +41,12 @@ just test
 
 ### Image Cache
 
-Tests use a dedicated cache project (`incus-compose-tests-cache`) separate from the CLI's image cache (`incus-compose-cache` unless `--image-cache` is set). This keeps test images isolated and avoids polluting the user's cache.
+Tests use a dedicated cache project (`incus-compose-tests-cache`) separate from
+the CLI's image cache (`incus-compose-cache` unless `--image-cache` is set).
+This keeps test images isolated and avoids polluting the user's cache.
 
-The test cache is configured via `ClientProvideConnection` in test setup, pointing to a test-specific project.
+The test cache is configured via `ClientProvideConnection` in test setup,
+pointing to a test-specific project.
 
 ### Environment Setup
 
@@ -46,7 +54,8 @@ The nested Incus environment is configured via `.env` file:
 
 - `INCUS_REMOTE` - The remote to use.
 - `TEST_PROCS` (default 2) - number of tests to run in parallel.
-- `INCUS_COMPOSE_WORKERS` (default 4) - number of resources to create in parallel per test.
+- `INCUS_COMPOSE_WORKERS` (default 4) - number of resources to create in
+  parallel per test.
 
 A few more are read by the test helpers themselves rather than by the CLI, and
 are meant for a single run rather than `.env`:
@@ -62,10 +71,10 @@ There's also `just test-e2e` which includes slow (long-running) tests.
 
 ### Test Commands
 
-Every one of these takes the package pattern **first** and `go test` flags
-after it. That order is load-bearing: `just test-local -count=1` reads
-`-count=1` as the pattern and fails with `no Go files`, which does not look like
-an argument mistake. Write `just test-local ./... -count=1`.
+Every one of these takes the package pattern **first** and `go test` flags after
+it. That order is load-bearing: `just test-local -count=1` reads `-count=1` as
+the pattern and fails with `no Go files`, which does not look like an argument
+mistake. Write `just test-local ./... -count=1`.
 
 | Command                                    | Description                                               |
 | ------------------------------------------ | --------------------------------------------------------- |
@@ -222,18 +231,18 @@ flowchart TD
   they run everywhere and must stay fast.
 - **Integration** tests call `skipLocal(t)` and drive a real nested Incus. Most
   resource tests live here: they create a throwaway project, act on it, and let
-  `t.Cleanup` tear it down. `INCUS_COMPOSE_TEST_LOCAL=1` (set by `just
-test-local`) skips them, which is why a green `just test-local` proves much
-  less than a green `just test`.
+  `t.Cleanup` tear it down. `INCUS_COMPOSE_TEST_LOCAL=1` (set by
+  `just test-local`) skips them, which is why a green `just test-local` proves
+  much less than a green `just test`.
 - **E2E** tests call `skipE2E(t)` and are the slow, full-CLI ones. They are
   skipped unless `INCUS_COMPOSE_TEST_E2E=1` (set by `just test-e2e`), so they
   stay out of the normal loop.
 
 There is no mocking of `incus.InstanceServer`. A fake encodes a guess about what
 Incus returns - which `StatusCode` is populated, whether a stopped instance's
-`State` is nil or empty, whether `lo` is present - and a test that passes against
-the guess proves nothing about the daemon. Anything that needs Incus talks to the
-real nested one; that is the point of the integration tier.
+`State` is nil or empty, whether `lo` is present - and a test that passes
+against the guess proves nothing about the daemon. Anything that needs Incus
+talks to the real nested one; that is the point of the integration tier.
 
 **Examples**: `client/resource_image_test.go` mixes all three - parsing tests
 with no guard, ensure/lock tests behind `skipLocal`.
@@ -367,17 +376,17 @@ just test ./client/ -run TestTheThing -count=1
 Two things this catches regularly:
 
 - **Assertions that cannot fail.** A `require.Error` passes on _any_ error,
-  including "builder not found" when you meant to prove "the builder ran". Assert
-  on something only the real path produces.
-- **Setups that never reproduce the condition.** A concurrency test whose workers
-  resolve to different names never contends, and passes whether or not the fix
-  exists. If the test still passes with the fix disabled, the test is wrong, not
-  the fix.
+  including "builder not found" when you meant to prove "the builder ran".
+  Assert on something only the real path produces.
+- **Setups that never reproduce the condition.** A concurrency test whose
+  workers resolve to different names never contends, and passes whether or not
+  the fix exists. If the test still passes with the fix disabled, the test is
+  wrong, not the fix.
 
-Always pass `-count=1` when re-running: Go caches successful results and a cached
-`0.000s` "pass" tells you nothing about the code you just changed. For anything
-concurrent, use `-count=5` or more - a race that reproduces one run in three will
-otherwise look fixed.
+Always pass `-count=1` when re-running: Go caches successful results and a
+cached `0.000s` "pass" tells you nothing about the code you just changed. For
+anything concurrent, use `-count=5` or more - a race that reproduces one run in
+three will otherwise look fixed.
 
 ## Test the failures too
 
@@ -388,14 +397,14 @@ regresses silently:
 - **Every guard needs a test.** `pull never` with nothing stored, `--no-build`
   with a missing image, no source and no cache configured. Each guard is a
   branch, and an untested branch is a branch that stops working.
-- **Assert the error, not just that one happened.** `require.ErrorIs(err,
-ErrNotFound)` pins the contract; `require.Error(err)` accepts a typo in a
-  URL. Sentinel errors exist so callers can branch on them - test them the way a
-  caller would.
+- **Assert the error, not just that one happened.**
+  `require.ErrorIs(err, ErrNotFound)` pins the contract; `require.Error(err)`
+  accepts a typo in a URL. Sentinel errors exist so callers can branch on them -
+  test them the way a caller would.
 - **Assert what did _not_ happen.** Often the real contract is an absence: the
   cache was not repopulated, the builder was not invoked, the other lock was not
-  released. A pointing-at-nothing build context or a nulled-out source turns
-  "it didn't go there" into something you can assert.
+  released. A pointing-at-nothing build context or a nulled-out source turns "it
+  didn't go there" into something you can assert.
 
 ## Style
 
@@ -430,7 +439,8 @@ compose := testlib.Fixture(t, "wordpress", "compose.yaml")
 output = strings.ReplaceAll(output, fixturePath, "$FIXTURE_PATH")
 ```
 
-**Self-contained fixtures**: Define env vars like `$USER` or `$HOME` in `.env` to avoid OS dependencies:
+**Self-contained fixtures**: Define env vars like `$USER` or `$HOME` in `.env`
+to avoid OS dependencies:
 
 ```env
 USER=testuser
@@ -485,6 +495,7 @@ just run -f test/fixtures/simple/compose.yaml config
 
 ## See Also
 
-- [Contributing](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md) - coding, style, and workflow rules
+- [Contributing](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md) -
+  coding, style, and workflow rules
 - [Architecture](/architecture) - the design these tests exercise
 - [Client Package](/architecture/client) - Stack and resource internals
