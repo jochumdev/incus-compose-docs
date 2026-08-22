@@ -431,8 +431,8 @@ incus-compose run --rm web sh -c 'exit 42'; echo $?   # 42
 The one-off is named `<service>-run-<8 hex>` unless `--name` says otherwise, and
 it carries `user.incus-compose.oneoff=true`. It is not one of the service's
 instances: `up` never reconciles it, `ps` lists it under its service name, and
-`down` removes it even without `--rm`. Health checks are off on it, so ic-healthd
-never restarts one.
+`down` removes it even without `--rm`. Health checks are off on it, so
+ic-healthd never restarts one.
 
 Ports are dropped unless `-p` or `-P` is given, because a proxy device would
 fight the running service for the same listener.
@@ -464,8 +464,8 @@ Two consequences:
   no other. On a single-architecture cluster, or a standalone server, this never
   comes up.
 
-`run` shells out to your local `incus` client for the exec, as
-[`exec`](#exec) does.
+`run` shells out to your local `incus` client for the exec, as [`exec`](#exec)
+does.
 
 _Since: v1.3.0_
 
