@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:57:50.000Z
+date: 2026-08-23T01:55:40.000Z
 dateCreated: 2026-07-05T03:54:00.505Z
 description: How incus-compose fits together - a resource-first design splitting the CLI, the Incus client, and the compose project layer.
 editor: markdown
@@ -8,7 +8,7 @@ title: Architecture
 leafwiki_id: QtkuqlBDR
 leafwiki_title: Architecture
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-08-09T08:57:50.000000000Z"
+leafwiki_updated_at: "2026-08-23T01:55:40.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -171,8 +171,7 @@ incus-compose --remote ci up
 ```
 
 A library user builds the connection and hands it over. `DialRemote` is the same
-path the CLI takes; anything reachable through `iclient` works, which is how the
-tests point at a project of their own.
+path the CLI takes; anything reachable through `iclient` works.
 
 ```go
 conn, err := client.DialRemote("", "ci")
@@ -182,7 +181,9 @@ gc := client.New(ctx, client.ClientProvideConnection(conn))
 The connection is a `*iclient.Connection`, our fork of the Incus client. The
 upstream one shares event-listener state between everything holding it, so a
 single connection cannot be driven from several goroutines - which is exactly
-what the [WorkerPool](/architecture/client) does. See
+what the [WorkerPool](/architecture/client) does. One connection serves every
+project: each call names the project it acts on, so `EnsureProject` hands back a
+`Client` that carries a project name, not a connection of its own. See
 [iclient](/architecture/iclient).
 
 ## Environment Variables

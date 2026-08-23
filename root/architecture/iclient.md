@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T17:07:23Z
+date: 2026-08-23T01:55:11.000Z
 dateCreated: 2026-08-09T11:00:00Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
@@ -7,7 +7,7 @@ title: iclient
 leafwiki_id: vwIoKtUvRz
 leafwiki_title: iclient
 leafwiki_created_at: "2026-08-09T11:00:00Z"
-leafwiki_updated_at: "2026-08-17T17:07:23Z"
+leafwiki_updated_at: "2026-08-23T01:55:11.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -38,7 +38,9 @@ incus-compose runs a [WorkerPool](/architecture/client), so this is not a corner
 case for us - it is the normal shape of a run. The old workaround was to hand
 every resource its own `UseProject(...)` copy. An `iclient.Connection` holds
 nothing mutable and every `ListenEvents` is a socket of its own, so a single
-connection is safe to share and the workaround is gone.
+connection is safe to share and the workaround is gone - along with the project
+it used to be scoped to, which is now
+[a parameter](#the-project-is-a-parameter).
 
 ## Connecting
 
@@ -60,14 +62,14 @@ afterwards, so it is safe to share - a well-known registry is resolved against
 it, never written into it, and the [credentials memo](#registry-credentials) is
 filled in before it is shared.
 
-| Method                         | Returns                                                               |
-| ------------------------------ | --------------------------------------------------------------------- |
-| `WithProject(name)`            | A copy scoped to another project, **sharing** the transport and pool. |
-| `WithMaxIdleConns(n, perHost)` | A copy with a pool of its own - resizing a live pool is a race.       |
-| `Disconnect(ctx)`              | Ends this copy's listeners; closes the pool when the last one goes.   |
+| Method                         | Returns                                                         |
+| ------------------------------ | --------------------------------------------------------------- |
+| `WithMaxIdleConns(n, perHost)` | A copy with a pool of its own - resizing a live pool is a race. |
 
-Copies made by `WithProject` share a refcount, so `Disconnect` on one of them
-does not pull the transport out from under the others.
+Nothing has to be handed back, and there is no `Close`. A `Connection` is not a
+resource with a lifetime of its own: what it holds is a transport, and an
+abandoned one closes its idle sockets after 90s and is then collected. Callers
+drop connections; they do not close them.
 
 ### Transport
 
@@ -86,6 +88,32 @@ The tuning is not incidental, and each part has a reason:
   upgrade, which h2 does not do.
 - **`ResponseHeaderTimeout: 1h`.** An operation wait sends no header until it
   finishes.
+
+## The project is a parameter
+
+A `Connection` reaches one daemon, not one project. Every project-scoped call
+takes its project as the parameter after `ctx`:
+
+```go
+one, _, err := conn.GetInstance(ctx, "blog", "web-1", nil)
+err = conn.DeleteNetwork(ctx, "blog", "blog-frontend")
+```
+
+An empty project sends none, which incusd reads as the default project. A
+server-level call takes none at all: `GetServer`, `HasExtension`,
+`GetConnectionInfo`, `RawQuery`, the certificate calls, the project calls and
+`GetStoragePoolNames`.
+
+**An async call's project reaches its event listener**, and that is what the
+parameter is threaded all the way down for rather than being resolved into a
+query at the public boundary. incusd filters the event stream by project
+(`internal/server/events/events.go:197`) and an operation's updates carry the
+project it runs in (`internal/server/operations/linux.go:63`), so a listener
+scoped anywhere else sees nothing and the caller blocks on updates that never
+arrive - a hang, not an error.
+
+A remote's configured `project:` is not read. It reached exactly one thing, the
+project a `Connection` was born with, and there is no longer one to seed.
 
 ## Operations are channels
 
@@ -120,14 +148,21 @@ Upstream spells each axis of a call as its own method, up to
 is added. Here the axes are a struct, and a `nil` one is the zero value:
 
 ```go
-all, err := conn.GetInstances(ctx, &iclient.GetInstancesArgs{Full: true, AllProjects: true})
-one, _, err := conn.GetInstance(ctx, "web-1", nil)
+all, err := conn.GetInstances(ctx, "blog", &iclient.GetInstancesArgs{Full: true})
+one, _, err := conn.GetInstance(ctx, "blog", "web-1", nil)
 ```
 
 The same shape covers `GetImageArgs`, `GetImageAliasArgs`,
 `GetStoragePoolVolumeArgs`, `GetInstanceArgs`, `ImageCopyArgs`,
 `ImageCreateArgs`, `InstanceExecArgs`, `InstanceConsoleArgs` and
 `DeleteProjectArgs`.
+
+The exception is an axis that changes which endpoint the server serves.
+All-projects is one: incusd answers 400 to a request carrying both it and a
+project, and authorizes the two differently. So it is a function of its own -
+`GetInstancesAllProjects`, `ListenEventsAllProjects` - which sends no project
+and cannot be combined with one by mistake. There is no all-projects form of
+`GetInstanceNames`, a bare name not being unique across projects.
 
 ## Errors
 
@@ -137,9 +172,9 @@ Sentinels, matched with `errors.Is`:
 | ---------------------------- | ------------------------------------------------------ |
 | `ErrConfigRemoteNotFound`    | The configuration does not name that remote.           |
 | `ErrConnectionNoAddress`     | The remote has nothing to dial.                        |
-| `ErrConnectionDisconnected`  | The connection was used after `Disconnect`.            |
 | `ErrConnectionUnsupported`   | The remote cannot serve that call.                     |
 | `ErrInstanceBusy`            | Another operation holds the instance's operation lock. |
+| `ErrVolumeInUse`             | The storage volume still has a user.                   |
 | `ErrRegistryProtocol`        | `NewRepository` got a remote that is not a registry.   |
 | `ErrRegistryAddrCredentials` | An address still carries a login; the fields take it.  |
 | `ErrCredHelper`              | A remote's credentials helper failed.                  |
@@ -243,23 +278,29 @@ _Since: v1.3.0_
 
 ## Streams
 
-| Call                                     | Shape                                                      |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| `ListenEvents(ctx, types, allProjects)`  | `<-chan api.Event`; the socket is this connection's own.   |
-| `ExecInstance(ctx, name, post, args)`    | Output to writers; the channel closes once it has drained. |
-| `ConsoleInstance(ctx, name, post, args)` | Console to a writer; cancel the context to detach.         |
-| `GetInstanceFileSFTP(ctx, name)`         | A `*sftp.Client`; the caller closes it.                    |
-| `GetStoragePoolVolumeFileSFTP(ctx, ...)` | The same, for a custom volume.                             |
+| Call                                              | Shape                                                      |
+| ------------------------------------------------- | ---------------------------------------------------------- |
+| `ListenEvents(ctx, project, types)`               | `<-chan api.Event`; the socket is this connection's own.   |
+| `ListenEventsAllProjects(ctx, types)`             | The same, over every project the certificate may see.      |
+| `ExecInstance(ctx, project, name, post, args)`    | Output to writers; the channel closes once it has drained. |
+| `ConsoleInstance(ctx, project, name, post, args)` | Console to a writer; cancel the context to detach.         |
+| `GetInstanceFileSFTP(ctx, project, name)`         | A `*sftp.Client`; the caller closes it.                    |
+| `GetStoragePoolVolumeFileSFTP(ctx, project, ...)` | The same, for a custom volume.                             |
 
 An event socket that says nothing for 30s counts as dead. The server pings every
 10s, so silence is not something a healthy connection does - without the check a
 half-open socket sits in `ReadMessage` until TCP keepalive gives up minutes
 later, and nothing above learns the stream stopped.
 
-`allProjects` does not send the connection's project at all: the server takes a
-different path and answers with every project the certificate may see, which is
-how one listener serves projects that did not exist when it opened. ic-healthd
-is built on that; see [ic-healthd Internals](/architecture/healthd).
+`ListenEventsAllProjects` sends no project at all: the server takes a different
+path, building a permission checker instead of authorizing one project, and
+answers with every project the certificate may see. That is how one listener
+serves projects that did not exist when it opened. ic-healthd is built on it;
+see [ic-healthd Internals](/architecture/healthd).
+
+A socket that names no project is a socket on the **default** project, not on
+all of them (`cmd/incusd/events.go:60`), which is why the two are separate calls
+rather than an empty string standing in for one of them.
 
 ## Not implemented
 
