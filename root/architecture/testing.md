@@ -134,7 +134,7 @@ recreates the shared daemon. A change under `cmd/ic-healthd/**`, `shared/` or
 | ------------------ | ------------------------------------------------------------- |
 | `just lint [path]` | golangci-lint, over everything or one package                 |
 | `just fix [path]`  | The same with `--fix`                                         |
-| `just boundary`    | Check that the library packages import nothing that uses them |
+| `just boundary`    | Check that the core packages import nothing that uses them    |
 | `just tidy`        | `go mod tidy` in every module                                 |
 | `just pre-commit`  | Run before committing: `tidy`, `boundary`, `lint`             |
 | `just push`        | `pre-commit`, then push                                       |
@@ -180,7 +180,7 @@ internal/
 `internal/testlib` holds the tier guards, the paths, the CLI runner and the
 snapshot normalizers. It is under `internal/` because it has no stability
 promise - a signature there changes whenever a test needs it to, with no
-changelog entry - and the compiler is what keeps that off a library user.
+changelog entry.
 
 It may import the standard library and external modules, and nothing of ours
 except `shared`. `client`, `iclient` and `project` test in-package, so a helper

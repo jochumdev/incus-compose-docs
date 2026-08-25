@@ -170,7 +170,7 @@ incus remote add ci https://192.168.1.100:8443
 incus-compose --remote ci up
 ```
 
-A library user builds the connection and hands it over. `DialRemote` is the same
+`client.New` also takes a connection built elsewhere. `DialRemote` is the same
 path the CLI takes; anything reachable through `iclient` works.
 
 ```go

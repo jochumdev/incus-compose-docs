@@ -93,8 +93,8 @@ type ImageConfig struct {
     // Source is the image server to copy the image from.
     Source incusClient.ImageServer
 
-    // CacheClient is the project-scoped client to use as the image cache
-    // (for library users). Takes precedence over CacheProject.
+    // CacheClient is the project-scoped client to use as the image cache.
+    // Takes precedence over CacheProject.
     CacheClient *Client
 
     // CacheProject is the project name to use as cache (for CLI users).
@@ -125,7 +125,7 @@ const (
 
 ### Cache Configuration
 
-- **CacheClient**: For library users who manage their own cache
+- **CacheClient**: a caller-built cache client, used as-is
 - **CacheProject**: For CLI users, specifies project name (auto-created); the
   CLI sets this from `--image-cache` / `INCUS_COMPOSE_IMAGE_CACHE`
 - **Default**: Uses the `incus-compose-cache` project
@@ -136,7 +136,7 @@ The cache is a `*Client`, not a bare `incusClient.InstanceServer`, because the
 the cache project - which needs the resource machinery a `*Client` carries.
 
 ```go
-// Library usage - provide your own cache client
+// Provide a cache client directly
 cache, _ := gc.EnsureProject("my-image-cache", EnsureProjectWithCreate())
 
 img, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{

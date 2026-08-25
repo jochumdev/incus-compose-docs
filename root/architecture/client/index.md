@@ -22,57 +22,6 @@ High-level Incus API wrapper with resource management and parallel execution.
 This package provides a compose-spec friendly interface for managing Incus
 resources: instances, networks, volumes, profiles, and images.
 
-## Quick Start
-
-```go
-import (
-    "context"
-    "log/slog"
-
-    "github.com/lxc/incus-compose/client"
-)
-
-func main() {
-    ctx := context.Background()
-    logger := slog.Default()
-
-    // Connect to Incus
-    gc, err := client.New(ctx, client.ClientLogger(logger))
-    if err != nil {
-        panic(err)
-    }
-    if err := gc.Connect(); err != nil {
-        panic(err)
-    }
-
-    // Create or get a project
-    project, err := gc.EnsureProject("myapp", true)
-    if err != nil {
-        panic(err)
-    }
-    defer gc.DeleteProject("myapp", true)
-
-    // Create resources
-    profile, _ := project.Resource(client.KindProfile, "default", &client.ProfileConfig{
-        Incus: api.ProfilesPost{...},
-    })
-    image, _ := project.Resource(client.KindImage, "docker.io/nginx:alpine", &client.ImageConfig{
-        Source: imageServer,
-    })
-    instance, _ := project.Resource(client.KindInstance, "web", &client.InstanceConfig{
-        Incus: api.InstancesPost{...},
-    })
-
-    // Ensure resources exist
-    client.RunAction(profile, client.ActionEnsure, client.OptionCreate())
-    client.RunAction(image, client.ActionEnsure, client.OptionCreate())
-    client.RunAction(instance, client.ActionEnsure, client.OptionCreate())
-
-    // Start instance
-    client.RunAction(instance, client.ActionStart)
-}
-```
-
 ## Documentation
 
 - [Errors](/architecture/client/errors) - Sentinel errors and automatic context
