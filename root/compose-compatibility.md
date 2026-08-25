@@ -1202,8 +1202,23 @@ _Since: v1.3.0_
 
 **Platform selection:**
 
-Docker allows `--platform linux/amd64`. incus-compose uses the host architecture
-automatically. Multi-arch images select the correct variant.
+`platform:` takes the same values as docker compose - `linux/amd64`,
+`linux/arm64`, `linux/arm/v7`. Unset, the image is pulled for the architecture
+of the server incus-compose is connected to.
+
+The cached copy is keyed by platform, so one cache holds every architecture of
+an image side by side:
+
+```
+docker.io/library/alpine:3.20/amd64   x86_64
+docker.io/library/alpine:3.20/arm64   aarch64
+```
+
+On a cluster, the architecture of the image is what decides which member runs
+the instance, so `platform:` is also how a service is placed on one.
+
+Two services cannot share one image reference at different platforms; give them
+separate references or one platform.
 
 ### Port Publishing
 

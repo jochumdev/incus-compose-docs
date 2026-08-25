@@ -18,14 +18,10 @@ leafwiki_last_author_id: c3RhcHBlcnMK
 
 ## Website
 
-Source of this website
-is at https://github.com/jochumdev/incus-compose-docs
+The source of this website is on
+[Github](https://github.com/jochumdev/incus-compose-docs).
 
-For rendering that source on the website is leafwiki used.
-A leafwiki deployment is described
-at [examples leafwiki](examples/leafwiki/).
+We use LeafWiki to render this page. A leafwiki deployment is described on
+[examples leafwiki](examples/leafwiki/).
 
-## Program
-
-Source code of `incus-compose`
-is at https://github.com/lxc/incus-compose
+The source code of `incus-compose` is at https://github.com/lxc/incus-compose

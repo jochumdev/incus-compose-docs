@@ -38,6 +38,43 @@ This design provides:
 - **No registry rate limits** - cached locally after first pull
 - **Persistent cache** - survives `down`/`up` cycles and project deletion
 
+## The cache is keyed by platform
+
+A stored alias resolves to one fingerprint, so the cached alias carries the
+architecture and the bare reference is never written there:
+
+```
+docker.io/library/alpine:3.20/amd64   x86_64
+docker.io/library/alpine:3.20/arm64   aarch64
+```
+
+The suffix is the registry spelling without the OS (`amd64`, `arm/v7`), taken
+from `ImageConfig.Platform` or, unset, from the connected server's own
+architecture. The per-project copy in hop B keeps the bare reference: one
+project, one run, one architecture.
+
+Without this the cache is shared cluster-wide but arch-blind, so the first
+member to materialize a reference fixes its architecture for every other member
+that reuses it - and since `images.architecture` is what Incus filters cluster
+members on, the wrong image also places the instance on the wrong member.
+
+**An OCI pull is pinned to a manifest digest.** `ociResolveSource` reads the
+index over the registry API, picks the manifest for the wanted platform, and the
+pull asks for `reference@sha256:...` rather than the tag. incusd resolves an
+unpinned OCI reference with `skopeo inspect`, which reports the architecture of
+whichever cluster member ran it. Pinning is what lets any member fetch any
+architecture.
+
+Everything else - simplestreams, a native `incus:` remote - resolves server-side
+and cannot be pinned, so the stored image's architecture is checked afterwards
+and a mismatch fails instead of caching the wrong thing under the key.
+
+Variants matter here: an index publishes `arm/v6` and `arm/v7` as one
+architecture distinguished only by `Platform.Variant`, so both are compared in
+the registry spelling rather than through Incus' architecture table, which folds
+them. `arm64/v8` and `amd64/v3` fold to the architecture, which is what that
+table models.
+
 ## Image Status
 
 Images report their status via `Status()`:
@@ -68,6 +105,10 @@ type ImageConfig struct {
     // LockVolume names the storage volume in the cache project that holds
     // the per-alias advisory locks. Empty means DefaultLockVolume.
     LockVolume string
+
+    // Platform is the OCI platform the image is wanted for, for example
+    // linux/arm64. Empty means the connected server's architecture.
+    Platform string
 
     // Remote is the domain part of the image reference.
     Remote string
@@ -322,11 +363,13 @@ defer lock.Unlock()
 
 Two things to know about that API:
 
-- **The lock name is a hash of `IncusName()`.** Aliases contain characters that
-  are awkward in a path (`docker.io/library/nginx:alpine`), and a hash sidesteps
-  the question entirely while guaranteeing one file per alias. `Lock` itself
-  accepts nested names and creates missing parents via `MkdirAll`, so a
-  path-shaped name works too - the image path just does not need one.
+- **The lock name is a hash of the cached alias.** Aliases contain characters
+  that are awkward in a path (`docker.io/library/nginx:alpine/arm64`), and a
+  hash sidesteps the question entirely while guaranteeing one file per alias.
+  The platform is in the hashed name, so two architectures of one image do not
+  serialize against each other. `Lock` itself accepts nested names and creates
+  missing parents via `MkdirAll`, so a path-shaped name works too - the image
+  path just does not need one.
 - **The volume appears as `vol-ic-image-lock` on the server.** `StorageVolume`
   prefixes every volume with `vol-` and sanitizes the rest, so the configured
   name is the resource name, not the Incus name. That is the same rule as any
