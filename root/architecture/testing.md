@@ -50,9 +50,14 @@ pointing to a test-specific project.
 
 ### Environment Setup
 
-The nested Incus environment is configured via `.env` file:
+The nested Incus environment is configured via `.env` file, which starts as a
+copy of `.env.sample`:
 
-- `INCUS_REMOTE` - The remote to use.
+- `INCUS_REMOTE` - The remote to use, one of `incus remote list`. Use a nested
+  one unless you want the networks every test creates on your own machine.
+  `just build` deploys `ic-healthd` and `ic-sleep` here.
+- `INCUS_COMPOSE_HEALTHD_IMAGE`, `INCUS_COMPOSE_INIT_IMAGE` - written by
+  `just build`; the tags the dev binary is stamped with.
 - `TEST_PROCS` (default 2) - number of tests to run in parallel.
 - `INCUS_COMPOSE_WORKERS` (default 4) - number of resources to create in
   parallel per test.
