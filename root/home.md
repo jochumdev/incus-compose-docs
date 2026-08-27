@@ -1,9 +1,7 @@
 ---
-date: 2026-08-18T15:32:26.000Z
+date: 2026-08-18T15:32:26Z
 dateCreated: 2026-07-05T01:20:36.522Z
-description: A drop-in replacement for docker compose that runs your compose.yaml on Incus
-  - with the full Incus API available as an escape hatch when you need more than
-  the Compose spec covers.
+description: A drop-in replacement for docker compose that runs your compose.yaml on Incus - with the full Incus API available as an escape hatch when you need more than the Compose spec covers.
 editor: markdown
 published: true
 tags: []
@@ -11,9 +9,9 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-18T15:32:26.000000000Z"
+leafwiki_updated_at: "2026-08-27T01:27:06.810081649Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: vOmfrlBDg
+leafwiki_last_author_id: D93XDmQvR
 ---
 
 # incus-compose
@@ -80,6 +78,7 @@ classic OCI engine setup.
 
 ## Demos
 
+- [backup in action](https://asciinema.org/a/1263992)
 - [30-service dependency graph, 30 parallel workers](https://asciinema.org/a/1260145)
 - [Immich - a full photo-management stack](https://asciinema.org/a/1259458)
 
