@@ -135,15 +135,15 @@ recreates the shared daemon. A change under `cmd/ic-healthd/**`, `shared/` or
 
 ### Code Quality
 
-| Command            | Description                                                   |
-| ------------------ | ------------------------------------------------------------- |
-| `just lint [path]` | golangci-lint, over everything or one package                 |
-| `just fix [path]`  | The same with `--fix`                                         |
-| `just boundary`    | Check that the core packages import nothing that uses them    |
-| `just tidy`        | `go mod tidy` in every module                                 |
-| `just pre-commit`  | Run before committing: `tidy`, `boundary`, `lint`             |
-| `just push`        | `pre-commit`, then push                                       |
-| `just modules`     | Every module directory, one per line                          |
+| Command            | Description                                                |
+| ------------------ | ---------------------------------------------------------- |
+| `just lint [path]` | golangci-lint, over everything or one package              |
+| `just fix [path]`  | The same with `--fix`                                      |
+| `just boundary`    | Check that the core packages import nothing that uses them |
+| `just tidy`        | `go mod tidy` in every module                              |
+| `just pre-commit`  | Run before committing: `tidy`, `boundary`, `lint`          |
+| `just push`        | `pre-commit`, then push                                    |
+| `just modules`     | Every module directory, one per line                       |
 
 The path argument on `lint` and `fix` is worth using: golangci-lint caches per
 invocation scope, and a whole-tree run from one worktree can hand a stale answer
