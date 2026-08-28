@@ -9,7 +9,7 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-28T02:03:01.025761242Z"
+leafwiki_updated_at: "2026-08-28T02:04:35.984461207Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -86,10 +86,8 @@ classic OCI engine setup.
 
 ### Drop-in 
 
-All the commands you know - `up`, `down`, `start`, `stop`,
-`restart`, `pause`, `logs`, `exec`, `cp`, `top`, `ps`, `config`, `build` -
-parsing via compose-go with `.env` interpolation, profiles, `depends_on`,
-secrets, and configs. See the [CLI reference](/cli-reference) and the
+All the commands you know - parsing via compose-go with `.env` interpolation, profiles, 
+`depends_on`, secrets, and configs. See the [CLI reference](/cli-reference) and the
 [compatibility matrix](/compose-compatibility).
 
 ### Operable
