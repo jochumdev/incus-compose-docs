@@ -1,11 +1,11 @@
 ---
-date: 2026-08-18T02:55:49.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-08-02T19:32:24.000Z
 description: Storage volumes beyond the usual lifecycle - raw SFTP access to a volume's contents, and the advisory file lock built on top of it.
 editor: markdown
 title: Storage Volume
 leafwiki_created_at: "2026-08-02T19:32:24.000000000Z"
-leafwiki_updated_at: "2026-08-18T02:55:49.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 ---
 
 # Storage Volume
@@ -50,7 +50,7 @@ The source is `Image.SFTP` - a stopped instance of the image, which mounts no
 disk devices, so nothing has to be attached or detached and it never touches the
 volume it fills. It belongs to the image, not to this copy: several volumes off
 one image share it, and `Client.Done` removes it. See
-[Image - Reading the image](/architecture/client/image#reading-the-image).
+[Image - Reading the image](/developer/client/image#reading-the-image).
 
 Ownership is replayed as the endpoint reports it: container-native ids, which a
 `security.shifted` volume then shows unchanged inside the instance. The volume's
@@ -178,6 +178,5 @@ simulated crash, a live heartbeat resisting takeover, the ownership-check safety
 case) against a real Incus - they're the canonical examples, not reproduced
 here.
 
-- [Errors](/architecture/client/errors) - `ErrNotEnsured` and friends
-- [Client Package](/architecture/client) - the wider resource model this fits
-  into
+- [Errors](/developer/client/errors) - `ErrNotEnsured` and friends
+- [Client Package](/developer/client) - the wider resource model this fits into

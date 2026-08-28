@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:48.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-07-05T01:03:21.729Z
 description: Translate between Docker Compose, Incus and incus-compose vocabulary - what a project, volume, network or bind mount means in each.
 editor: markdown
@@ -9,7 +9,7 @@ title: Terminology
 leafwiki_id: 3WzXqlfDg
 leafwiki_title: Terminology
 leafwiki_created_at: "2026-07-05T03:54:00.191003304Z"
-leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -99,14 +99,14 @@ flowchart LR
   after the directory by default, overridable with `-p`.
 - **Incus project** - an isolation boundary inside Incus (its own instances,
   networks, volumes). incus-compose creates one Incus project per compose
-  project, using a [sanitized name](/architecture#name-sanitization).
+  project, using a [sanitized name](/developer#name-sanitization).
 
 ### Network
 
 - **Compose network** - an entry under `networks:`.
 - **Incus network** - a managed bridge created for it. Long names are hashed to
   fit the Linux interface limit; see
-  [Network Naming](/compose-compatibility#network-naming).
+  [Network Naming](/compose-compatibility/differences#network-naming).
 
 ### Volume vs Bind mount
 
@@ -114,9 +114,9 @@ flowchart LR
   volume** with automatic UID/GID shifting. Works locally and remotely.
 - **Bind mount** (`./config:/etc/app`) - mounts a host path directly, so the
   path must be on the machine incusd runs on. With
-  [`x-incus-compose.seed`](/compose-compatibility#x-incus-compose-volume-seeding)
-  the files are copied to the server instead, which works against any remote.
-  See [Volumes](/compose-compatibility#volumes).
+  [`x-incus-compose.seed`](/extras#volume-seeding) the files are copied to the
+  server instead, which works against any remote. See
+  [Volumes](/compose-compatibility/volumes).
 
 ### Image (OCI vs native)
 
@@ -126,7 +126,7 @@ flowchart LR
   works primarily with OCI images.
 - Images flow Registry -> Cache -> Project; see
   [Image Caching](/getting-started#image-caching) and the
-  [3-stage flow](/architecture#image-caching-3-stage-flow).
+  [3-stage flow](/developer#image-caching-3-stage-flow).
 
 ## Incus terms
 
@@ -136,8 +136,7 @@ flowchart LR
   built in; anything else is added with `incus remote add --protocol oci ...`
   before images can be pulled from it.
 - **Storage pool** - where volumes live. Select a non-default pool per named
-  volume with
-  [`x-incus-compose.pool`](/compose-compatibility#x-incus-compose-volume-pool).
+  volume with [`x-incus-compose.pool`](/extras#volume-pool).
 - **Operation** - an asynchronous Incus task (start, copy, etc.). The client
   waits on it; a successful start operation means the instance reached running.
 - **Proxy device** - how published `ports:` are forwarded (not iptables NAT).
@@ -154,35 +153,34 @@ flowchart LR
   Configurable via `INCUS_COMPOSE_IMAGE_CACHE`.
 - **Name sanitization** - the rules that turn compose names into valid Incus
   project, instance, and network names; see
-  [Name Sanitization](/architecture#name-sanitization).
+  [Name Sanitization](/developer#name-sanitization).
 - **`x-incus`** - a compose extension to pass raw Incus options verbatim to
-  instances, networks, and volumes; see
-  [x-incus](/architecture#x-incus-raw-incus-options).
+  instances, networks, and volumes; see [x-incus](/extras#x-incus).
 - **`x-incus-compose`** - a compose extension for incus-compose-specific
   features (e.g. `healthd`, volume `pool`); see
-  [x-incus-compose](/architecture#x-incus-compose-compose-specific-features).
+  [x-incus-compose](/extras#x-incus-compose).
 - **`compose.incus.yaml`** - an optional override file loaded automatically
   alongside `compose.yaml` for Incus-specific settings; see
-  [Incus Override File](/compose-compatibility#incus-override-file).
+  [Incus Override File](/extras#the-incus-override-file).
 
 ## Contributor / internal terms
 
 These appear in the codebase and architecture docs, not in everyday use. See the
-[Client Package](/architecture/client) for detail.
+[Client Package](/developer/client) for detail.
 
 - **Resource** - the unified interface over images, instances, networks,
   profiles, and volumes.
 - **Ensure / two-phase** - resources are first configured in memory, then
   realized on the server; `Ensure` always runs before start/stop/delete. See the
-  [Two-Phase Resource Pattern](/architecture#two-phase-resource-pattern).
+  [Two-Phase Resource Pattern](/developer#two-phase-resource-pattern).
 - **Stack** - the ordered collection of resources executed for an action.
 - **Priority** - numeric ordering (images before networks before instances, ...)
   used instead of a dependency graph; see
-  [Resource Hierarchy](/architecture#resource-hierarchy).
+  [Resource Hierarchy](/developer#resource-hierarchy).
 - **WorkerPool** - bounded concurrency for batched operations (the `--workers`
   flag).
 - **Hook** - before/after interception around resource actions; see
-  [Hooks](/architecture/client/hooks).
+  [Hooks](/developer/client/hooks).
 - **ETag** - Incus optimistic-concurrency token returned when fetching a
   resource and passed back on updates.
 
@@ -190,4 +188,4 @@ These appear in the codebase and architecture docs, not in everyday use. See the
 
 - [Getting Started](/getting-started)
 - [Compose Compatibility](/compose-compatibility)
-- [Architecture](/architecture)
+- [Architecture](/developer)

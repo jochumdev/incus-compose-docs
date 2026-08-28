@@ -1,5 +1,5 @@
 ---
-date: 2026-08-17T18:16:04.000Z
+date: 2026-08-27T23:33:11.000Z
 dateCreated: 2026-07-05T01:03:28.732Z
 description: Testing incus-compose - the just commands, unit versus e2e runs against a real Incus server, fixtures, driving the CLI as a subprocess, and how coverage is measured.
 editor: markdown
@@ -9,7 +9,7 @@ title: Testing Guide
 leafwiki_id: 9ykuqlBDR
 leafwiki_title: Testing Guide
 leafwiki_created_at: "2026-07-05T03:54:00.828566786Z"
-leafwiki_updated_at: "2026-08-17T18:16:04.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:11.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -502,5 +502,5 @@ just run -f test/fixtures/simple/compose.yaml config
 
 - [Contributing](https://github.com/lxc/incus-compose/blob/main/CONTRIBUTING.md) -
   coding, style, and workflow rules
-- [Architecture](/architecture) - the design these tests exercise
-- [Client Package](/architecture/client) - Stack and resource internals
+- [Architecture](/developer) - the design these tests exercise
+- [Client Package](/developer/client) - Stack and resource internals

@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T15:16:03.000Z
+date: 2026-08-27T23:33:11.000Z
 dateCreated: 2026-08-06T07:11:18.000Z
 description: Inside ic-healthd - the listener, the router and the per-project schedulers, why every send blocks, and how state survives an event-listener reconnect.
 editor: markdown
@@ -7,7 +7,7 @@ title: ic-healthd Internals
 leafwiki_id: AAf9EpsDRI
 leafwiki_title: ic-healthd Internals
 leafwiki_created_at: "2026-08-06T07:11:18.244006266Z"
-leafwiki_updated_at: "2026-08-18T15:16:03.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:11.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -512,6 +512,6 @@ token is what bounds a daemon, whatever its flags say.
 ## See Also
 
 - [Health Checking](/healthd) - configuration, keys, and the management commands
-- [Architecture](/architecture) - how the sidecar fits the resource model
-- [Client Package](/architecture/client) - the client the daemon does not use;
+- [Architecture](/developer) - how the sidecar fits the resource model
+- [Client Package](/developer/client) - the client the daemon does not use;
   ic-healthd talks to `incus.InstanceServer` directly

@@ -1,5 +1,5 @@
 ---
-date: 2026-08-13T21:49:30.000Z
+date: 2026-08-27T23:47:50.000Z
 dateCreated: 2026-07-05T01:03:12.76Z
 description: Install incus-compose and run your existing compose.yaml on Incus without Docker, including the core.https_address setting Incus needs.
 editor: markdown
@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-13T21:49:30.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:47:50.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -46,8 +46,8 @@ silently skipped.
 
 Only the server setting matters here; the client connection itself can stay on
 the Unix socket. See
-[Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus) for the
-handful of behaviours that do depend on how you connect.
+[Local vs Remote Incus](/getting-started#local-vs-remote-incus) for the handful
+of behaviours that do depend on how you connect.
 
 ### HTTPS Remote (for remote servers and health checks)
 
@@ -86,11 +86,68 @@ If you don't want to listen on all interfaces, set the
 `INCUS_COMPOSE_HEALTHD_INCUS` environment variable or call up with
 `--healthd-incus`; see [Network Configuration](/healthd#network-configuration).
 
+## Local vs Remote Incus
+
+> **The Incus server must have `core.https_address` set in all cases**, even for
+> a local Unix-socket client. Image caching copies images between Incus projects
+> using pull mode, which requires the server to be reachable over the network.
+> Without it, `up` fails with
+> `The source server isn't listening on the network`. See
+> [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
+
+With that in place, a few behaviors still depend on whether incus-compose talks
+to a local Incus over the Unix socket or to a remote daemon over HTTPS:
+
+| Feature       | Local (Unix socket)                                                     | Remote (HTTPS)                                                    |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Bind mounts   | Supported                                                               | Pass-through only when incusd is the same machine; otherwise seed |
+| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto                                                              |
+
+```mermaid
+flowchart LR
+    subgraph L["local - unix socket"]
+        direction TB
+        CU[client] --> BM["bind mounts: supported"]
+        CU --> SET["health checks: automatic only if<br/>core.https_address names a host"]
+    end
+
+    subgraph R["remote - HTTPS"]
+        direction TB
+        CH[client] --> BM2["bind mounts: pass-through only if<br/>incusd is this same machine,<br/>else seed or a named volume"]
+        CH --> HC["health checks: automatic,<br/>core.https_address or the bridge IP"]
+    end
+
+    L --> D["incusd<br/>needs core.https_address<br/>either way"]
+    R --> D
+```
+
+The line for bind mounts is not the transport, it is which machine holds the
+files. A pass-through bind is a disk device whose source **incusd** opens on its
+own filesystem, so the path has to be on the server. Over HTTPS to the machine
+you are sitting at (a `local-https` remote, say), that is still true and bind
+mounts work normally.
+
+Talking to a server somewhere else, incus-compose refuses a pass-through bind
+with `not on the same host` rather than handing incusd a path it will not find.
+The check compares the remote's address against your own interfaces, so it also
+refuses a different machine that happens to have the same directory layout, even
+though incusd could have resolved it.
+
+Copy the files across with [`x-incus-compose.seed`](/extras#volume-seeding) and
+none of this applies: that is what the option is for.
+
+For health checks, ic-healthd reaches Incus over HTTPS. When
+`core.https_address` names a host (`10.0.0.5:8443`) that address is used,
+however you connected. Only a bare `:8443` falls back to the bridge IP plus the
+port incus-compose connected on, which a Unix socket does not have, so there the
+endpoint must be set explicitly. See
+[Network Configuration](/healthd#network-configuration).
+
 ## Installation
 
 ### Install script (recommended)
 
-The install script downloads the matching release for your OS/architecture and
+The install script downloads the matching release for your OS/developer and
 verifies it against the published SHA-256 checksums.
 
 ```bash
@@ -228,8 +285,8 @@ Typical uses:
 
 - Remove Docker-only port publishing with `ports: !reset []`
 - Add explicit health checks for `ic-healthd`
-- Set [static service IPs](/compose-compatibility#static-ip-assignment) on Incus
-  networks
+- Set [static service IPs](/compose-compatibility/networks#static-ip-assignment)
+  on Incus networks
 - Pass raw Incus network or instance options via `x-incus`
 
 Example `compose.incus.yaml`:
@@ -254,7 +311,7 @@ networks:
 The file follows normal
 [Compose merge rules](https://docs.docker.com/reference/compose-file/merge). For
 example, `!reset []` clears a list from the base file. See
-[Compose Compatibility](/compose-compatibility#incus-override-file) for details.
+[Compose Compatibility](/extras#the-incus-override-file) for details.
 
 ## Common Workflows
 
@@ -353,8 +410,7 @@ volumes:
 A bind mount is passed through to incusd, which opens the path on its own
 filesystem, so it works when the server is this machine, over the Unix socket or
 over HTTPS. Against a server elsewhere, either use a named volume or set
-[`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
-to copy the files across.
+[`x-incus-compose.seed: true`](/extras#volume-seeding) to copy the files across.
 
 ### Networks
 
@@ -407,7 +463,7 @@ This means:
 - `incus-compose down` only removes project images, cache persists
 
 For a technical background about images see
-[architecture/client/image.md](/architecture/client/image)
+[architecture/client/image.md](/developer/client/image)
 
 The cache project is created automatically on first use.
 
@@ -419,4 +475,5 @@ The cache project is created automatically on first use.
 - [Compose Compatibility](/compose-compatibility) - What features are supported
 - [Health Checking](/healthd) - Healthchecks and restart policies
 - [Environment Variables](/environment-variables) - How env vars work
+- [Air-gapped](/air-gapped) - Pull once connected, run disconnected
 - [Why Incus?](/why-incus) - Benefits over Docker

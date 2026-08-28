@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T15:32:26Z
+date: 2026-08-27T23:59:45.000Z
 dateCreated: 2026-07-05T01:20:36.522Z
 description: A drop-in replacement for docker compose that runs your compose.yaml on Incus - with the full Incus API available as an escape hatch when you need more than the Compose spec covers.
 editor: markdown
@@ -9,9 +9,9 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-27T01:27:06.810081649Z"
+leafwiki_updated_at: "2026-08-27T23:59:45.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: D93XDmQvR
+leafwiki_last_author_id: public-editor
 ---
 
 # incus-compose
@@ -99,6 +99,12 @@ isolation; live progress for pulls and lifecycle. See
 `down`/`up` and dodges rate limits, and local builds via Podman/Docker. See
 [Builds](/builds).
 
+**Air-gapped ready.** `pull` is the only command that needs a registry, so a
+project pulls on a connected machine and runs on a disconnected one;
+`--pull never` makes that a guarantee rather than a hope, and the sidecar and
+one-off helper images point at your own mirror like any other. See
+[Air-gapped and Proxied Installs](/air-gapped).
+
 **Real networking and storage.** Bridge networks with static IPs, port
 publishing via proxy devices or kernel NAT, volumes with UID/GID shifting,
 seeded bind mounts, and per-volume pool placement.
@@ -106,19 +112,21 @@ seeded bind mounts, and per-volume pool placement.
 **Incus-native when you want it.** Every instance, network, and volume option
 passes straight through via `x-incus`; `x-incus-compose` adds devices (GPU, USB,
 raw disk), project-wide resource limits, and healthd tuning. See
-[Compose Compatibility](/compose-compatibility).
+[Extras](/extras).
 
 **Extensions.** `incus-compose backup` snapshots a project's data volumes into a
 backup project - create, list, verify, restore, and prune - so a stack's state
 survives the project itself, and `incus-compose port-forward` forwards a local
-TCP port into an instance, published or not. See [backup](/cli-reference#backup)
-and [port-forward](/cli-reference#port-forward).
+TCP port into an instance, published or not. See
+[backup](/cli-reference/extensions/backup) and
+[port-forward](/cli-reference/extensions#port-forward).
 
 ## Quick Start
 
-Requires Incus 7.0.1 (LTS) or 7.2+, `podman` or `docker` for image building and
-an Incus https remote (needed for healthchecking) with OCI registries added. See
-[Getting Started](/getting-started) for the full setup walkthrough.
+Requires Incus 7.0.1 (LTS) or 7.2+, `buildah`, `podman` or `docker` for image
+building and an Incus https remote (needed for healthchecking) with OCI
+registries added. See [Getting Started](/getting-started) for the full setup
+walkthrough.
 
 Install the latest release:
 
@@ -151,8 +159,10 @@ incus-compose down
 
 ## Quick Links
 
-- **[Architecture](/architecture)** - the resource-first design behind
-  incus-compose
+- **[Air-gapped](/air-gapped)** - pull once connected, run disconnected
+- **[Extras](/extras)** - `x-incus`, `x-incus-compose`, and the
+  `compose.incus.yaml` override file
+- **[Developer](/developer)** - the resource-first design behind incus-compose
 - **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** -
   what changed since 0.0.1-beta1
 

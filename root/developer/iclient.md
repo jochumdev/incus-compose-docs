@@ -1,5 +1,5 @@
 ---
-date: 2026-08-23T01:55:11.000Z
+date: 2026-08-27T23:33:11.000Z
 dateCreated: 2026-08-09T11:00:00Z
 description: iclient, our fork of the Incus client - why one connection is safe to share, operations as channels, and what it deliberately does not do.
 editor: markdown
@@ -7,7 +7,7 @@ title: iclient
 leafwiki_id: vwIoKtUvRz
 leafwiki_title: iclient
 leafwiki_created_at: "2026-08-09T11:00:00Z"
-leafwiki_updated_at: "2026-08-23T01:55:11.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:11.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -34,7 +34,7 @@ several goroutines**:
 - `skipEvents` has one guarded write against four unguarded reads. Any genuinely
   shared connection races on it.
 
-incus-compose runs a [WorkerPool](/architecture/client), so this is not a corner
+incus-compose runs a [WorkerPool](/developer/client), so this is not a corner
 case for us - it is the normal shape of a run. The old workaround was to hand
 every resource its own `UseProject(...)` copy. An `iclient.Connection` holds
 nothing mutable and every `ListenEvents` is a socket of its own, so a single
@@ -131,7 +131,7 @@ gap between the response and the subscription, and never be reported.
 
 Waiting is ranging to the close, and the last value is the outcome - which is
 what `WaitOperation` does. Consuming the updates yourself is how progress is
-reported; see [Progress](/architecture/progress).
+reported; see [Progress](/developer/progress).
 
 > **Trap: token operations.** A trust token (`CreateCertificateToken`) is
 > created and then waits to be _used_, so it never reaches a terminal state.
@@ -296,7 +296,7 @@ later, and nothing above learns the stream stopped.
 path, building a permission checker instead of authorizing one project, and
 answers with every project the certificate may see. That is how one listener
 serves projects that did not exist when it opened. ic-healthd is built on it;
-see [ic-healthd Internals](/architecture/healthd).
+see [ic-healthd Internals](/developer/healthd).
 
 A socket that names no project is a socket on the **default** project, not on
 all of them (`cmd/incusd/events.go:60`), which is why the two are separate calls
@@ -320,7 +320,7 @@ than half-working:
 
 ## Testing
 
-Two tiers, following [Testing](/architecture/testing):
+Two tiers, following [Testing](/developer/testing):
 
 - **Unit** tests use an `httptest` recording server and assert **what goes on
   the wire** - the path, the query, the headers. A real Incus answers happily
@@ -333,7 +333,7 @@ Two tiers, following [Testing](/architecture/testing):
 
 ## See Also
 
-- [Architecture](/architecture) - where this sits
-- [Client Package](/architecture/client) - the resource layer built on it
-- [ic-healthd Internals](/architecture/healthd) - the all-projects listener
-- [Progress](/architecture/progress) - consuming an operation's updates
+- [Architecture](/developer) - where this sits
+- [Client Package](/developer/client) - the resource layer built on it
+- [ic-healthd Internals](/developer/healthd) - the all-projects listener
+- [Progress](/developer/progress) - consuming an operation's updates

@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T02:55:21.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-07-05T01:03:37.823Z
 description: How incus-compose pulls and caches OCI images - from a registry remote, into the shared incus-compose-cache project, then copied into your own.
 editor: markdown
@@ -9,7 +9,7 @@ title: Image Resource
 leafwiki_id: yKmu3_fvg
 leafwiki_title: Image Resource
 leafwiki_created_at: "2026-07-05T03:54:01.463522503Z"
-leafwiki_updated_at: "2026-08-18T02:55:21.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -341,9 +341,9 @@ at once, and a force delete cannot race a reader.
 The lock lives on a custom storage volume in the cache project, named
 `ic-image-lock` by default (`DefaultLockVolume`, overridable via
 `ClientLockVolume` or `ImageConfig.LockVolume`). It uses
-[VolumeLock](/architecture/client/storage_volume#volumelock) with `stale > 0`:
-the holder heartbeats while a slow pull or a long build runs, and a crashed
-holder is reaped rather than wedging the shared cache for everyone.
+[VolumeLock](/developer/client/storage_volume#volumelock) with `stale > 0`: the
+holder heartbeats while a slow pull or a long build runs, and a crashed holder
+is reaped rather than wedging the shared cache for everyone.
 
 `Lock` is a method on `*StorageVolume`, and a `StorageVolume` only comes from
 `Client.Resource` - which is why the cache has to be carried as a `*Client`

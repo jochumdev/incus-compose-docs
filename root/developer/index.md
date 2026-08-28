@@ -1,22 +1,22 @@
 ---
-date: 2026-08-23T01:55:40.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-07-05T03:54:00.505Z
 description: How incus-compose fits together - a resource-first design splitting the CLI, the Incus client, and the compose project layer.
 editor: markdown
 tags: []
-title: Architecture
+title: Developer
 leafwiki_id: QtkuqlBDR
-leafwiki_title: Architecture
+leafwiki_title: Developer
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-08-23T01:55:40.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
 
-# Architecture
+# Developer
 
-High-level architecture of incus-compose and how components fit together, a
-**resource-first design**:
+Internals of incus-compose: how it is put together, and how to work on it. The
+design is **resource-first**:
 
 - **Unified Resource Interface** - Images, instances, networks, profiles, and
   volumes are all first-class resources
@@ -50,7 +50,7 @@ incus-compose/
 - Resources: Profile, Image, Network, StorageVolume, Instance
 - Stack for task collection and ordering
 - WorkerPool for parallel execution
-- [Hooks](/architecture/client/hooks) for action interception
+- [Hooks](/developer/client/hooks) for action interception
 
 **project/**
 
@@ -137,7 +137,7 @@ Benefits:
 
 ## Stack, WorkerPool, and Hooks
 
-See [Client Package](/architecture/client) for Stack, WorkerPool, resource
+See [Client Package](/developer/client) for Stack, WorkerPool, resource
 ordering, and hook details.
 
 ## Name Sanitization
@@ -157,7 +157,7 @@ Linux interface limit (13 chars), uses hash for long names: `backend` ->
 
 ## Error Handling
 
-See [Errors](/architecture/client/errors) for sentinel errors and context
+See [Errors](/developer/client/errors) for sentinel errors and context
 enrichment.
 
 ## Connection Modes
@@ -181,10 +181,10 @@ gc := client.New(ctx, client.ClientProvideConnection(conn))
 The connection is a `*iclient.Connection`, our fork of the Incus client. The
 upstream one shares event-listener state between everything holding it, so a
 single connection cannot be driven from several goroutines - which is exactly
-what the [WorkerPool](/architecture/client) does. One connection serves every
+what the [WorkerPool](/developer/client) does. One connection serves every
 project: each call names the project it acts on, so `EnsureProject` hands back a
 `Client` that carries a project name, not a connection of its own. See
-[iclient](/architecture/iclient).
+[iclient](/developer/iclient).
 
 ## Environment Variables
 
@@ -194,52 +194,9 @@ project: each call names the project it acts on, so `EnsureProject` hands back a
 
 ## Extensions
 
-### x-incus (Raw Incus Options)
-
-Pass raw Incus configuration options directly to instances and networks:
-
-```yaml
-services:
-  web:
-    image: docker.io/nginx:alpine
-    x-incus:
-      limits.memory: 512MiB
-      limits.cpu: "2"
-      security.nesting: "false"
-
-networks:
-  custom:
-    x-incus:
-      nat: "false"
-      ipv4.nat: "true"
-```
-
-All key-value pairs are passed verbatim to Incus. See the
-[Incus instance options reference](https://linuxcontainers.org/incus/docs/main/reference/instance_options/)
-for available options, and
-[Compose Compatibility](/compose-compatibility#x-incus-instance-extensions) for
-the per-resource (instance, network, volume) `x-incus` reference.
-
-### x-incus-compose (Compose-Specific Features)
-
-Compose-specific transformations and conveniences handled by incus-compose:
-
-```yaml
-x-incus-compose:
-  healthd:
-    incus: https://:8443
-    network: :default
-
-services:
-  app:
-    image: docker.io/myapp:latest
-```
-
-`healthd.incus` and `healthd.network` configure where the ic-healthd sidecar
-attaches and which Incus endpoint it connects to. Both default to the project's
-own network and the connection's port; see
-[Health Checking - Network Configuration](/healthd#network-configuration) for
-the full set of combinations.
+`x-incus` passes any Incus config key through to the instance, network or volume
+it sits on; `x-incus-compose` covers what incus-compose implements itself. Both
+are documented in [Extras](/extras).
 
 ## Quick Reference
 
@@ -301,16 +258,16 @@ services:
 
 ## Documentation
 
-See the [docs index](/architecture) for all user and contributor docs. Closely
+See the [docs index](/developer) for all user and contributor docs. Closely
 related:
 
-- [Client Package](/architecture/client) - Resources, Stack, WorkerPool
-- [iclient](/architecture/iclient) - the Incus client everything talks through
-- [Testing](/architecture/testing) - Testing patterns and fixtures
+- [Client Package](/developer/client) - Resources, Stack, WorkerPool
+- [iclient](/developer/iclient) - the Incus client everything talks through
+- [Testing](/developer/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
-- [ic-healthd Internals](/architecture/healthd) - the listener, the router, and
-  the per-project schedulers
-- [Progress](/architecture/progress) - Live operation progress and the terminal
+- [ic-healthd Internals](/developer/healthd) - the listener, the router, and the
+  per-project schedulers
+- [Progress](/developer/progress) - Live operation progress and the terminal
   renderer
 
 ## Need Help?

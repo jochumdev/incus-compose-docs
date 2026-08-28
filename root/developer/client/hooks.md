@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-07-05T01:03:35.484Z
 description: Intercept any incus-compose resource action before or after it runs - add logging, rewrite errors, or abort the action entirely.
 editor: markdown
@@ -9,7 +9,7 @@ title: Hooks
 leafwiki_id: r4mXqlBDR
 leafwiki_title: Hooks
 leafwiki_created_at: "2026-07-05T03:54:01.308369447Z"
-leafwiki_updated_at: "2026-08-09T08:12:41.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -357,8 +357,7 @@ client.AddHookAfter(func(_ context.Context, action Action, r Resource, args Opti
 ```
 
 For live, per-operation progress (image pulls, lifecycle), see
-[Progress](/architecture/progress) - the after-hook is what marks each line
-done.
+[Progress](/developer/progress) - the after-hook is what marks each line done.
 
 ### Conditional Error Suppression
 

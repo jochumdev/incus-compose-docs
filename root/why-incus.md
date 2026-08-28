@@ -1,5 +1,5 @@
 ---
-date: 2026-08-09T08:12:41Z
+date: 2026-08-27T23:39:02.000Z
 dateCreated: 2026-07-05T01:03:24.052Z
 description: Why run Incus - one daemon and one REST API running OCI application containers, LXC system containers and full virtual machines side by side.
 editor: markdown
@@ -9,7 +9,7 @@ title: Why Incus?
 leafwiki_id: GDzu3_fDR
 leafwiki_title: Why Incus?
 leafwiki_created_at: "2026-07-05T03:54:00.356119734Z"
-leafwiki_updated_at: "2026-08-18T14:12:54.683581418Z"
+leafwiki_updated_at: "2026-08-27T23:39:02.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: public-editor
 ---
@@ -19,8 +19,7 @@ leafwiki_last_author_id: public-editor
 [Incus](https://linuxcontainers.org/incus/) is a single daemon with a REST API
 that runs **OCI application containers, LXC system containers, and full virtual
 machines** side by side. It is Apache-2.0, developed in the open under the
-[Linux Containers](https://linuxcontainers.org/) project by the team that
-started LXC in 2008.
+[Linux Containers](https://linuxcontainers.org/) umbrella.
 
 Most compose tooling assumes a Docker-style OCI engine. `incus-compose` runs
 your existing `compose.yaml` against Incus instead - we treat a compose file

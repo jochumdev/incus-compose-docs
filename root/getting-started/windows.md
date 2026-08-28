@@ -1,5 +1,5 @@
 ---
-date: 2026-08-08T02:12:01.000Z
+date: 2026-08-27T23:33:35.000Z
 dateCreated: 2026-07-09T00:49:29.567Z
 description: Run incus-compose on Windows as a client driving a remote Incus server over HTTPS - no Docker and no WSL required.
 editor: markdown
@@ -8,7 +8,7 @@ title: Windows
 leafwiki_id: 6qk9CMLDg
 leafwiki_title: Windows
 leafwiki_created_at: "2026-07-09T00:49:29.56776699Z"
-leafwiki_updated_at: "2026-08-08T02:12:01.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -124,12 +124,11 @@ incus list --all-projects
 - **Remote-only.** The Incus server is never this machine, so a plain
   pass-through bind mount is refused - incusd would look for the source path on
   the Linux server, where it isn't. Add
-  [`x-incus-compose.seed: true`](/compose-compatibility#x-incus-compose-volume-seeding)
-  to the volume entry and the files are copied across instead, which works from
-  here and is what the option exists for. A named volume is the other answer,
-  for data that lives on the server anyway. Health checks work automatically
-  over HTTPS. See
-  [Local vs Remote Incus](/compose-compatibility#local-vs-remote-incus).
+  [`x-incus-compose.seed: true`](/extras#volume-seeding) to the volume entry and
+  the files are copied across instead, which works from here and is what the
+  option exists for. A named volume is the other answer, for data that lives on
+  the server anyway. Health checks work automatically over HTTPS. See
+  [Local vs Remote Incus](/getting-started#local-vs-remote-incus).
 - **Builds** need a local `podman` or `docker` which are not available on
   Windows.
 

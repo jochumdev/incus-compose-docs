@@ -1,5 +1,5 @@
 ---
-date: 2026-08-18T15:15:34.000Z
+date: 2026-08-27T23:56:29.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-18T15:15:34.000000000Z"
+leafwiki_updated_at: "2026-08-27T23:56:29.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -285,7 +285,7 @@ This is `user.healthcheck.status`, the verdict you can read with
 `incus config get`. It is not the same thing as the daemon's internal
 per-instance state machine (idle/checking/restarting), which tracks what the
 scheduler is doing right now - see
-[ic-healthd Internals - Instance state](/architecture/healthd#instance-state).
+[ic-healthd Internals - Instance state](/developer/healthd#instance-state).
 
 ## Dockerfile HEALTHCHECK Not Supported
 
@@ -296,7 +296,7 @@ Incus imports OCI images via umoci, which converts the OCI image config into an
 OCI runtime spec. The Docker `HEALTHCHECK` extension is not part of the OCI
 image spec and is discarded during that conversion. Fetching it from the
 registry at `up` time would require registry access on every run and fails in
-air-gapped environments.
+[air-gapped environments](/air-gapped).
 
 **Workaround:** Always declare `healthcheck.test` explicitly in the compose
 file:
@@ -565,7 +565,7 @@ in the compose file.
 
 For the `ic-healthd run` flags, the registration handshake, and the local
 edit-run-reload loop, see
-[ic-healthd Internals - Running the daemon directly](/architecture/healthd#running-the-daemon-directly).
+[ic-healthd Internals - Running the daemon directly](/developer/healthd#running-the-daemon-directly).
 
 ## Sidecar Image
 
@@ -619,7 +619,7 @@ x-incus-compose:
 `workers` (128) and `restart-workers` (32) cap the health checks and the
 restarts the daemon runs at once across every project it watches. They are
 separate pools because a restart holds its worker far longer than a check does -
-see [ic-healthd Internals - Worker pools](/architecture/healthd#worker-pools). A
+see [ic-healthd Internals - Worker pools](/developer/healthd#worker-pools). A
 shared daemon watching many projects is the case worth raising them for.
 
 > **Quota.** A **project-scoped** sidecar lives in your project, so its
@@ -757,9 +757,10 @@ incus-compose healthd up
 
 ## See Also
 
-- [CLI Reference](/cli-reference#healthd) - healthd management commands
+- [CLI Reference](/cli-reference/extensions#healthd) - healthd management
+  commands
 - [Compose Compatibility](/compose-compatibility) - healthcheck and restart
   policy support
-- [Architecture](/architecture) - how the sidecar fits the resource model
-- [ic-healthd Internals](/architecture/healthd) - the listener, the router, and
-  the per-project schedulers
+- [Architecture](/developer) - how the sidecar fits the resource model
+- [ic-healthd Internals](/developer/healthd) - the listener, the router, and the
+  per-project schedulers
