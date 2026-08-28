@@ -1,10 +1,10 @@
 ---
-date: 2026-08-28T00:08:57.000Z
+date: 2026-08-28T05:01:42.000Z
 dateCreated: 2026-08-27T23:47:20.000Z
 leafwiki_id: UtxvxnQDg
 leafwiki_title: Air-gapped and Proxied Installs
 leafwiki_created_at: "2026-08-27T23:47:20.549895448Z"
-leafwiki_updated_at: "2026-08-28T00:08:57.000000000Z"
+leafwiki_updated_at: "2026-08-28T05:01:42.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -89,7 +89,7 @@ compose file does not change. See
 [Images](/compose-compatibility/differences#images) for the commands, resolution
 and registry authentication, and
 [OCI Registry Cache](/examples/oci-registry-cache) for running the pull-through
-caches themselves on Incus.
+cache itself on Incus.
 
 The two incus-compose images need the same treatment, since `ghcr.io` is a
 different upstream:

@@ -1,49 +1,53 @@
 ---
-date: 2026-08-09T08:12:48.000Z
+date: 2026-08-28T05:06:32.000Z
 dateCreated: 2026-07-12T02:09:09.313Z
-description: Run pull-through registry caches on Incus, one per upstream, and point your Incus remotes at them instead of the real registries.
+description: Run one pull-through registry cache on Incus for every upstream at once, and point your Incus remotes at it instead of the real registries.
 editor: markdown
 tags: []
 title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-08-09T08:12:48.000000000Z"
+leafwiki_updated_at: "2026-08-28T05:06:32.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
 
 # OCI Registry Cache
 
-This example runs three
-[distribution](https://github.com/distribution/distribution) registry instances
-as pull-through caches, one per upstream registry. Incus remotes are then
-reconfigured to point at these local caches instead of the real upstream
-endpoints, so container images are fetched once and served locally on subsequent
-pulls.
+This example runs a single [ociregistry](https://github.com/aceeric/ociregistry)
+instance as a pull-through cache for every upstream registry at once. Incus
+remotes are then reconfigured to point at that cache instead of the real
+upstream endpoints, so container images are fetched once and served locally on
+subsequent pulls.
 
-| Service           | Upstream                       | Static IP           |
-| ----------------- | ------------------------------ | ------------------- |
-| `docker-registry` | `https://registry-1.docker.io` | `10.132.32.17:5000` |
-| `ghcr-registry`   | `https://ghcr.io`              | `10.132.32.18:5000` |
-| `gitlab-registry` | `https://registry.gitlab.com`  | `10.132.32.19:5000` |
+One instance serves all upstreams because it resolves the upstream per request,
+from the `X-Registry` header. The reverse proxy that terminates TLS sets that
+header per virtual host, so each Incus remote keeps its own hostname and image
+references stay unchanged: `nginx:latest` still resolves through `docker.io`.
 
-Each cache holds images for 168 h (7 days) before re-validating with the
-upstream.
+| Incus remote          | Vhost                         | `X-Registry`          |
+| --------------------- | ----------------------------- | --------------------- |
+| `docker.io`           | `docker-registry.example.com` | `docker.io`           |
+| `ghcr.io`             | `ghcr-registry.example.com`   | `ghcr.io`             |
+| `registry.gitlab.com` | `gitlab-registry.example.com` | `registry.gitlab.com` |
+
+Adding another upstream is a reverse proxy block and an `incus remote add`, not
+another container.
 
 ```mermaid
 flowchart LR
-    IC["incus / incus-compose"] --> CAD["Caddy<br/>TLS termination"]
+    IC["incus / incus-compose"] --> CAD["Caddy<br/>TLS termination<br/>sets X-Registry"]
 
-    CAD -->|docker-registry.example.com| R1["docker-registry<br/>10.132.32.17:5000"]
-    CAD -->|ghcr-registry.example.com| R2["ghcr-registry<br/>10.132.32.18:5000"]
-    CAD -->|gitlab-registry.example.com| R3["gitlab-registry<br/>10.132.32.19:5000"]
+    CAD -->|docker-registry.example.com| R["registry<br/>10.132.32.17:8080"]
+    CAD -->|ghcr-registry.example.com| R
+    CAD -->|gitlab-registry.example.com| R
 
-    R1 -->|on a cache miss| U1[registry-1.docker.io]
-    R2 -->|on a cache miss| U2[ghcr.io]
-    R3 -->|on a cache miss| U3[registry.gitlab.com]
+    R -->|on a cache miss| U1[registry-1.docker.io]
+    R -->|on a cache miss| U2[ghcr.io]
+    R -->|on a cache miss| U3[registry.gitlab.com]
 
-    IC -.->|"direct-docker.io, bootstrap only"| U1
+    IC -.->|"direct-quay.io, bootstrap only"| U4[quay.io]
 ```
 
 The files for this example are on
@@ -51,29 +55,30 @@ The files for this example are on
 
 ## Prerequisites
 
-The registry image itself lives on `docker.io`, which creates a bootstrapping
-problem: you can't pull the registry image through the proxy before the proxy
-exists. The solution is to add a direct (non-proxied) remote for the initial
-pull:
+The registry image itself lives on `quay.io`, which creates a bootstrapping
+problem if you also proxy `quay.io`: you can't pull the registry image through
+the proxy before the proxy exists. The solution is to add a direct (non-proxied)
+remote for the initial pull:
 
 ```sh
-incus remote add --protocol oci direct-docker.io https://docker.io
+incus remote add --protocol oci direct-quay.io https://quay.io
 ```
 
 This remote is used by `compose.yaml`
-(`image: direct-docker.io/library/registry:3`) and can be left in place
+(`image: direct-quay.io/appzygy/ociregistry:1.17.0`) and can be left in place
 permanently: it is only contacted during `incus-compose up` to pull or update
 the registry image.
 
 ## Setup
 
-### 1. Expose the caches via a reverse proxy
+### 1. Expose the cache via a reverse proxy
 
-The registry instances listen on their static IPs inside the Incus network. A
-TLS-terminating reverse proxy is required to expose them as proper HTTPS
-endpoints (Incus remotes require HTTPS).
+The registry listens on its static IP inside the Incus network. A
+TLS-terminating reverse proxy is required to expose it as a proper HTTPS
+endpoint (Incus remotes require HTTPS), and it is also what tells the registry
+which upstream a request is for.
 
-**Caddy example** - the IPs must match those in `compose.incus.yaml`:
+**Caddy example** - the IP must match the one in `compose.incus.yaml`:
 
 ```Caddyfile
 docker-registry.example.com {
@@ -81,7 +86,9 @@ docker-registry.example.com {
 		output file /var/log/caddy/docker-registry.example.com-access.log
 	}
 
-	reverse_proxy 10.132.32.17:5000
+	reverse_proxy 10.132.32.17:8080 {
+		header_up X-Registry docker.io
+	}
 }
 
 ghcr-registry.example.com {
@@ -89,7 +96,9 @@ ghcr-registry.example.com {
 		output file /var/log/caddy/ghcr-registry.example.com-access.log
 	}
 
-	reverse_proxy 10.132.32.18:5000
+	reverse_proxy 10.132.32.17:8080 {
+		header_up X-Registry ghcr.io
+	}
 }
 
 gitlab-registry.example.com {
@@ -97,18 +106,64 @@ gitlab-registry.example.com {
 		output file /var/log/caddy/gitlab-registry.example.com-access.log
 	}
 
-	reverse_proxy 10.132.32.19:5000
+	reverse_proxy 10.132.32.17:8080 {
+		header_up X-Registry registry.gitlab.com
+	}
 }
 ```
 
-### 2. Start the caches
+`header_up` must be set on every vhost. Without it the registry falls back to
+reading the upstream from the leftmost path segment, and a plain
+`docker.io/library/nginx` reference has no such segment left once the remote has
+consumed it.
+
+### 2. Set the Docker Hub credentials
+
+Anonymous pulls from Docker Hub are rate-limited per source IP, and a cache
+concentrates every pull behind one address. `.env` carries two variables for
+that:
+
+```sh
+export DOCKERIO_USER="your-docker-hub-account"
+export DOCKERIO_TOKEN="dckr_pat_..."
+```
+
+`DOCKERIO_TOKEN` is a
+[personal access token](https://app.docker.com/settings/personal-access-tokens),
+not your password; read-only scope is enough. Leave both empty to keep pulling
+anonymously - an empty `auth` block is the same as no block at all.
+
+The two values are interpolated into the server's `config.yaml`, which
+`compose.yaml` declares inline as a `config` rather than shipping as a file:
+
+```yaml
+configs:
+  ociregistry:
+    content: |
+      registries:
+        - name: docker.io
+          auth:
+            user: ${DOCKERIO_USER:-}
+            password: ${DOCKERIO_TOKEN:-}
+```
+
+`name` must match what the reverse proxy sends in `X-Registry`, since that is
+the string the server looks the upstream configuration up by. Add an entry per
+upstream that needs credentials; the ones that don't need none.
+
+> The token reaches the instance as a file at `/etc/ociregistry/config.yaml`,
+> mode `0400`, and not as an instance environment variable - so it stays out of
+> `incus config show`. It is still rendered by `incus-compose config`, like any
+> interpolated value.
+
+### 3. Start the cache
 
 ```sh
 cd registry
 incus-compose up
 ```
 
-### 3. Point Incus remotes at the local caches
+### 4. Point Incus remotes at the local cache
 
 Point the Incus remotes at your new endpoints. Any subsequent `incus image copy`
 or container launch will hit the local cache first, and so will incus-compose: a
@@ -131,17 +186,29 @@ incus remote add --protocol oci registry.gitlab.com https://gitlab-registry.exam
 
 ## Notes
 
-- The startup command in `compose.incus.yaml` includes a `sleep 10s` delay. This
-  is a workaround for a race condition where `registry serve` starts before the
-  Incus network interface is fully ready.
-- Cache storage is backed by named Incus volumes (`docker_registry_cache`,
-  `ghcr_registry_cache`, `gitlab_registry_cache`) and survives container
-  restarts.
-- To add another registry (e.g. `quay.io`), add a new service to both compose
-  files with the next available static IP and a matching Caddy block.
+- The server has no revalidation TTL: a tag other than `latest` is served from
+  cache forever once pulled. Eviction is what bounds this. The config enables
+  the background pruner with `type: accessed` and `duration: 7d`, so an image
+  nobody has pulled for 7 days is dropped and refetched on the next request. Set
+  `alwaysPullLatest: true` if you move `latest` and want it revalidated on every
+  pull.
+- The image is `gcr.io/distroless/static:nonroot` — no shell and no `wget` — so
+  there is no healthcheck. incus-compose runs healthcheck commands inside the
+  instance, and this image has nothing to run. The server can expose a `/health`
+  endpoint on its own port via the `health` config key if you want to probe it
+  from outside.
+- The server holds its index in memory behind a mutex, so only one instance can
+  serve a given cache directory. Don't run replicas against one volume.
+- Repository paths are limited to four segments, e.g.
+  `ghcr.io/lxc/incus-compose/ic-healthd`. Using `X-Registry` keeps the upstream
+  out of the path, so all four are available for the repository name.
+- Cache storage is backed by a named Incus volume (`cache`) and survives
+  container restarts. The config is owned by uid/gid `65532` to match the
+  image's `nonroot` user.
 
 ## Reference
 
-- [distribution on Docker Hub](https://hub.docker.com/_/registry)
-- [Configuration reference](https://distribution.github.io/distribution/about/configuration/)
-- [Deployment guide](https://distribution.github.io/distribution/about/deploying/)
+- [ociregistry](https://github.com/aceeric/ociregistry)
+- [Configuration reference](https://aceeric.github.io/ociregistry/configuring-the-server/)
+- [Authentication](https://aceeric.github.io/ociregistry/auth/)
+- [Limitations](https://aceeric.github.io/ociregistry/limitations/)
