@@ -9,7 +9,7 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-28T02:00:20.208535318Z"
+leafwiki_updated_at: "2026-08-28T02:03:01.025761242Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -84,37 +84,50 @@ classic OCI engine setup.
 
 ## Features
 
-**Drop-in.** All the commands you know - `up`, `down`, `start`, `stop`,
+### Drop-in 
+
+All the commands you know - `up`, `down`, `start`, `stop`,
 `restart`, `pause`, `logs`, `exec`, `cp`, `top`, `ps`, `config`, `build` -
 parsing via compose-go with `.env` interpolation, profiles, `depends_on`,
 secrets, and configs. See the [CLI reference](/cli-reference) and the
 [compatibility matrix](/compose-compatibility).
 
-**Operable.** Health checks, restart policies, and `depends_on: service_healthy`
+### Operable
+
+Health checks, restart policies, and `depends_on: service_healthy`
 ordering via the `ic-healthd` sidecar; scaling with `up --scale`; project
 isolation; live progress for pulls and lifecycle. See
 [Health Checking](/healthd).
 
-**Fast images.** OCI pulls from any registry, a two-stage cache that survives
+### Fast images
+
+OCI pulls from any registry, a two-stage cache that survives
 `down`/`up` and dodges rate limits, and local builds via Podman/Docker. See
 [Builds](/builds).
 
-**Air-gapped ready.** `pull` is the only command that needs a registry, so a
+### Air-gapped ready 
+
+`pull` is the only command that needs a registry, so a
 project pulls on a connected machine and runs on a disconnected one;
 `--pull never` makes that a guarantee rather than a hope, and the sidecar and
 one-off helper images point at your own mirror like any other. See
 [Air-gapped and Proxied Installs](/air-gapped).
 
-**Real networking and storage.** Bridge networks with static IPs, port
-publishing via proxy devices or kernel NAT, volumes with UID/GID shifting,
-seeded bind mounts, and per-volume pool placement.
+### Real networking 
 
-**Incus-native when you want it.** Every instance, network, and volume option
+storage Bridge networks with static IPs, port publishing via proxy devices or kernel NAT, 
+volumes with UID/GID shifting, seeded bind mounts, and per-volume pool placement.
+
+### Incus-native when you want it
+
+Every instance, network, and volume option
 passes straight through via `x-incus`; `x-incus-compose` adds devices (GPU, USB,
 raw disk), project-wide resource limits, and healthd tuning. See
 [Extras](/extras).
 
-**Extensions.** `incus-compose backup` snapshots a project's data volumes into a
+### Extensions 
+
+`incus-compose backup` snapshots a project's data volumes into a
 backup project - create, list, verify, restore, and prune - so a stack's state
 survives the project itself, and `incus-compose port-forward` forwards a local
 TCP port into an instance, published or not. See
@@ -128,7 +141,7 @@ building and an Incus https remote (needed for healthchecking) with OCI
 registries added. See [Getting Started](/getting-started) for the full setup
 walkthrough.
 
-Install the latest release:
+## Install the latest release:
 
 ```bash
 curl -sSfL https://raw.githubusercontent.com/lxc/incus-compose/main/install.sh | sh -s -- -b ~/.local/bin
