@@ -296,7 +296,7 @@ later, and nothing above learns the stream stopped.
 path, building a permission checker instead of authorizing one project, and
 answers with every project the certificate may see. That is how one listener
 serves projects that did not exist when it opened. ic-healthd is built on it;
-see [ic-healthd Internals](/developer/healthd).
+see [Health Checking](/healthd).
 
 A socket that names no project is a socket on the **default** project, not on
 all of them (`cmd/incusd/events.go:60`), which is why the two are separate calls
@@ -335,5 +335,5 @@ Two tiers, following [Testing](/developer/testing):
 
 - [Architecture](/developer) - where this sits
 - [Client Package](/developer/client) - the resource layer built on it
-- [ic-healthd Internals](/developer/healthd) - the all-projects listener
+- [Health Checking](/healthd) - the sidecar and running the daemon directly
 - [Progress](/developer/progress) - consuming an operation's updates

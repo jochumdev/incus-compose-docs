@@ -217,7 +217,7 @@ INCUS_COMPOSE_DEBUG=1 INCUS_COMPOSE_WORKERS=20 incus-compose up
 These are read by the `ic-healthd` binary itself, not by incus-compose. In the
 normal flow incus-compose sets them on the sidecar and you never touch them;
 they matter when you run the daemon yourself (see
-[ic-healthd Internals - Running the daemon directly](/developer/healthd#running-the-daemon-directly)).
+[Running the daemon directly](/healthd#running-the-daemon-directly)).
 
 | Variable                               | Flag               | Default                         | Description                                                    |
 | -------------------------------------- | ------------------ | ------------------------------- | -------------------------------------------------------------- |

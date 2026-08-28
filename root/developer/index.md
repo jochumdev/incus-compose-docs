@@ -265,8 +265,8 @@ related:
 - [iclient](/developer/iclient) - the Incus client everything talks through
 - [Testing](/developer/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
-- [ic-healthd Internals](/developer/healthd) - the listener, the router, and the
-  per-project schedulers
+- [Health Checking](/healthd) - configuration, the sidecar, and running the
+  daemon directly
 - [Progress](/developer/progress) - Live operation progress and the terminal
   renderer
 
