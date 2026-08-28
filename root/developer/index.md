@@ -1,5 +1,5 @@
 ---
-date: 2026-08-27T23:33:35.000Z
+date: 2026-08-28T01:33:50.000Z
 dateCreated: 2026-07-05T03:54:00.505Z
 description: How incus-compose fits together - a resource-first design splitting the CLI, the Incus client, and the compose project layer.
 editor: markdown
@@ -8,7 +8,7 @@ title: Developer
 leafwiki_id: QtkuqlBDR
 leafwiki_title: Developer
 leafwiki_created_at: "2026-07-05T03:54:00.505466434Z"
-leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
+leafwiki_updated_at: "2026-08-28T01:33:50.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -263,6 +263,9 @@ related:
 
 - [Client Package](/developer/client) - Resources, Stack, WorkerPool
 - [iclient](/developer/iclient) - the Incus client everything talks through
+- [ievent](/developer/ievent) - the event chain ic-dns and the operator are
+  built on
+- [ic-dns](/dns) - DNS for your instances, the first ievent consumer
 - [Testing](/developer/testing) - Testing patterns and fixtures
 - [Health Checking](/healthd) - ic-healthd sidecar
 - [Health Checking](/healthd) - configuration, the sidecar, and running the

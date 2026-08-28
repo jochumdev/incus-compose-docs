@@ -22,7 +22,7 @@ without Docker.
 ## Prerequisites
 
 - Incus 7.0.1 (LTS) or 7.2+ installed and running. Older daemons are refused
-  when a command connects: they have no `oci_network_config` API, which every
+  when a command connects: they have no `instance_port_forward` API, which every
   compose network attachment relies on
 - Access to an Incus server (local or remote)
 - `podman` or `docker` for image building (see [Builds](/builds))
@@ -183,7 +183,10 @@ just build
 go install github.com/lxc/incus-compose/cmd/incus-compose@latest
 ```
 
-> Source builds use `ic-healthd:latest` by default which might be out-of-sync use `-ldflags="-X github.com/lxc/incus-compose/cmd/incus-compose/version.Version=v1.3.2"` to pin a healthd version.
+> Source builds use `ic-healthd:latest` by default which might be out-of-sync
+> use
+> `-ldflags="-X github.com/lxc/incus-compose/cmd/incus-compose/version.Version=v1.3.2"`
+> to pin a healthd version.
 
 ## Quick Start
 
