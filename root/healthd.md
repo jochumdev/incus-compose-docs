@@ -1,5 +1,5 @@
 ---
-date: 2026-08-27T23:56:29.000Z
+date: 2026-08-28T12:00:00.000Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,7 +9,7 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-27T23:56:29.000000000Z"
+leafwiki_updated_at: "2026-08-28T12:00:00.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -282,10 +282,7 @@ stateDiagram-v2
 ```
 
 This is `user.healthcheck.status`, the verdict you can read with
-`incus config get`. It is not the same thing as the daemon's internal
-per-instance state machine (idle/checking/restarting), which tracks what the
-scheduler is doing right now - see
-[ic-healthd Internals - Instance state](/developer/healthd#instance-state).
+`incus config get`.
 
 ## Dockerfile HEALTHCHECK Not Supported
 
@@ -563,9 +560,125 @@ x-incus-compose:
 to turn it on, there is no flag to force it back off for a project that sets it
 in the compose file.
 
-For the `ic-healthd run` flags, the registration handshake, and the local
-edit-run-reload loop, see
-[ic-healthd Internals - Running the daemon directly](/developer/healthd#running-the-daemon-directly).
+### Running the daemon directly
+
+`incus-compose up` creates the sidecar and injects the configuration below as
+environment variables. You can also run `ic-healthd run` yourself - as a binary
+or a separately managed container - and attach projects to it with
+`up --external-healthd`.
+
+Every flag has a matching env var:
+
+| Flag                | Env var                                 | Default                         | Description                                                                 |
+| ------------------- | --------------------------------------- | ------------------------------- | --------------------------------------------------------------------------- |
+| `--incus`           | `INCUS_COMPOSE_HEALTHD_INCUS`           | -                               | Incus API URL to connect to                                                 |
+| `--token`           | `INCUS_COMPOSE_HEALTHD_TOKEN`           | -                               | Trust token used to register the client cert                                |
+| `--project`         | `INCUS_COMPOSE_HEALTHD_PROJECTS`        | -                               | Projects to manage; empty means every marked project                        |
+| `--project-marker`  | `INCUS_COMPOSE_HEALTHD_PROJECT_MARKER`  | `user.healthcheck.scope=global` | Project config `KEY=VALUE` that opts a project in when `--project` is empty |
+| `--own-project`     | `INCUS_COMPOSE_HEALTHD_OWN_PROJECT`     | -                               | Project the daemon's own container runs in                                  |
+| `--own-name`        | `INCUS_COMPOSE_HEALTHD_OWN_NAME`        | -                               | The daemon's own instance name; empty means it skips itself                 |
+| `--data-dir`        | `INCUS_COMPOSE_HEALTHD_DATA_DIR`        | `/var/lib/ic-healthd`           | Persistent directory for the generated cert/key                             |
+| `--secrets-dir`     | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`     | `/run/secrets`                  | Tmpfs directory holding the one-time registration token file                |
+| `--workers`         | `INCUS_COMPOSE_HEALTHD_WORKERS`         | `128`                           | Health checks running at once, over every watched project                   |
+| `--restart-workers` | `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS` | `32`                            | Restarts running at once, over every watched project                        |
+| `--debug`           | `INCUS_COMPOSE_HEALTHD_DEBUG`           | `false`                         | Verbose logging                                                             |
+| `--trace`           | `INCUS_COMPOSE_HEALTHD_TRACE`           | `false`                         | Per-event logging, which implies `--debug`                                  |
+
+`--own-project` and `--own-name` are how the daemon writes its own health
+status; leaving `--own-name` empty means it skips itself.
+
+### Choosing what to watch
+
+There are two ways to say it, and they do not mix:
+
+- **An explicit list.** `--project a --project b` (or
+  `INCUS_COMPOSE_HEALTHD_PROJECTS=a,b`) watches exactly those, marker ignored.
+- **The marker.** With no `--project`, every project the daemon can see carrying
+  `user.healthcheck.scope: "global"` in its _project_ config. incus-compose
+  stamps that on the projects it hands to the shared daemon, so a daemon started
+  this way picks those up and leaves everything else - project-scoped projects,
+  projects from before the key existed, and anything not incus-compose's -
+  alone. `--project-marker` selects a different pair, e.g.
+  `--project-marker user.mine=yes`; a bare key means `KEY=true`.
+
+**The trust token is what bounds "can see".** A token restricted to two projects
+gives a daemon that watches at most those two, whatever its flags say - Incus
+filters both the project list and the event stream by what the certificate is
+allowed. An unrestricted token means every project on the server.
+
+```bash
+# every marked project the token allows
+incus config trust add healthd --restricted --projects=blog,shop
+ic-healthd run
+
+# exactly these two, marker or not
+ic-healthd run --project blog --project shop
+```
+
+Projects created, renamed or deleted while the daemon runs are picked up from
+the event stream; no reload is needed.
+
+### Local binary in the sidecar
+
+```bash
+incus-compose up --healthd-binary ./bin/ic-healthd
+```
+
+Uses `images:alpine/edge` instead of the published OCI image and pushes the
+local binary into the container before start. Useful when iterating on the
+daemon but still wanting `up` to manage its lifecycle.
+
+### Standalone on the host
+
+The fastest edit-run-reload loop when hacking on the daemon: run `ic-healthd` on
+the host and attach a project to it with `--external-healthd`.
+
+> The daemon registers over the Incus HTTPS API, so the default remote must
+> expose an HTTPS address (not just the local unix socket).
+
+1. Build and start the daemon; the token is minted inline and passed via
+   `INCUS_COMPOSE_HEALTHD_TOKEN`:
+
+   ```bash
+   # The Incus project to watch (its Incus name).
+   export INCUS_COMPOSE_HEALTHD_PROJECTS=many-dependencies
+
+   mkdir -p ./work/{secrets,data}
+   rm -f ./work/data/*
+
+   # HTTPS address of the default remote.
+   export INCUS_COMPOSE_HEALTHD_INCUS=$(default=$(incus remote get-default); incus remote list --format=json | jq -r '."'$default'" .Addrs[0]')
+   # A restricted, project-scoped trust token.
+   export INCUS_COMPOSE_HEALTHD_TOKEN="$(incus -q config trust add manual_healthd --projects=$INCUS_COMPOSE_HEALTHD_PROJECTS --restricted)"
+
+   just build-healthd
+   ./bin/ic-healthd run --debug --secrets-dir=./work/secrets/ --data-dir=./work/data/
+   ```
+
+   On first run it consumes the token and writes the cert/key to `./work/data`,
+   reusing them afterwards (delete `./work/data/*` to re-register).
+
+2. Note the PID from the startup log (or use `pidof ic-healthd`):
+
+   ```
+   time=2026-07-04T15:47:24.177+02:00 level=INFO msg=Version version=v1.0.0-beta.20-29-g57f305c-dirty pid=446206
+   ```
+
+3. In another terminal, bring the project up against the running daemon.
+   `--external-healthd` makes incus-compose use healthd features without
+   creating or looking up a sidecar of its own:
+
+   ```bash
+   just run -P examples/many-dependencies/ up --external-healthd
+   ```
+
+4. Config key changes (and instance create/start/stop/delete) take effect on
+   their own via the Incus event stream - no reload needed. Force a full manual
+   resync if you ever want one, by sending SIGHUP:
+
+   ```bash
+   kill -HUP <pid-from-step-2>
+   ```
 
 ## Sidecar Image
 
@@ -618,9 +731,7 @@ x-incus-compose:
 
 `workers` (128) and `restart-workers` (32) cap the health checks and the
 restarts the daemon runs at once across every project it watches. They are
-separate pools because a restart holds its worker far longer than a check does -
-see [ic-healthd Internals - Worker pools](/developer/healthd#worker-pools). A
-shared daemon watching many projects is the case worth raising them for.
+separate pools because a restart holds its worker far longer than a check does.
 
 > **Quota.** A **project-scoped** sidecar lives in your project, so its
 > `limits.cpu`/`limits.memory` are _added_ to what your services use when Incus
@@ -762,5 +873,3 @@ incus-compose healthd up
 - [Compose Compatibility](/compose-compatibility) - healthcheck and restart
   policy support
 - [Architecture](/developer) - how the sidecar fits the resource model
-- [ic-healthd Internals](/developer/healthd) - the listener, the router, and the
-  per-project schedulers
