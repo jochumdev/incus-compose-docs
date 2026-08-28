@@ -1,5 +1,5 @@
 ---
-date: 2026-08-27T23:59:45.000Z
+date: 2026-08-27T23:59:45Z
 dateCreated: 2026-07-05T01:20:36.522Z
 description: A drop-in replacement for docker compose that runs your compose.yaml on Incus - with the full Incus API available as an escape hatch when you need more than the Compose spec covers.
 editor: markdown
@@ -9,9 +9,9 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-27T23:59:45.000000000Z"
+leafwiki_updated_at: "2026-08-28T02:00:20.208535318Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: public-editor
+leafwiki_last_author_id: D93XDmQvR
 ---
 
 # incus-compose
@@ -156,15 +156,6 @@ incus-compose list
 # Stop and remove
 incus-compose down
 ```
-
-## Quick Links
-
-- **[Air-gapped](/air-gapped)** - pull once connected, run disconnected
-- **[Extras](/extras)** - `x-incus`, `x-incus-compose`, and the
-  `compose.incus.yaml` override file
-- **[Developer](/developer)** - the resource-first design behind incus-compose
-- **[Changelog](https://github.com/lxc/incus-compose/blob/main/CHANGELOG.md)** -
-  what changed since 0.0.1-beta1
 
 ## Support and community
 
