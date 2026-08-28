@@ -1,5 +1,5 @@
 ---
-date: 2026-08-28T05:06:32.000Z
+date: 2026-08-28T05:06:32Z
 dateCreated: 2026-07-12T02:09:09.313Z
 description: Run one pull-through registry cache on Incus for every upstream at once, and point your Incus remotes at it instead of the real registries.
 editor: markdown
@@ -8,9 +8,9 @@ title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-08-28T05:06:32.000000000Z"
+leafwiki_updated_at: "2026-08-28T06:55:34.430400963Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: vOmfrlBDg
+leafwiki_last_author_id: D93XDmQvR
 ---
 
 # OCI Registry Cache
@@ -46,28 +46,10 @@ flowchart LR
     R -->|on a cache miss| U1[registry-1.docker.io]
     R -->|on a cache miss| U2[ghcr.io]
     R -->|on a cache miss| U3[registry.gitlab.com]
-
-    IC -.->|"direct-quay.io, bootstrap only"| U4[quay.io]
 ```
 
 The files for this example are on
 [Github](https://github.com/lxc/incus-compose/tree/main/examples/oci-registry-cache).
-
-## Prerequisites
-
-The registry image itself lives on `quay.io`, which creates a bootstrapping
-problem if you also proxy `quay.io`: you can't pull the registry image through
-the proxy before the proxy exists. The solution is to add a direct (non-proxied)
-remote for the initial pull:
-
-```sh
-incus remote add --protocol oci direct-quay.io https://quay.io
-```
-
-This remote is used by `compose.yaml`
-(`image: direct-quay.io/appzygy/ociregistry:1.17.0`) and can be left in place
-permanently: it is only contacted during `incus-compose up` to pull or update
-the registry image.
 
 ## Setup
 
