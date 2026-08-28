@@ -1,5 +1,5 @@
 ---
-date: 2026-08-27T23:47:50.000Z
+date: 2026-08-28T04:18:09.000Z
 dateCreated: 2026-07-05T01:03:12.76Z
 description: Install incus-compose and run your existing compose.yaml on Incus without Docker, including the core.https_address setting Incus needs.
 editor: markdown
@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-27T23:47:50.000000000Z"
+leafwiki_updated_at: "2026-08-28T04:18:09.000000000Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: vOmfrlBDg
 ---
@@ -22,7 +22,7 @@ without Docker.
 ## Prerequisites
 
 - Incus 7.0.1 (LTS) or 7.2+ installed and running. Older daemons are refused
-  when a command connects: they have no `oci_network_config` API, which every
+  when a command connects: they have no `instance_port_forward` API, which every
   compose network attachment relies on
 - Access to an Incus server (local or remote)
 - `podman` or `docker` for image building (see [Builds](/builds))

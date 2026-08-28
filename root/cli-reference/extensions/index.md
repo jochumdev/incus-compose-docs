@@ -1,10 +1,10 @@
 ---
-date: 2026-08-28T00:09:08.000Z
+date: 2026-08-28T04:18:09.000Z
 dateCreated: 2026-08-27T23:56:29.000Z
 leafwiki_id: 488Qx7QvgM
 leafwiki_title: Extensions
 leafwiki_created_at: "2026-08-27T23:56:29.231878374Z"
-leafwiki_updated_at: "2026-08-28T00:09:08.000000000Z"
+leafwiki_updated_at: "2026-08-28T04:18:09.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -72,7 +72,7 @@ incus-compose port-forward db 5432 0.0.0.0:15432
 ```
 
 Like `exec`, it shells out to your local `incus` client and targets the instance
-via `INCUS_PROJECT`. It needs Incus 7.3, or 7.0.1 LTS.
+via `INCUS_PROJECT`.
 
 _Since: v1.3.0_
 

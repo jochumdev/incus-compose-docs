@@ -1,10 +1,10 @@
 ---
-date: 2026-08-27T23:48:20.000Z
+date: 2026-08-28T04:18:09.000Z
 dateCreated: 2026-08-27T23:33:35.000Z
 leafwiki_id: PmU0J7wDRz
 leafwiki_title: Behavioral Differences
 leafwiki_created_at: "2026-08-27T23:33:35.161177185Z"
-leafwiki_updated_at: "2026-08-27T23:48:20.000000000Z"
+leafwiki_updated_at: "2026-08-28T04:18:09.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: system
 ---
@@ -138,11 +138,6 @@ services:
     networks:
       - frontend
 ```
-
-`nat: true` requires Incus 7.2 or later (or the 7.0.1 LTS point release) for
-ARP/NDP-based instance IP detection. Combining `nat: true` with a static
-instance IP additionally requires Incus 7.3 or later (or the 7.0.2 LTS point
-release).
 
 > **Warning:** with `nat: true`, published ports are not reachable via
 > `localhost`/`127.0.0.1` on the host running incus-compose. The nftables DNAT
