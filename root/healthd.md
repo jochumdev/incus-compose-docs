@@ -284,19 +284,31 @@ stateDiagram-v2
 This is `user.healthcheck.status`, the verdict you can read with
 `incus config get`.
 
-## Dockerfile HEALTHCHECK Not Supported
+## Dockerfile HEALTHCHECK
 
-incus-compose does not read or inherit the `HEALTHCHECK` instruction embedded in
-Docker images.
+An image's own `HEALTHCHECK` is read and used where the compose file says
+nothing about health, which is what `docker compose` does. A service whose image
+ships one is therefore watched, and restarted if it has a restart policy,
+without a `healthcheck:` block of its own.
 
-Incus imports OCI images via umoci, which converts the OCI image config into an
-OCI runtime spec. The Docker `HEALTHCHECK` extension is not part of the OCI
-image spec and is discarded during that conversion. Fetching it from the
-registry at `up` time would require registry access on every run and fails in
-[air-gapped environments](/air-gapped).
+The compose file wins whenever it speaks:
 
-**Workaround:** Always declare `healthcheck.test` explicitly in the compose
-file:
+| compose file                 | what the instance gets                    |
+| ---------------------------- | ----------------------------------------- |
+| no `healthcheck:`            | the image's check, or none if it has none |
+| `healthcheck:` with a test   | its own check; the image's is not read    |
+| `healthcheck: disable: true` | no check at all                           |
+
+`HEALTHCHECK NONE` in the image says the same thing as `disable: true` and is
+honoured.
+
+The config is read from the registry when the image is pulled, not on every
+`up`, and stored on the cached image. In an
+[air-gapped environment](/air-gapped) the read is skipped with a warning rather
+than failing, so an image that cannot be reached simply carries no check.
+
+Declaring the check in the compose file is still the way to control it, and the
+only way to override what the image chose:
 
 ```yaml
 services:
@@ -308,6 +320,12 @@ services:
       timeout: 5s
       retries: 5
 ```
+
+Opt a service out with `disable: true`, or with
+[`user.healthcheck.enabled: "false"`](#opting-a-service-out) via `x-incus`.
+
+Images cached before this release carry no healthcheck and are not re-read, so
+an existing stack picks this up only for images pulled from now on.
 
 ## Restart Without a Test
 

@@ -274,6 +274,10 @@ The healthcheck status (`starting`, `healthy`, `unhealthy`) is reported in the
 `Status` column of `incus-compose list` and `incus-compose ps` when healthchecks
 are configured.
 
+A service with no `healthcheck:` block inherits the one its image declares, and
+`disable: true` opts out of both - see
+[Dockerfile HEALTHCHECK](/healthd#dockerfile-healthcheck).
+
 ## Resource Limits
 
 `deploy.resources` is not mapped. Use `x-incus` to set Incus instance limits

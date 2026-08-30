@@ -111,7 +111,8 @@ upgrade.
   [How the exit code is obtained](/cli-reference/exec-run-and-cp#how-the-exit-code-is-obtained).
 - **`self-update`** reaches GitHub by definition.
 
-Dockerfile `HEALTHCHECK` is not read, and one reason is this page: fetching it
-would mean registry access on every `up`. Declare `healthcheck.test` in the
-compose file instead - see
-[Dockerfile HEALTHCHECK Not Supported](/healthd#dockerfile-healthcheck-not-supported).
+Dockerfile `HEALTHCHECK` is read when an image is pulled, not on every `up`, so
+a cached image needs no registry. Where the registry cannot be reached the read
+is skipped with a warning and the image carries no check; declare
+`healthcheck.test` in the compose file to be sure of one - see
+[Dockerfile HEALTHCHECK](/healthd#dockerfile-healthcheck).

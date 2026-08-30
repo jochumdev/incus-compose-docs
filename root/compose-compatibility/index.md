@@ -83,12 +83,6 @@ nothing in Incus for `external` to point _at_, so it's not a missing mapping to
 fill in later, it's a concept without a target. Use `file`, `content` (configs
 only), or `environment` instead.
 
-### Dockerfile HEALTHCHECK
-
-The `HEALTHCHECK` instruction embedded in Docker images is not read, so declare
-`healthcheck.test` explicitly in the compose file. See
-[healthd.md](/healthd#dockerfile-healthcheck-not-supported) for the background.
-
 ### Extended Features
 
 Not supported:
