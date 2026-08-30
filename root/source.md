@@ -16,12 +16,14 @@ leafwiki_last_author_id: D93XDmQvR
 
 # Source
 
-The source of this Website is on [Github](https://github.com/jochumdev/incus-compose-docs).
+The source of this Website is on
+[Github](https://github.com/jochumdev/incus-compose-docs).
 
-We use LeafWiki to render this page and edit it on a local Machine. 
+We use LeafWiki to render this page and edit it on a local Machine.
 
-A LeafWiki deployment is described on [examples leafwiki](/examples/leafwiki). 
+A LeafWiki deployment is described on [examples leafwiki](/examples/leafwiki).
 
-As a developer you might use `just leafwiki` to run a local instance then open http://127.0.0.1:8080.
+As a developer you might use `just leafwiki` to run a local instance then open
+http://127.0.0.1:8080.
 
 `incus-compose` is at https://github.com/lxc/incus-compose

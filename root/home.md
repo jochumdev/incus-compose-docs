@@ -84,51 +84,50 @@ classic OCI engine setup.
 
 ## Features
 
-### Drop-in 
+### Drop-in
 
-All the commands you know - parsing via compose-go with `.env` interpolation, profiles, 
-`depends_on`, secrets, and configs. See the [CLI reference](/cli-reference) and the
+All the commands you know - parsing via compose-go with `.env` interpolation,
+profiles, `depends_on`, secrets, and configs. See the
+[CLI reference](/cli-reference) and the
 [compatibility matrix](/compose-compatibility).
 
 ### Operable
 
-Health checks, restart policies, and `depends_on: service_healthy`
-ordering via the `ic-healthd` sidecar; scaling with `up --scale`; project
-isolation; live progress for pulls and lifecycle. See
-[Health Checking](/healthd).
+Health checks, restart policies, and `depends_on: service_healthy` ordering via
+the `ic-healthd` sidecar; scaling with `up --scale`; project isolation; live
+progress for pulls and lifecycle. See [Health Checking](/healthd).
 
 ### Fast images
 
-OCI pulls from any registry, a two-stage cache that survives
-`down`/`up` and dodges rate limits, and local builds via Podman/Docker. See
-[Builds](/builds).
+OCI pulls from any registry, a two-stage cache that survives `down`/`up` and
+dodges rate limits, and local builds via Podman/Docker. See [Builds](/builds).
 
-### Air-gapped ready 
+### Air-gapped ready
 
-`pull` is the only command that needs a registry, so a
-project pulls on a connected machine and runs on a disconnected one;
-`--pull never` makes that a guarantee rather than a hope, and the sidecar and
-one-off helper images point at your own mirror like any other. See
+`pull` is the only command that needs a registry, so a project pulls on a
+connected machine and runs on a disconnected one; `--pull never` makes that a
+guarantee rather than a hope, and the sidecar and one-off helper images point at
+your own mirror like any other. See
 [Air-gapped and Proxied Installs](/air-gapped).
 
-### Real networking 
+### Real networking
 
-storage Bridge networks with static IPs, port publishing via proxy devices or kernel NAT, 
-volumes with UID/GID shifting, seeded bind mounts, and per-volume pool placement.
+storage Bridge networks with static IPs, port publishing via proxy devices or
+kernel NAT, volumes with UID/GID shifting, seeded bind mounts, and per-volume
+pool placement.
 
 ### Incus-native when you want it
 
-Every instance, network, and volume option
-passes straight through via `x-incus`; `x-incus-compose` adds devices (GPU, USB,
-raw disk), project-wide resource limits, and healthd tuning. See
-[Extras](/extras).
+Every instance, network, and volume option passes straight through via
+`x-incus`; `x-incus-compose` adds devices (GPU, USB, raw disk), project-wide
+resource limits, and healthd tuning. See [Extras](/extras).
 
-### Extensions 
+### Extensions
 
-`incus-compose backup` snapshots a project's data volumes into a
-backup project - create, list, verify, restore, and prune - so a stack's state
-survives the project itself, and `incus-compose port-forward` forwards a local
-TCP port into an instance, published or not. See
+`incus-compose backup` snapshots a project's data volumes into a backup
+project - create, list, verify, restore, and prune - so a stack's state survives
+the project itself, and `incus-compose port-forward` forwards a local TCP port
+into an instance, published or not. See
 [backup](/cli-reference/extensions/backup) and
 [port-forward](/cli-reference/extensions#port-forward).
 
