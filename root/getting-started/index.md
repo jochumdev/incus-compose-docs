@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-31T13:56:05.796940347Z"
+leafwiki_updated_at: "2026-08-31T13:57:24.209114341Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -85,33 +85,6 @@ incus list --all-projects
 If you don't want to listen on all interfaces, set the
 `INCUS_COMPOSE_HEALTHD_INCUS` environment variable or call up with
 `--healthd-incus`; see [Network Configuration](/healthd#network-configuration).
-
-## Local vs Remote Incus
-
-> **The Incus server must have `core.https_address` set in all cases**, even for
-> a local Unix-socket client. Image caching copies images between Incus projects
-> using pull mode, which requires the server to be reachable over the network.
-> Without it, `up` fails with
-> `The source server isn't listening on the network`. See
-> [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
-
-With that in place, a few behaviors still depend on whether incus-compose talks
-to a local Incus over the Unix socket or to a remote daemon over HTTPS:
-
-| Feature       | Local (Unix socket)                                                     | Remote (HTTPS)                                                    |
-| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Bind mounts   | Supported                                                               | Pass-through only when incusd is the same machine; otherwise seed |
-| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto                                                              |
-
-Copy the files across with [x-incus-compose.seed](/extras#volume-seeding) and
-none of this applies: that is what the option is for.
-
-For health checks, ic-healthd reaches Incus over HTTPS. When
-`core.https_address` names a host (`10.0.0.5:8443`) that address is used,
-however you connected. Only a bare `:8443` falls back to the bridge IP plus the
-port incus-compose connected on, which a Unix socket does not have, so there the
-endpoint must be set explicitly. See
-[Network Configuration](/healthd#network-configuration).
 
 ## Installation
 
@@ -439,6 +412,34 @@ For a technical background about images see
 [architecture/client/image.md](/developer/client/image)
 
 The cache project is created automatically on first use.
+
+## Local vs Remote Incus
+
+> **The Incus server must have `core.https_address` set in all cases**, even for
+> a local Unix-socket client. Image caching copies images between Incus projects
+> using pull mode, which requires the server to be reachable over the network.
+> Without it, `up` fails with
+> `The source server isn't listening on the network`. See
+> [Getting Started](/getting-started#incus-must-listen-on-the-network-required).
+
+With that in place, a few behaviors still depend on whether incus-compose talks
+to a local Incus over the Unix socket or to a remote daemon over HTTPS:
+
+| Feature       | Local (Unix socket)                                                     | Remote (HTTPS)                                                    |
+| ------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Bind mounts   | Supported                                                               | Pass-through only when incusd is the same machine; otherwise seed |
+| Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto                                                              |
+
+Copy the files across with [x-incus-compose.seed](/extras#volume-seeding) and
+none of this applies: that is what the option is for.
+
+For health checks, ic-healthd reaches Incus over HTTPS. When
+`core.https_address` names a host (`10.0.0.5:8443`) that address is used,
+however you connected. Only a bare `:8443` falls back to the bridge IP plus the
+port incus-compose connected on, which a Unix socket does not have, so there the
+endpoint must be set explicitly. See
+[Network Configuration](/healthd#network-configuration).
+
 
 ## Next Steps
 
