@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-31T13:01:37.754433199Z"
+leafwiki_updated_at: "2026-08-31T13:56:05.796940347Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -103,37 +103,7 @@ to a local Incus over the Unix socket or to a remote daemon over HTTPS:
 | Bind mounts   | Supported                                                               | Pass-through only when incusd is the same machine; otherwise seed |
 | Health checks | Auto when `core.https_address` names a host, else set `--healthd-incus` | Auto                                                              |
 
-```mermaid
-flowchart LR
-    subgraph L["local - unix socket"]
-        direction TB
-        CU[client] --> BM["bind mounts: supported"]
-        CU --> SET["health checks: automatic only if<br/>core.https_address names a host"]
-    end
-
-    subgraph R["remote - HTTPS"]
-        direction TB
-        CH[client] --> BM2["bind mounts: pass-through only if<br/>incusd is this same machine,<br/>else seed or a named volume"]
-        CH --> HC["health checks: automatic,<br/>core.https_address or the bridge IP"]
-    end
-
-    L --> D["incusd<br/>needs core.https_address<br/>either way"]
-    R --> D
-```
-
-The line for bind mounts is not the transport, it is which machine holds the
-files. A pass-through bind is a disk device whose source **incusd** opens on its
-own filesystem, so the path has to be on the server. Over HTTPS to the machine
-you are sitting at (a `local-https` remote, say), that is still true and bind
-mounts work normally.
-
-Talking to a server somewhere else, incus-compose refuses a pass-through bind
-with `not on the same host` rather than handing incusd a path it will not find.
-The check compares the remote's address against your own interfaces, so it also
-refuses a different machine that happens to have the same directory layout, even
-though incusd could have resolved it.
-
-Copy the files across with [`x-incus-compose.seed`](/extras#volume-seeding) and
+Copy the files across with [x-incus-compose.seed](/extras#volume-seeding) and
 none of this applies: that is what the option is for.
 
 For health checks, ic-healthd reaches Incus over HTTPS. When
