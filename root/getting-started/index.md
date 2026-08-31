@@ -9,7 +9,7 @@ title: Getting Started
 leafwiki_id: OLgX3_BvR
 leafwiki_title: Getting Started
 leafwiki_created_at: "2026-07-05T03:53:59.722788933Z"
-leafwiki_updated_at: "2026-08-31T13:00:04.155487697Z"
+leafwiki_updated_at: "2026-08-31T13:01:37.754433199Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -183,7 +183,7 @@ just build
 go install github.com/lxc/incus-compose/cmd/incus-compose@latest
 ```
 
-> Source builds use `ic-healthd:latest` by default which might be out-of-sync use 
+> Source builds use `ic-healthd:latest` by default which might be out-of-sync use `-ldflags="-X github.com/lxc/incus-compose/cmd/incus-compose/version.Version=v1.3.2"` to pin a healthd version.
 
 ## Quick Start
 
