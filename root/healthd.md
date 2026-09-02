@@ -1,5 +1,5 @@
 ---
-date: 2026-08-28T12:00:00.000Z
+date: 2026-08-28T12:00:00Z
 dateCreated: 2026-07-05T01:03:17.224Z
 description: Health checks and restart policies on Incus, which has neither natively - how the ic-healthd sidecar watches your services and restarts what fails.
 editor: markdown
@@ -9,9 +9,9 @@ title: Health Checking (ic-healthd)
 leafwiki_id: HqRuqlfvR
 leafwiki_title: Health Checking (ic-healthd)
 leafwiki_created_at: "2026-07-05T03:54:00.008474718Z"
-leafwiki_updated_at: "2026-08-28T12:00:00.000000000Z"
+leafwiki_updated_at: "2026-09-02T04:32:37.380464263Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: vOmfrlBDg
+leafwiki_last_author_id: D93XDmQvR
 ---
 
 # Health Checking (ic-healthd)
@@ -635,16 +635,6 @@ ic-healthd run --project blog --project shop
 
 Projects created, renamed or deleted while the daemon runs are picked up from
 the event stream; no reload is needed.
-
-### Local binary in the sidecar
-
-```bash
-incus-compose up --healthd-binary ./bin/ic-healthd
-```
-
-Uses `images:alpine/edge` instead of the published OCI image and pushes the
-local binary into the container before start. Useful when iterating on the
-daemon but still wanting `up` to manage its lifecycle.
 
 ### Standalone on the host
 
