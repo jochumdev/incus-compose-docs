@@ -126,7 +126,10 @@ just build
 go install github.com/lxc/incus-compose/cmd/incus-compose@latest
 ```
 
-> Source builds use `ic-healthd:latest` by default which might be out-of-sync use `-ldflags="-X github.com/lxc/incus-compose/cmd/incus-compose/version.Version=v1.3.2"` to pin a healthd version.
+> Source builds use `ic-healthd:latest` by default which might be out-of-sync
+> use
+> `-ldflags="-X github.com/lxc/incus-compose/cmd/incus-compose/version.Version=v1.3.2"`
+> to pin a healthd version.
 
 ## Quick Start
 
