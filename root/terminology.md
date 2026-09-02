@@ -1,5 +1,5 @@
 ---
-date: 2026-08-27T23:33:35.000Z
+date: 2026-08-27T23:33:35Z
 dateCreated: 2026-07-05T01:03:21.729Z
 description: Translate between Docker Compose, Incus and incus-compose vocabulary - what a project, volume, network or bind mount means in each.
 editor: markdown
@@ -9,9 +9,9 @@ title: Terminology
 leafwiki_id: 3WzXqlfDg
 leafwiki_title: Terminology
 leafwiki_created_at: "2026-07-05T03:54:00.191003304Z"
-leafwiki_updated_at: "2026-08-27T23:33:35.000000000Z"
+leafwiki_updated_at: "2026-09-02T04:27:43.907342424Z"
 leafwiki_creator_id: vOmfrlBDg
-leafwiki_last_author_id: vOmfrlBDg
+leafwiki_last_author_id: D93XDmQvR
 ---
 
 # Terminology
@@ -30,39 +30,6 @@ The same word sometimes means different things in each, and the same concept
 sometimes has two names. This page disambiguates them.
 
 ## Quick mapping
-
-```mermaid
-flowchart LR
-    subgraph C["Docker Compose - what you write"]
-        direction TB
-        SVC[service]
-        CPRJ[the compose project]
-        CNET[network]
-        CVOL[named volume]
-        CBIND[bind mount]
-        CIMG["image, an OCI reference"]
-        CHC["healthcheck / restart"]
-    end
-
-    subgraph I["Incus - what actually runs"]
-        direction TB
-        INST["one instance per replica<br/>web-1, web-2, ..."]
-        IPRJ["project<br/>sanitized name"]
-        IBR["managed bridge<br/>hashed if the name is long"]
-        IVOL["custom storage volume<br/>UID/GID shifted"]
-        IDISK["disk device<br/>host path, local Incus only"]
-        IIMG["image<br/>cached, then copied per project"]
-        HD["ic-healthd sidecar<br/>Incus does not do this itself"]
-    end
-
-    SVC --> INST
-    CPRJ --> IPRJ
-    CNET --> IBR
-    CVOL --> IVOL
-    CBIND --> IDISK
-    CIMG --> IIMG
-    CHC --> HD
-```
 
 | Compose term          | Incus term                  | Notes                                                           |
 | --------------------- | --------------------------- | --------------------------------------------------------------- |
