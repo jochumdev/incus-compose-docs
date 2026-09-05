@@ -42,6 +42,9 @@ INCUS_COMPOSE_BUILDER=docker incus-compose up --build
 
 If no builder is found, build-configured services fail with an error.
 
+:::warning `podman` and `buildah` require the `overlay` storage driver to
+generate images that do not have copies of symlinks. :::
+
 ## Basic usage
 
 Build all services that define `build:`:
