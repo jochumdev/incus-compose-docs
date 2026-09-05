@@ -229,6 +229,7 @@ they matter when you run the daemon yourself (see
 | `INCUS_COMPOSE_HEALTHD_OWN_NAME`       | `--own-name`       | -                               | The daemon's own instance name; empty skips itself             |
 | `INCUS_COMPOSE_HEALTHD_DATA_DIR`       | `--data-dir`       | `/var/lib/ic-healthd`           | Persistent directory for the generated cert/key                |
 | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`    | `--secrets-dir`    | `/run/secrets`                  | Tmpfs directory holding the token file                         |
+| `INCUS_COMPOSE_HEALTHD_HTTP_ADDRESS`   | `--http-address`   | `:9153`                         | Address for `/metrics`, `/health` and `/ready`; empty disables |
 | `INCUS_COMPOSE_HEALTHD_DEBUG`          | `--debug`          | `false`                         | Verbose logging                                                |
 | `INCUS_COMPOSE_HEALTHD_TRACE`          | `--trace`          | `false`                         | Per-event logging, which implies `--debug`                     |
 

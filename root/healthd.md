@@ -49,12 +49,12 @@ the whole server; see [Scope](#scope-one-daemon-or-one-per-project). It:
    trust token.
 3. ic-healthd authenticates once (token consumed) and persists the resulting
    cert.
-4. ic-healthd discovers which instances to watch by reading the Incus API - see
+4. ic-healthd opens an Incus lifecycle event listener and reads the fleet to
+   discover which instances to watch - see
    [Health Checking Is Opt-In](#health-checking-is-opt-in) for what makes an
-   instance eligible - then opens an Incus lifecycle event listener and reacts
-   to project and instance create/update/delete/start/stop events from then on -
-   no polling, no reload needed for config or instance-set changes to take
-   effect.
+   instance eligible - then reacts to instance create/update/delete/start/stop
+   events from then on, re-reading the fleet after every reconnect - no reload
+   needed for config or instance-set changes to take effect.
 5. ic-healthd runs the health loop per watched instance and writes the result to
    `user.healthcheck.status`.
 
@@ -69,7 +69,7 @@ sequenceDiagram
     IC->>I: create the daemon if missing,<br/>inject token + API URL + marker
     I->>H: start
     H->>I: register its cert with the token (consumed)
-    H->>I: discover instances, then open a<br/>lifecycle listener
+    H->>I: open a lifecycle listener, then read the fleet
     loop per watched instance
         H->>I: exec user.healthcheck.test
         I-->>H: exit code

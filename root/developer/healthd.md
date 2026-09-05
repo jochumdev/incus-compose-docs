@@ -1,7 +1,7 @@
 ---
 date: 2026-08-27T23:33:11.000Z
 dateCreated: 2026-08-06T07:11:18.000Z
-description: Inside ic-healthd - the listener, the router and the per-project schedulers, why every send blocks, and how state survives an event-listener reconnect.
+description: Inside ic-healthd - the ievent chain that watches the fleet, how the sweep discovers and prunes, and how the checker's state survives an event-listener reconnect.
 editor: markdown
 title: ic-healthd Internals
 leafwiki_id: AAf9EpsDRI
@@ -17,36 +17,37 @@ leafwiki_last_author_id: system
 How the daemon is put together. For what it does and how to configure it, see
 [Health Checking](/healthd); this page is about the parts inside.
 
-The whole daemon is three kinds of goroutine and the channels between them:
-
-| Part                 | Count                             | Owns                                                        |
-| -------------------- | --------------------------------- | ----------------------------------------------------------- |
-| The listener handler | one per generation                | decoding an Incus event                                     |
-| The router           | one                               | the connection, the project registry, project-scoped events |
-| A scheduler          | one per watched project           | that project's instances and their timers                   |
-| A worker             | `--workers` + `--restart-workers` | one check or restart, whichever project it came from        |
+The daemon is an ievent chain, the same shape as `ic-dns`: one binary composes a
+fixed list of plugins at compile time, and events walk it in order.
 
 ```mermaid
 flowchart LR
     I[Incus<br/>all-projects lifecycle events]
 
     subgraph daemon["ic-healthd"]
-        R{{router<br/>runProjects}}
-        SA[scheduler<br/>project A]
-        SB[scheduler<br/>project B]
+        S[source]
+        D[debounce]
+        E[enricher]
+        C[checker]
+        H[http]
     end
 
-    I -->|"websocket"| Q[["AddChannel, 1000<br/>ordered"]]
-    Q --> R
-    R -->|"start / stop"| REG[(registry<br/>map name to projectData)]
-    R -->|events, 32| SA
-    R -->|events, 32| SB
-    SA -->|exec, state, config| I
-    SB -->|exec, state, config| I
+    I -->|"websocket, one listener"| S
+    S --> D --> E --> C --> H
+    E -->|"reads: instance, project"| I
+    C -->|"exec, state, config"| I
 ```
 
-One websocket serves every project. That is the point of the design: a project
-costs a goroutine and a map entry, not a connection and a reconnect loop.
+| Part     | Count                             | Owns                                                    |
+| -------- | --------------------------------- | ------------------------------------------------------- |
+| source   | one                               | the listener, the reconnect loop, event order           |
+| enricher | one                               | what the fleet looks like now: reads, the sweep, scope  |
+| checker  | one                               | every watched instance, its timers and the worker pools |
+| http     | one                               | `/metrics`, `/health` and `/ready`                      |
+| A worker | `--workers` + `--restart-workers` | one check or restart, whichever project it came from    |
+
+One websocket serves every project, as before: a project costs a map entry in
+the enricher and the checker, not a connection and a reconnect loop.
 
 ## Why one listener
 
@@ -57,137 +58,54 @@ rather than checking one project up front, and the TLS driver returns a filter
 over the certificate's project list. So the daemon asks for everything and
 receives exactly what it may see, with no per-project bookkeeping of its own.
 
-The same filter governs `GET /1.0/projects`, which is what makes scope
-resolution safe to run against the whole server.
+The same filter governs `GET /1.0/projects`, which is what makes the sweep safe
+to run against the whole server: it only ever lists what the certificate may
+see.
 
 ## Lifetimes
 
-Three contexts nest, and knowing which is which explains most of the code:
+The chain's goroutines nest under one context, and the source's session is a
+child of it:
 
 ```mermaid
 flowchart TD
     C1["ctx - the daemon<br/>cancelled by SIGTERM / SIGINT"]
-    C2["evCtx - one listener generation<br/>cancelled on disconnect or reload"]
-    C3["actionContext - one check or restart<br/>cancelled on completion or by the watchdog"]
-    C4["pCtx - one watched project<br/>cancelled when it leaves scope"]
+    C2["sourceCtx - one source generation<br/>cancelled on SIGHUP or shutdown"]
+    C3["loopCtx - the checker's fold<br/>dies when its Run returns"]
+    C4["actionContext - one check or restart<br/>cancelled on completion or by the watchdog"]
 
     C1 --> C2
-    C1 --> C4
-    C4 --> C3
+    C1 --> C3
+    C3 --> C4
 ```
 
-The load-bearing detail is that **`pCtx` hangs off `ctx`, not off `evCtx`**. A
-scheduler therefore survives a listener reconnect with its instances, failure
-counts, backoff and last reported status intact. Only the listener and the
-handler die with a generation.
+The load-bearing detail is that **the checker hangs off `ctx`, not off
+`sourceCtx`**. A reconnect - or a SIGHUP, which ends the generation on purpose -
+replaces only the listener; the checker keeps its instances, failure counts,
+backoff and last reported status across it. The enricher answers the reconnect
+by restarting its sweep, so what happened while the stream was down is read back
+rather than trusted.
 
-## The router
+## Scope
 
-`mainAction` does the things that must happen once: install signal handlers,
-connect (retrying), write the daemon's own health status, and hand over to
-`runProjects`. Everything after that is `runProjects`, which loops once per
-listener generation.
+The decision is made once, in the binary, from the command line, and handed to
+the two plugins that need it:
 
 ```mermaid
 flowchart TD
-    S([runProjects]) --> G[open all-projects listener]
-    G -->|error| GW[wait 1s] --> G
-    G --> AH[AddChannel]
-    AH --> SC[resolve scope]
-    SC --> REC[reconcile registry:<br/>stop what left, start what appeared]
-    REC --> RS[push resync to every scheduler]
-    RS --> L{select}
-
-    L -->|ctx done| END([return])
-    L -->|channel closed| G
-    L -->|reload / SIGHUP| G
-    L -->|event| RT[decode, route it] --> L
+    S([the command line]) --> Q{--project given?}
+    Q -->|yes| L[serve exactly that list]
+    Q -->|no| M{--project-marker?}
+    M -->|set| F["serve projects whose config<br/>carries KEY=VALUE"]
+    M -->|empty| A[serve every project<br/>the certificate can see]
 ```
 
-Reconciling happens **after** the channel is added, not before. A project
-created in between then queues on the channel rather than falling in the gap
-between the two.
-
-The resync push is what covers the gap that already happened: while there was no
-listener, instances may have been created, changed or deleted unseen, so every
-surviving scheduler is told to re-read its project rather than trust what it
-holds.
-
-### Routing one event
-
-```mermaid
-flowchart TD
-    E[lifecycleEvent] --> Q{project-scoped?}
-
-    Q -->|created / updated| SCOPE{in scope?}
-    SCOPE -->|yes| ST[start scheduler]
-    SCOPE -->|no| SP[stop scheduler]
-
-    Q -->|deleted| SP
-    Q -->|renamed| RN["stop(old name)<br/>start(new name) if in scope"]
-
-    Q -->|instance-scoped| LK{project watched?}
-    LK -->|no| DROP([drop])
-    LK -->|yes| SEND[blocking send into<br/>that project's channel]
-```
-
-`instance-resumed` is routed as a start. A pause parks the instance, via the
-`user.healthcheck.stopped` marker `incus-compose pause` writes, and a start
-event is the only thing that un-parks one - the `instance-updated` that clearing
-the marker emits refreshes an instance's config and status but leaves its state
-alone. Without the resume the instance would run unwatched until the next
-resync.
-
-The registry is a plain map with no mutex, because only this goroutine touches
-it. `start` and `stop` are closures over it for the same reason.
-
-`stop` cancels the scheduler's context and deletes the entry; it deliberately
-does **not** wait for the goroutine to finish. A scheduler that is wedged must
-not be able to hang the router that is trying to be rid of it.
-
-### Ordering and backpressure
-
-Events arrive on one channel from `AddChannel`, so the router sees them in the
-order Incus sent them. That is load-bearing rather than tidy: handled the other
-way round, a stop and the start after it leave the daemon holding a restart for
-an instance that is already running, and it force-stops it a backoff later.
-
-Every send from there on is blocking, and nothing is dropped for lack of room.
-The remaining buffers (`projectBuffer` 32, `resultBuffer` 32) only buy slack
-while a loop is between selects.
-
-The consequence is deliberate: one wedged scheduler eventually stalls routing
-for everyone, and behind it the event channel fills. At 1000 pending the client
-gives up on the listener and closes the channel, which the router reads as the
-end of a generation and answers with a reconnect and a resync. That is a
-visible, recoverable failure rather than a silent one; dropping a `stopped`
-event instead would mean a crashed instance is never restarted, and nothing
-would say so.
-
-A routed send selects on three things, so it cannot outlive its target:
-
-```go
-select {
-case p.events <- ev.Instance:
-case <-p.done:   // the scheduler has gone
-case <-ctx.Done():
-}
-```
-
-### Scope
-
-```mermaid
-flowchart TD
-    S([resolve scope]) --> Q{--project given?}
-    Q -->|yes| L[use that list verbatim]
-    Q -->|no| G[GetProjects]
-    G --> F["keep those with<br/>Config[ProjectMarker] == ProjectMarkerValue"]
-```
-
-Scope is resolved once per generation, so a reconnect or a SIGHUP also re-reads
-it. In between, single project events keep it current - and because a project
-event carries no config, `created` and `updated` re-read that one project rather
-than resolving the whole scope again.
+- The enricher gets it as a predicate over a read project, and its sweep only
+  lists and reads the projects that pass.
+- The checker gets the same policy per event: an explicit list checks the
+  event's project name, a marker checks the config the enricher attached to the
+  event. An event whose project the enricher holds nothing for is not watched -
+  believing a missing read would watch what never opted in.
 
 `--project-marker` is a `KEY=VALUE` pair, defaulting to
 `user.healthcheck.scope=global`; a bare key means `KEY=true`. incus-compose
@@ -200,21 +118,57 @@ project from before the key existed carries nothing, so neither matches
 `global`. For the operator's view of the same thing, see
 [Choosing what to watch](#choosing-what-to-watch).
 
-## A scheduler
+A project opting in while the daemon runs is picked up by the sweep: the marker
+is read when the project is next read, which the sweep does on every reconnect
+and on its own interval. Instance events in the project do not wait for it -
+they are judged against whatever the enricher holds, and a project it does not
+hold yet is read on first sight.
 
-One goroutine per watched project. It owns its instances map outright: no other
-goroutine reads or writes it, which is why the handlers can be plain functions
-over the map with no locking.
+## Discovery and pruning
+
+The old daemon re-read each watched project on demand; the chain reads the fleet
+as a matter of course.
+
+```mermaid
+sequenceDiagram
+    participant E as enricher sweep
+    participant I as Incus
+    participant C as checker
+
+    E->>I: list projects, keep the served ones
+    loop per served project
+        E->>I: list instances
+        E-->>C: instance-updated, one per name (read first)
+        Note over E: a held instance the listing<br/>left out is gone
+        E-->>C: instance-deleted, bare, one per missing
+    end
+    E-->>C: sweep-end: the fleet has been read whole
+```
+
+The sweep trickles an `instance-updated` event for every instance it names, so
+discovery and a config change are the same event to the checker. A name the
+enricher held that the listing left out becomes a bare `instance-deleted` - bare
+because a delete needs no read, the name is in the event. The checker treats it
+like any other delete: cancel what is in flight for it, forget it.
+
+The sweep runs at startup, after every reconnect, and on its own interval. A
+reconnect is exactly when things may have changed unseen, so the enricher
+restarts the sweep the moment the source reports the stream back.
+
+## The checker
+
+One fold loop owns the instances map of every watched project, keyed by
+`project/name`: no other goroutine reads or writes it, which is why the handlers
+can be plain functions over the map with no locking.
 
 ```mermaid
 flowchart TD
-    S([projectScheduler]) --> D[discoverProject]
-    D --> RUN[runInstanceActions:<br/>fire what is due,<br/>reap what overran]
+    S([checker Run]) --> RUN[runInstanceActions:<br/>fire what is due,<br/>reap what overran]
     RUN --> T[arm timer for the<br/>earliest due instance]
     T --> SEL{select}
 
     SEL -->|ctx done| END([return])
-    SEL -->|"event: resync"| D
+    SEL -->|drain command| DR[fold what is left,<br/>answer, return]
     SEL -->|event| HE[handleInstanceEvent] --> RUN
     SEL -->|result| HR[handleInstanceResult] --> RUN
     SEL -->|timer| RUN
@@ -222,21 +176,26 @@ flowchart TD
 
 `handleInstanceEvent` and `handleInstanceResult` must never block: anything that
 talks to Incus is started on its own goroutine and reports back through the
-results channel. The loop's job is to stay responsive, so a blocking send into
-it always drains.
+results channel. The loop's job is to stay responsive.
+
+Events arrive on an inbox rather than straight into the loop: `Handle` runs on
+the enricher's goroutine and must not block, so a full inbox is a marked drop
+rather than a wait. The drop is visible - the event walks on, tagged with who
+dropped it - which is the chain's version of the old router's backpressure
+story. The old daemon blocked instead and let a wedged scheduler stall the
+listener until it closed; the chain marks and moves on, and the sweep repairs
+whatever was missed.
 
 ### Worker pools
 
-Checks and restarts run on two `ants` pools shared by every scheduler, so the
-caps are fleet-wide rather than per project. They are separate because a restart
-holds its worker for up to `restartTimeout`, and a handful of slow ones must not
-be able to starve the checks.
+Checks and restarts run on two `ants` pools, fleet-wide as before. They are
+separate because a restart holds its worker for up to `restartTimeout`, and a
+handful of slow ones must not be able to starve the checks.
 
 Both are non-blocking: a full pool refuses the action instead of queueing it,
 and `runInstanceActions` leaves the instance idle and re-dues it
 `poolRetryDelay` later. Queueing would be worse than refusing on both counts - a
-submit that blocks stalls the loop, and hence routing and the websocket read
-(see [Backpressure](#backpressure)), while a task waiting for a worker burns the
+submit that blocks stalls the loop, while a task waiting for a worker burns the
 deadline the watchdog reaps it by, which for a check counts as a failed probe.
 
 The state, the deadline and the context are set only once the pool accepts, so a
@@ -258,7 +217,7 @@ stateDiagram-v2
     parked --> idle: started or resumed event
 
     idle --> idle: started event:<br/>due now, action = check
-    idle --> [*]: deleted, stopped<br/>without a policy,<br/>or pruned by a roster
+    idle --> [*]: deleted, stopped<br/>without a policy,<br/>or pruned by the sweep
 ```
 
 `instanceState` is a single value rather than a set of booleans, so the
@@ -296,32 +255,6 @@ is cancelled and its slot freed. A check that overran counts as a failed probe,
 matching docker; a restart that overran counts as a failed restart and widens
 the backoff.
 
-### Discovery and the roster
-
-```mermaid
-sequenceDiagram
-    participant L as scheduler loop
-    participant D as discovery goroutine
-    participant I as Incus
-
-    L->>D: discoverProject
-    D->>I: GetInstances (retried)
-    I-->>D: instances
-    loop per instance
-        D->>L: discovered{name, config, err}
-    end
-    D->>L: roster{names}
-    Note over L: drop tracked instances<br/>the roster does not name
-```
-
-The roster is sent last so it only prunes what the pass really did not see. It
-exists because schedulers are now long-lived: before, a reconnect rebuilt the
-map from scratch and stale entries could not accumulate. Now nothing else would
-ever remove an instance that vanished while the daemon was disconnected.
-
-Discovery runs on its own goroutine because the loop calls it from inside the
-select, on `resync`.
-
 ## Running the daemon directly
 
 `incus-compose up` creates the sidecar and injects the configuration below as
@@ -330,7 +263,7 @@ or a separately managed container - and attach projects to it with
 `up --external-healthd` (see
 [Health Checking - Using Your Own healthd](/healthd#using-your-own-healthd)).
 
-Every flag has a matching env var:
+Every sidecar flag has a matching env var:
 
 | Flag                | Env var                                 | Default                         | Description                                                                 |
 | ------------------- | --------------------------------------- | ------------------------------- | --------------------------------------------------------------------------- |
@@ -344,8 +277,14 @@ Every flag has a matching env var:
 | `--secrets-dir`     | `INCUS_COMPOSE_HEALTHD_SECRETS_DIR`     | `/run/secrets`                  | Tmpfs directory holding the one-time registration token file                |
 | `--workers`         | `INCUS_COMPOSE_HEALTHD_WORKERS`         | `128`                           | Health checks running at once, over every watched project                   |
 | `--restart-workers` | `INCUS_COMPOSE_HEALTHD_RESTART_WORKERS` | `32`                            | Restarts running at once, over every watched project                        |
+| `--http`            | `INCUS_COMPOSE_HEALTHD_HTTP`            | `:8080`                         | Address for `/metrics`, `/health` and `/ready`; empty disables it           |
 | `--debug`           | `INCUS_COMPOSE_HEALTHD_DEBUG`           | `false`                         | Verbose logging                                                             |
 | `--trace`           | `INCUS_COMPOSE_HEALTHD_TRACE`           | `false`                         | Per-event logging, which implies `--debug`                                  |
+
+Standalone debugging gets a few more, flags only: `--client-cert` and
+`--client-key` present an already-trusted pair instead of enrolling, and
+`--remote` with `--use-remote` connects as a remote from the Incus CLI
+configuration - the developer's path, tried last.
 
 `--own-project` and `--own-name` are how the daemon writes its own health
 status; leaving `--own-name` empty means it skips itself.
@@ -379,7 +318,7 @@ ic-healthd run --project blog --project shop
 ```
 
 Projects created, renamed or deleted while the daemon runs are picked up from
-the event stream; no reload is needed.
+the event stream and the sweep; no reload is needed.
 
 ### Local binary in the sidecar
 
@@ -424,7 +363,7 @@ the host and attach a project to it with `--external-healthd`.
 2. Note the PID from the startup log (or use `pidof ic-healthd`):
 
    ```
-   time=2026-07-04T15:47:24.177+02:00 level=INFO msg=Version version=v1.0.0-beta.20-29-g57f305c-dirty pid=446206
+   time=2026-07-04T15:47:24.177+02:00 level=INFO msg=Starting version=v1.4.0 pid=446206 incus=https://10.0.0.1:8443 http=:8080
    ```
 
 3. In another terminal, bring the project up against the running daemon.
@@ -443,14 +382,20 @@ the host and attach a project to it with `--external-healthd`.
    kill -HUP <pid-from-step-2>
    ```
 
+   The daemon answers it by ending the listener's generation and starting a
+   fresh one; the reconnect restarts the enricher's sweep, which re-reads the
+   fleet. The checker keeps its state across it. `incus-compose healthd reload`
+   does the same from inside a project.
+
 ## Upstream behaviour worth knowing
 
 Three things about Incus shape this code and would otherwise look like mistakes.
 
 **Only empty projects can be renamed.** `projectIsEmpty` rejects a rename when
 anything but the default profile is in the project, so a rename can never lose
-watched instances. That is why the router handles it by simply stopping the old
-name and starting the new one.
+watched instances. Nothing in the chain watches project events: instances of a
+renamed project simply arrive under the new name, and there were none to carry
+over.
 
 **A rename does not refresh incusd's certificate cache.**
 `certificates_projects` is keyed by project ID, so the database follows a
@@ -459,25 +404,14 @@ until something else refreshes it. A daemon on a restricted token can therefore
 get 403s on the renamed project for a while. Combined with the point above, the
 blast radius is small enough to log and carry on.
 
-**A project event names nothing.** `ProjectAction.Event` sets neither `Name` nor
-`Project` on the lifecycle payload, so the new name arrives only in the
-envelope's `Project` field and the old one only in `Context["old_name"]`.
-
 **`project-updated` is sent before the change is applied.** `api_project.go`
 calls `SendLifecycle` and only then `projectChange`, and the event carries a nil
-`Context`, so there is no config on it to read either. A daemon that reacts by
-reading the project back therefore races the write, and a read that wins sees
-the old config - which for scope resolution means answering "not mine" for a
-project that just opted in.
-
-Losing that race used to be permanent: instance events for an unwatched project
-are dropped, and scope was only re-resolved per listener generation. So a
-negative from `inScope` is no longer believed on the first look - the project
-goes into a small recheck set that is re-read a few times a second later
-(`scopeRecheckDelay`, `scopeRecheckTries`). The deadline is a `time.Time` and
-the timer is the loop's own, deliberately: a `time.AfterFunc` would touch the
-registry from a second goroutine, which is exactly what the router's design
-avoids.
+`Context`, so there is no config on it to read either. The chain does not react
+to project events at all, which is what defuses it: scope is judged per instance
+event against what the enricher holds or reads, and a project's config is read
+when an instance in it first moves - by then the write has landed. A project
+that opts in while quiet waits for the sweep, which re-reads every project it
+can see.
 
 ## Registration
 
@@ -490,15 +424,13 @@ sequenceDiagram
     D->>I: connect (untrusted)
     D->>I: CreateCertificate with the one-time token
     D->>D: persist cert/key to --data-dir
-    D->>I: reconnect (trusted)
-    Note over D,I: the second dial is not redundant
+    Note over D,I: no redial - /1.0 is read lazily
 ```
 
-The Incus client reads `/1.0` once at dial time and caches it, and the
-unauthenticated `/1.0` advertises far fewer API extensions. A connection made
-before the certificate was trusted therefore refuses extension-gated calls such
-as `GetProjects` for the life of the process. Redialling after registration is
-what makes a first run behave like every later one.
+Registration is `incustrust`, the same path `ic-dns` uses: an explicit pair is
+presented as-is, a persisted pair is reused, and only a fresh token generates
+and enrolls. The reading of `/1.0` is lazy in this client, so the connection
+that enrolled is the one that serves; nothing is redialed.
 
 The token is consumed on that first run and never needed again. In the normal
 flow incus-compose supplies it via `INCUS_COMPOSE_HEALTHD_TOKEN`; running the
@@ -514,4 +446,4 @@ token is what bounds a daemon, whatever its flags say.
 - [Health Checking](/healthd) - configuration, keys, and the management commands
 - [Architecture](/developer) - how the sidecar fits the resource model
 - [Client Package](/developer/client) - the client the daemon does not use;
-  ic-healthd talks to `incus.InstanceServer` directly
+  ic-healthd talks to `iclient` directly
