@@ -1,11 +1,11 @@
 ---
-date: 2026-08-28T01:33:50.000Z
+date: 2026-09-09T11:37:56.000Z
 dateCreated: 2026-08-14T11:46:35Z
 tags: []
 leafwiki_id: j-kkPt8Dgz
 leafwiki_title: DNS (ic-dns)
 leafwiki_created_at: "2026-08-14T11:46:35Z"
-leafwiki_updated_at: "2026-08-28T01:33:50.000000000Z"
+leafwiki_updated_at: "2026-09-09T11:37:56.000000000Z"
 leafwiki_creator_id: system
 leafwiki_last_author_id: public-editor
 ---
@@ -175,45 +175,45 @@ each plugin's own internals are not configurable.
 
 ### Connecting To Incus
 
-| Flag                             | Env                               | Default              |                                                                             |
-| -------------------------------- | --------------------------------- | -------------------- | --------------------------------------------------------------------------- |
-| `--incus`                        | `DNS_INCUS`                       |                      | URL of the Incus API                                                        |
-| `--token`                        | `DNS_TOKEN`                       |                      | one-time trust token; a token file under `--secrets-dir` is read when empty |
-| `--data-dir`                     | `DNS_DATA_DIR`                    | `/var/lib/dns-incus` | the enrolled certificate and what was last served; empty keeps neither      |
-| `--secrets-dir`                  | `DNS_SECRETS_DIR`                 | `/run/secrets`       | tmpfs directory holding the trust token                                     |
-| `--client-cert` / `--client-key` | `DNS_CLIENT_CERT` / `_KEY`        |                      | present a certificate instead of enrolling                                  |
-| `--restricted`                   | `DNS_RESTRICTED`                  | off                  | enroll confined to `--project`                                              |
-| `--remote` / `--use-remote`      | `INCUS_REMOTE` / `DNS_USE_REMOTE` |                      | connect as a remote from the Incus CLI configuration                        |
+| Flag                             | Env                                             | Default              |                                                                             |
+| -------------------------------- | ----------------------------------------------- | -------------------- | --------------------------------------------------------------------------- |
+| `--incus`                        | `INCUS_COMPOSE_DNS_INCUS`                       |                      | URL of the Incus API                                                        |
+| `--token`                        | `INCUS_COMPOSE_DNS_TOKEN`                       |                      | one-time trust token; a token file under `--secrets-dir` is read when empty |
+| `--data-dir`                     | `INCUS_COMPOSE_DNS_DATA_DIR`                    | `/var/lib/dns-incus` | the enrolled certificate and what was last served; empty keeps neither      |
+| `--secrets-dir`                  | `INCUS_COMPOSE_DNS_SECRETS_DIR`                 | `/run/secrets`       | tmpfs directory holding the trust token                                     |
+| `--client-cert` / `--client-key` | `INCUS_COMPOSE_DNS_CLIENT_CERT` / `_KEY`        |                      | present a certificate instead of enrolling                                  |
+| `--restricted`                   | `INCUS_COMPOSE_DNS_RESTRICTED`                  | off                  | enroll confined to `--project`                                              |
+| `--remote` / `--use-remote`      | `INCUS_REMOTE` / `INCUS_COMPOSE_DNS_USE_REMOTE` |                      | connect as a remote from the Incus CLI configuration                        |
 
 ### Choosing What To Serve
 
-| Flag               | Env                  | Default                       |                                         |
-| ------------------ | -------------------- | ----------------------------- | --------------------------------------- |
-| `--suffix`         | `DNS_SUFFIX`         | `incus`                       | TLD every project's zone is built under |
-| `--project`        | `DNS_PROJECTS`       |                               | project(s) to serve                     |
-| `--project-marker` | `DNS_PROJECT_MARKER` | `user.label.dns.scope=global` | what opts a project in                  |
+| Flag               | Env                                | Default                       |                                         |
+| ------------------ | ---------------------------------- | ----------------------------- | --------------------------------------- |
+| `--suffix`         | `INCUS_COMPOSE_DNS_SUFFIX`         | `incus`                       | TLD every project's zone is built under |
+| `--project`        | `INCUS_COMPOSE_DNS_PROJECTS`       |                               | project(s) to serve                     |
+| `--project-marker` | `INCUS_COMPOSE_DNS_PROJECT_MARKER` | `user.label.dns.scope=global` | what opts a project in                  |
 
 ### Where To Listen
 
-| Flag        | Env           | Default |                                                           |
-| ----------- | ------------- | ------- | --------------------------------------------------------- |
-| `--listen`  | `DNS_LISTEN`  | `:53`   | DNS, UDP and TCP both                                     |
-| `--http`    | `DNS_HTTP`    | `:8080` | `/metrics`, `/health`, `/ready`; empty disables           |
-| `--forward` | `DNS_FORWARD` |         | upstream(s) for names we do not serve; empty refuses them |
+| Flag        | Env                         | Default |                                                           |
+| ----------- | --------------------------- | ------- | --------------------------------------------------------- |
+| `--listen`  | `INCUS_COMPOSE_DNS_LISTEN`  | `:53`   | DNS, UDP and TCP both                                     |
+| `--http`    | `INCUS_COMPOSE_DNS_HTTP`    | `:8080` | `/metrics`, `/health`, `/ready`; empty disables           |
+| `--forward` | `INCUS_COMPOSE_DNS_FORWARD` |         | upstream(s) for names we do not serve; empty refuses them |
 
 ### Tuning The Chain
 
-| Flag                    | Env                       | Default |                                                                                                                                                                      |
-| ----------------------- | ------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--ttl`                 | `DNS_TTL`                 | `5`     | seconds a record is served for, up to 3600                                                                                                                           |
-| `--debounce-window`     | `DNS_DEBOUNCE_WINDOW`     | `250ms` | quiet period before the last of a burst is handed on                                                                                                                 |
-| `--workers`             | `DNS_WORKERS`             | `16`    | Incus reads in flight at once                                                                                                                                        |
-| `--read-timeout`        | `DNS_READ_TIMEOUT`        | `10s`   | budget for one read of the daemon                                                                                                                                    |
-| `--sweep-project-delay` | `DNS_SWEEP_PROJECT_DELAY` | `30s`   | gap between one project of a round and the next                                                                                                                      |
-| `--sweep-read-delay`    | `DNS_SWEEP_READ_DELAY`    | `5s`    | gap between the reads inside one project                                                                                                                             |
-| `--echo-subnet`         | `DNS_ECHO_SUBNET`         | off     | echo the RFC 7871 client subnet back                                                                                                                                 |
-| `--exclude`             | `DNS_EXCLUDE`             |         | chain position(s) to leave out                                                                                                                                       |
-| `--log`                 | `DNS_LOG`                 |         | level the chain's log positions and the process itself print at: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`; empty leaves the positions out and the process at `INFO` |
+| Flag                    | Env                                     | Default |                                                                                                                                                                      |
+| ----------------------- | --------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--ttl`                 | `INCUS_COMPOSE_DNS_TTL`                 | `5`     | seconds a record is served for, up to 3600                                                                                                                           |
+| `--debounce-window`     | `INCUS_COMPOSE_DNS_DEBOUNCE_WINDOW`     | `250ms` | quiet period before the last of a burst is handed on                                                                                                                 |
+| `--workers`             | `INCUS_COMPOSE_DNS_WORKERS`             | `16`    | Incus reads in flight at once                                                                                                                                        |
+| `--read-timeout`        | `INCUS_COMPOSE_DNS_READ_TIMEOUT`        | `10s`   | budget for one read of the daemon                                                                                                                                    |
+| `--sweep-project-delay` | `INCUS_COMPOSE_DNS_SWEEP_PROJECT_DELAY` | `30s`   | gap between one project of a round and the next                                                                                                                      |
+| `--sweep-read-delay`    | `INCUS_COMPOSE_DNS_SWEEP_READ_DELAY`    | `5s`    | gap between the reads inside one project                                                                                                                             |
+| `--echo-subnet`         | `INCUS_COMPOSE_DNS_ECHO_SUBNET`         | off     | echo the RFC 7871 client subnet back                                                                                                                                 |
+| `--exclude`             | `INCUS_COMPOSE_DNS_EXCLUDE`             |         | chain position(s) to leave out                                                                                                                                       |
+| `--log`                 | `INCUS_COMPOSE_DNS_LOG`                 |         | level the chain's log positions and the process itself print at: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`; empty leaves the positions out and the process at `INFO` |
 
 `--ttl` is short on purpose. A fleet moves, and a resolver that cached an
 address for an hour is one handing out an address that has been reassigned.
