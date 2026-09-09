@@ -34,10 +34,11 @@ leafwiki_last_author_id: vOmfrlBDg
   zone, with PowerDNS-Admin and MariaDB behind it.
 - [wikijs](wikijs/) - Wiki.js, a modern wiki app, backed by Postgres.
 
-The various `compose.yaml` files are
-under https://github.com/lxc/incus-compose/tree/main/examples
+The various `compose.yaml` files are under
+https://github.com/lxc/incus-compose/tree/main/examples
 
 For your convience:
+
 ```bash
 git clone https://github.com/lxc/incus-compose
 cd incus-compose/examples

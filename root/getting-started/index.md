@@ -80,6 +80,30 @@ incus remote switch local-https
 incus list --all-projects
 ```
 
+#### Selecting the Remote
+
+incus-compose selects which remote to connect to in this order:
+
+1. `--remote <my-remote>` CLI flag
+2. `INCUS_REMOTE` environment variable
+3. The active remote configured in Incus (`incus remote switch <my-remote>`,
+   **preferred**)
+
+Setting the default remote with `incus remote switch <my-remote>` is preferred
+because it is perstistent:
+
+```bash
+# Preferred: switch Incus default remote
+incus remote switch my-remote
+incus-compose up
+
+# Override for a single command
+incus-compose --remote my-remote up
+
+# Or via environment variable
+export INCUS_REMOTE=my-remote
+```
+
 #### Listen on a specific IP Address
 
 If you don't want to listen on all interfaces, set the
@@ -443,6 +467,9 @@ port incus-compose connected on, which a Unix socket does not have, so there the
 endpoint must be set explicitly. See
 [Network Configuration](/healthd#network-configuration).
 
+To switch between local and remote daemons, use
+`incus remote switch <my-remote>` (preferred), pass `--remote <my-remote>`, or
+set `INCUS_REMOTE`. See [Selecting the Remote](#selecting-the-remote).
 
 ## Next Steps
 
