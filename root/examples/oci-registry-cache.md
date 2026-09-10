@@ -8,7 +8,7 @@ title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-08-28T06:55:34.430400963Z"
+leafwiki_updated_at: "2026-09-10T21:54:56.731148052Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -187,6 +187,43 @@ incus remote add --protocol oci registry.gitlab.com https://gitlab-registry.exam
 - Cache storage is backed by a named Incus volume (`cache`) and survives
   container restarts. The config is owned by uid/gid `65532` to match the
   image's `nonroot` user.
+
+## Podman configuration
+
+This is the authors 
+
+```
+[[registry]]
+prefix = "docker.io"
+location = "docker.io"
+
+[[registry.mirror]]
+location = "docker-registry.home.example.com"
+
+[[registry]]
+prefix = "ghcr.io"
+location = "ghcr.io"
+
+[[registry.mirror]]
+location = "ghcr-registry.home.example.com"
+
+[[registry]]
+prefix = "quay.io"
+location = "quay.io"
+
+[[registry.mirror]]
+location = "quay-registry.home.example.com"
+
+[[registry]]
+prefix = "registry.gitlab.com"
+location = "registry.gitlab.com"
+
+[[registry.mirror]]
+location = "gitlab-registry.home.example.com"
+
+[storage]
+driver = "overlay"
+```
 
 ## Reference
 
