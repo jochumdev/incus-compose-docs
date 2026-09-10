@@ -8,7 +8,7 @@ title: OCI Registry Cache
 leafwiki_id: kPmBwcLvg
 leafwiki_title: OCI Registry Cache
 leafwiki_created_at: "2026-07-12T02:09:09.313763547Z"
-leafwiki_updated_at: "2026-09-10T21:54:56.731148052Z"
+leafwiki_updated_at: "2026-09-10T21:55:29.440232967Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -190,7 +190,7 @@ incus remote add --protocol oci registry.gitlab.com https://gitlab-registry.exam
 
 ## Podman configuration
 
-This is the authors 
+This is the authors `~/.config/containers/containers.conf` to use the same pass trough setup for podman.
 
 ```
 [[registry]]
