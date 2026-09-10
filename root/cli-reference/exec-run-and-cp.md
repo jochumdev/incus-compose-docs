@@ -207,7 +207,7 @@ flags that deliberately have none.
 | `run`               | `INCUS_COMPOSE_RUN_NO_BUILD`      | `--no-build`            | Never build                                   |
 | `run`               | `INCUS_COMPOSE_RUN_BUILDER`       | `--builder`             | Preferred builder                             |
 | `run`               | `INCUS_COMPOSE_RUN_PULL`          | `--pull`                | always / missing / never                      |
-| `run`, `pull`, `up` | `INCUS_COMPOSE_INIT_IMAGE`        | `--init`                | Image the blocking helper comes from          |
+| `run`, `pull`, `up` | `INCUS_COMPOSE_SLEEP_IMAGE`       | `--sleep-image`         | Image the blocking helper comes from          |
 | `run`               | `INCUS_COMPOSE_RUN_TIMEOUT`       | `--timeout`             | Timeout for creating and stopping the one-off |
 | `exec`              | `INCUS_COMPOSE_EXEC_DETACH`       | `--detach`, `-d`        | Run command in the background                 |
 | `exec`              | `INCUS_COMPOSE_EXEC_ENV`          | `--env`, `-e`           | Set environment variables (KEY=VALUE)         |

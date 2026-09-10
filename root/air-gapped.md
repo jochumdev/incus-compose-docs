@@ -21,11 +21,11 @@ and run on a disconnected one.
 Three images, not one. Two of them are easy to forget, because nothing in the
 compose file names them:
 
-| Image              | Comes from                             | Point it elsewhere with                                      |
-| ------------------ | -------------------------------------- | ------------------------------------------------------------ |
-| Service images     | `image:` in the compose file           | an Incus remote, see [Mirrors](#mirrors-the-middle-ground)   |
-| ic-healthd sidecar | `ghcr.io/lxc/incus-compose/ic-healthd` | `--healthd-image`, `INCUS_COMPOSE_HEALTHD_IMAGE`             |
-| The `run` helper   | `ghcr.io/lxc/incus-compose/ic-sleep`   | `--init`, `x-incus-compose.init`, `INCUS_COMPOSE_INIT_IMAGE` |
+| Image              | Comes from                             | Point it elsewhere with                                       |
+| ------------------ | -------------------------------------- | ------------------------------------------------------------- |
+| Service images     | `image:` in the compose file           | an Incus remote, see [Mirrors](#mirrors-the-middle-ground)    |
+| ic-healthd sidecar | `ghcr.io/lxc/incus-compose/ic-healthd` | `--healthd-image`, `INCUS_COMPOSE_HEALTHD_IMAGE`              |
+| The `run` helper   | `ghcr.io/lxc/incus-compose/ic-sleep`   | `--init`, `x-incus-compose.init`, `INCUS_COMPOSE_SLEEP_IMAGE` |
 
 `pull` fetches all three, but only _warns_ on the last two - see
 [How the exit code is obtained](/cli-reference/exec-run-and-cp#how-the-exit-code-is-obtained).
