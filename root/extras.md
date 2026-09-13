@@ -341,3 +341,34 @@ network resources for service network attachments. Instances use the network
 devices provided by the copied profile instead. Service-level static IP
 assignments (`ipv4_address` / `ipv6_address`) are not supported in this mode
 because incus-compose does not create explicit NIC devices.
+
+### Network
+
+Configure default network driver and uplink settings for the project with the
+top-level `x-incus-compose.network` extension:
+
+```yaml
+x-incus-compose:
+  network:
+    driver: ovn
+    uplink: incusbr0
+
+services:
+  web:
+    image: docker.io/nginx:alpine
+```
+
+| Key      | Description                                                                                                                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `driver` | Network driver to use for project networks: `auto` (default, uses OVN if available on the Incus server, otherwise bridge), `ovn`, or `bridge`. Can also be set via `--network-driver` or `INCUS_COMPOSE_NETWORK_DRIVER` on `up`. |
+| `uplink` | Uplink parent network to use for OVN networks (e.g. `incusbr0`). Applied to OVN networks that do not define their own uplink. Can also be set via `--network-uplink` or `INCUS_COMPOSE_NETWORK_UPLINK` on `up`.                  |
+
+Individual networks can override the uplink using `x-incus-compose.uplink` (or
+`x-incus-compose.parent`):
+
+```yaml
+networks:
+  custom:
+    x-incus-compose:
+      uplink: my-uplink
+```

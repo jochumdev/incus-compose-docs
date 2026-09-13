@@ -41,6 +41,8 @@ incus-compose up [SERVICE...]
 | `--healthd-incus`      | Incus API URL healthd connects to; overrides `x-incus-compose.healthd.incus`; unset uses `core.https_address`, else the bridge IP                                                                                                                  |
 | `--healthd-network`    | Network for healthd; overrides `x-incus-compose.healthd.network`; the bridge of the project it runs in if unset                                                                                                                                    |
 | `--healthd-scope`      | `global` (shared daemon in the Incus `incus-compose` project, the default) or `project`; loses to a scope the project already carries                                                                                                              |
+| `--network-driver`     | Network driver to use for project networks: `auto` (default), `ovn`, or `bridge`                                                                                                                                                                   |
+| `--network-uplink`     | Uplink network for OVN networks (e.g. `incusbr0`)                                                                                                                                                                                                  |
 
 Without `--detach`, `up` streams logs from all started services (equivalent to
 running `logs --follow` immediately after). Use `--detach` to return as soon as
@@ -117,6 +119,8 @@ flags that deliberately have none.
 | `up`      | `INCUS_COMPOSE_HEALTHD_INCUS`         | `--healthd-incus`      | Incus API URL for the sidecar             |
 | `up`      | `INCUS_COMPOSE_HEALTHD_NETWORK`       | `--healthd-network`    | Network for the sidecar                   |
 | `up`      | `INCUS_COMPOSE_HEALTHD_SCOPE`         | `--healthd-scope`      | `global` or `project`                     |
+| `up`      | `INCUS_COMPOSE_NETWORK_DRIVER`        | `--network-driver`     | Network driver (`auto`, `ovn`, `bridge`)  |
+| `up`      | `INCUS_COMPOSE_NETWORK_UPLINK`        | `--network-uplink`     | Uplink network for OVN networks           |
 | `down`    | `INCUS_COMPOSE_DOWN_RMI`              | `--rmi`                | Remove images used by services            |
 | `down`    | `INCUS_COMPOSE_DOWN_IMAGES`           | `--images`             | Remove known images from the project      |
 | `down`    | `INCUS_COMPOSE_DOWN_TIMEOUT`          | `--timeout`            | Timeout for stopping                      |

@@ -11,7 +11,7 @@ leafwiki_last_author_id: system
 
 # Networks
 
-- Bridge networks (Incus default)
+- Bridge and OVN networks (OVN is auto-selected when supported by Incus)
 - Network isolation between services
 - DNS resolution by service name and by instance name
 - Extra DNS names per service via `aliases` (see below)
@@ -25,6 +25,41 @@ leafwiki_last_author_id: system
 Not supported:
 
 - Custom network drivers
+
+## Network Drivers (OVN and Bridge)
+
+incus-compose supports both **OVN** and **bridge** network drivers.
+
+When creating a new project, incus-compose automatically selects OVN if the
+Incus server has OVN networking configured. Otherwise, it falls back to bridge
+networks. Existing projects preserve the driver they were created with.
+
+You can configure the network driver and uplink network using the top-level
+`x-incus-compose.network` extension:
+
+```yaml
+x-incus-compose:
+  network:
+    driver: ovn
+    uplink: incusbr0
+```
+
+- `driver`: `auto` (default), `ovn`, or `bridge`. Can also be overridden via the
+  `--network-driver` flag or `INCUS_COMPOSE_NETWORK_DRIVER` environment variable
+  on `up`.
+- `uplink`: Uplink parent network for OVN networks (e.g. `incusbr0`). Can also
+  be overridden via `--network-uplink` or `INCUS_COMPOSE_NETWORK_UPLINK` on
+  `up`.
+
+Individual networks can also override the uplink using `x-incus-compose.uplink`
+(or `x-incus-compose.parent`):
+
+```yaml
+networks:
+  backend:
+    x-incus-compose:
+      uplink: incusbr0
+```
 
 ## External Networks
 
