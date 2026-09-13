@@ -104,3 +104,11 @@ filesystem, where the mount hid it.
 
 _Changed in 1.2.0_: a target that already existed in the image was previously
 left untouched, which silently ignored the config or secret.
+
+`/run` is a special case: Incus mounts a tmpfs over it for OCI containers, so a
+secret or config written under `/run` before the instance starts - including the
+default `/run/secrets/{name}` target - may be hidden by that mount. Nothing
+warns about it, because the tmpfs is not a device incus-compose declared. Target
+a path outside `/run` when the file has to be readable at runtime. Incus 7.4 and
+LTS releases after 7.0.1 fix this by skipping the tmpfs when the image populates
+`/run`, which a pushed file does.
