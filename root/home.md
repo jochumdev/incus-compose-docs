@@ -9,7 +9,7 @@ title: Home
 leafwiki_id: iyelq_Bvg
 leafwiki_title: Home
 leafwiki_created_at: "2026-07-05T03:53:58.754411983Z"
-leafwiki_updated_at: "2026-08-31T14:33:26.853445689Z"
+leafwiki_updated_at: "2026-09-28T01:48:44.845474404Z"
 leafwiki_creator_id: vOmfrlBDg
 leafwiki_last_author_id: D93XDmQvR
 ---
@@ -128,6 +128,10 @@ install
 [incus-compose-bin](https://aur.archlinux.org/packages/incus-compose-bin) (or
 [incus-compose-git](https://aur.archlinux.org/packages/incus-compose-git) for
 builds from `main`) from the AUR.
+
+On Mac you may use `brew install tallica/tap/incus-compose` see:
+https://discuss.linuxcontainers.org/t/lazyincus-a-lazydocker-style-terminal-ui-for-incus/27283
+.
 
 Then point it at your existing `compose.yaml`:
 
