@@ -233,6 +233,13 @@ becomes a `StorageVolume` with `HostPath` set, seeded on `Start()`, and a single
 file becomes an `InstanceFile` pushed from `start()`. Both read the source
 locally and write it to the server, so neither needs the hosts to match.
 
+A pass-through bind mount can also opt out of both `SameHost()` and the local
+`os.Stat(cVol.Source)` check by setting `x-incus-compose.remote: true` inline on
+the volume entry or by configuring the client with
+`ClientAllowRemoteMounts(true)` (`--allow-remote-mounts` /
+`INCUS_COMPOSE_ALLOW_REMOTE_MOUNTS`). In either case `cVol.Source` is handed to
+Incus directly and resolved on the remote server's filesystem.
+
 ## Instance Lifecycle
 
 ### Ensure
