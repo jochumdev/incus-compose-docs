@@ -252,13 +252,16 @@ services:
 The source is read by incus-compose, on the machine you run it from, and must
 exist there. What happens next depends on what it is:
 
-- **A directory** becomes a custom storage volume, filled from the directory
-  when the volume is **created**. Later changes on your machine do not
-  propagate: the volume goes its own way from there, and `up` will not re-seed
-  it. Delete the volume to start over.
+- **A directory** becomes a custom storage volume, filled from the directory on
+  **every `up`**, overwriting matching files in the volume while leaving any
+  other files there untouched.
 - **A single file** is pushed into the instance on **every start**, while it is
   still stopped, overwriting what is there. Handy for a config or a key you want
   refreshed each time.
+
+> **Warning:** Changed in v1.3.5. Directory volumes are now re-seeded on every
+> `up`, overwriting matching files in the target. Earlier versions only seeded
+> the volume when it was first created.
 
 Seeding is a copy, in one direction. Nothing written inside the container comes
 back out, so it does not replace a named volume for data you mean to keep.
@@ -266,6 +269,34 @@ back out, so it does not replace a named volume for data you mean to keep.
 Seeding is off by default: bind mounts are plain pass-through unless you ask.
 
 _Since: v1.0.0_
+
+### Remote bind mounts
+
+By default, a pass-through bind mount (without `seed: true`) is refused when the
+Incus server is on a remote host, and its `source` path is checked on the client
+machine with `os.Stat`. When the source path already exists on the remote Incus
+host (for example, shared storage or a host path managed on the server), set
+`x-incus-compose.remote: true` inline on the volume entry to skip both the
+same-host check and the local `os.Stat` check:
+
+```yaml
+services:
+  web:
+    image: docker.io/library/busybox:glibc
+    volumes:
+      - type: bind
+        source: /srv/shared/html
+        target: /www
+        read_only: true
+        x-incus-compose:
+          remote: true
+```
+
+To allow all bind mounts in a project to pass through to a remote Incus server
+without editing `compose.yaml`, pass the global `--allow-remote-mounts` flag or
+set `INCUS_COMPOSE_ALLOW_REMOTE_MOUNTS=true`.
+
+_Since: v1.3.5_
 
 ### Backup
 

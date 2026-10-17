@@ -190,7 +190,8 @@ incus remote add --protocol oci registry.gitlab.com https://gitlab-registry.exam
 
 ## Podman configuration
 
-This is the authors `~/.config/containers/containers.conf` to use the same pass trough setup for podman.
+This is the authors `~/.config/containers/containers.conf` to use the same pass
+trough setup for podman.
 
 ```
 [[registry]]
